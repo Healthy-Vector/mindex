@@ -1,0 +1,24 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: mindex-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-mindex}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-mindex}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mindex}"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+
+# pgvector/pgvector:pg16 = PostgreSQL 16 + pgvector 내장.
+# OpenSQL(PostgreSQL 16.8 기반)과 같은 메이저 버전이라 이관 시 스키마 그대로 호환된다.
+# 라이선스가 오면 .env의 DATABASE_URL 접속 정보만 OpenSQL 실물로 교체한다 (CR-03).

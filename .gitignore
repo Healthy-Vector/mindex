@@ -1,0 +1,46 @@
+# OpenSQL 라이선스 — 절대 커밋 금지
+licenses/
+*_license.xml
+
+# 환경 설정 (비밀번호·API 키)
+.env
+*.env
+!.env.example
+common.env
+remote.env
+patroni.config.env
+openproxy.config.env
+
+# 생성 설정 파일
+patroni.yml
+openproxy.toml
+
+# SSH 키
+id_rsa_opensql*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 데이터 (합성 데이터 산출물은 커밋하지 않고 스크립트만 커밋)
+data/generated/
+*.pdf
+*.docx
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# 기타
+.DS_Store
+*.log
+.idea/
+.vscode/
