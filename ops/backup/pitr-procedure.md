@@ -6,7 +6,7 @@
 
 ## 방식
 
-OpenBackup이 PITR(Point-In-Time Recovery)을 기본 지원한다 (RFP v1.6 확인). 개발 단계(Docker pgvector 이미지)에서는 표준 PostgreSQL 도구로 동일 절차를 리허설하고, OpenSQL 실물 확보 시 OpenBackup 명령으로 교체한다.
+OpenSQL은 백업·복구에 **Barman**(Python 기반 오픈소스 PostgreSQL 백업 도구)을 사용한다 (docs.tibero.com/tmaxopensql 공식 매뉴얼 확인 — 이전엔 "OpenBackup"으로 잘못 표기했던 것을 정정함). 개발 단계(Docker pgvector 이미지)에서는 표준 PostgreSQL 도구(`pg_basebackup`)로 동일 절차를 리허설하고, OpenSQL 실물 확보 시 Barman 명령으로 교체한다.
 
 `docker-compose.yml`에 WAL 아카이빙 설정(`archive_mode=on`, `archive_command`, `archive` 볼륨)을 반영해뒀다.
 
@@ -92,5 +92,6 @@ docker volume rm mindex_restore_data
 
 - [x] `docker-compose.yml`에 WAL 아카이빙 설정 추가
 - [x] 리허설 실제 수행 및 소요 시간 기입 (A3 검수 기준 — 9.3)
-- [ ] OpenSQL 실물 확보 시 `pg_basebackup` → OpenBackup 명령으로 교체, 동일 리허설 재수행
-- [ ] `docs.tibero.com/tmaxopensql`에서 OpenBackup 실제 명령어 문법 확인
+- [ ] OpenSQL 실물 확보 시 `pg_basebackup` → Barman 명령으로 교체, 동일 리허설 재수행
+- [x] `docs.tibero.com/tmaxopensql`에서 백업 도구 확인 — Barman으로 확정 (2026-08-08)
+- [ ] OpenSQL 설치·라이선스 실제 검증 (ops/opensql-install-verification.md 참조, 설치 완료 후 수행)
