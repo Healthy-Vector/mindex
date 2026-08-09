@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "for P in python3 python py; do \"$P\" -c \"\" >/dev/null 2>&1 && { \"$P\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.py\"; break; }; done 2>/dev/null || true",
+            "statusMessage": "WORKLOG · DECISIONS 읽는 중",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

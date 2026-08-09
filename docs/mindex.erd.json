@@ -1,0 +1,1188 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dineug/erd-editor/main/json-schema/schema.json",
+  "version": "3.0.0",
+  "settings": {
+    "width": 2000,
+    "height": 2000,
+    "scrollTop": -362.5,
+    "scrollLeft": -230.2195,
+    "zoomLevel": 0.76,
+    "show": 431,
+    "database": 16,
+    "databaseName": "mindex",
+    "canvasType": "ERD",
+    "language": 1,
+    "tableNameCase": 1,
+    "columnNameCase": 1,
+    "bracketType": 1,
+    "relationshipDataTypeSync": true,
+    "relationshipOptimization": false,
+    "columnOrder": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "maxWidthComment": -1,
+    "ignoreSaveSettings": 0
+  },
+  "doc": {
+    "tableIds": [
+      "table-content",
+      "table-contract",
+      "table-contract_chunk",
+      "table-rights_grant",
+      "table-change_log"
+    ],
+    "relationshipIds": [
+      "rel-1",
+      "rel-2",
+      "rel-3"
+    ],
+    "indexIds": [
+      "index-1",
+      "index-2"
+    ],
+    "memoIds": [
+      "memo-1"
+    ]
+  },
+  "collections": {
+    "tableEntities": {
+      "table-content": {
+        "id": "table-content",
+        "name": "content",
+        "comment": "콘텐츠(IP) — 담당 P2",
+        "columnIds": [
+          "col-content-id",
+          "col-content-tenant_id",
+          "col-content-title"
+        ],
+        "seqColumnIds": [
+          "col-content-id",
+          "col-content-tenant_id",
+          "col-content-title"
+        ],
+        "ui": {
+          "x": 68.9473,
+          "y": 169.2107,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 114,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066341032,
+          "createAt": 1754524800000
+        }
+      },
+      "table-contract": {
+        "id": "table-contract",
+        "name": "contract",
+        "comment": "계약서 — 담당 P2",
+        "columnIds": [
+          "col-contract-id",
+          "col-contract-tenant_id",
+          "col-contract-counterparty",
+          "col-contract-signed_date",
+          "col-contract-raw_text",
+          "col-contract-amount",
+          "col-contract-version",
+          "col-contract-created_at"
+        ],
+        "seqColumnIds": [
+          "col-contract-id",
+          "col-contract-tenant_id",
+          "col-contract-counterparty",
+          "col-contract-signed_date",
+          "col-contract-raw_text",
+          "col-contract-amount",
+          "col-contract-version",
+          "col-contract-created_at"
+        ],
+        "ui": {
+          "x": 641.8422,
+          "y": 58.6842,
+          "zIndex": 2,
+          "widthName": 60,
+          "widthComment": 97,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066323130,
+          "createAt": 1754524800000
+        }
+      },
+      "table-contract_chunk": {
+        "id": "table-contract_chunk",
+        "name": "contract_chunk",
+        "comment": "조항 청크 + 벡터 (SFR-005) — 담당 P3",
+        "columnIds": [
+          "col-contract_chunk-id",
+          "col-contract_chunk-tenant_id",
+          "col-contract_chunk-contract_id",
+          "col-contract_chunk-clause_no",
+          "col-contract_chunk-chunk_text",
+          "col-contract_chunk-lang",
+          "col-contract_chunk-embedding"
+        ],
+        "seqColumnIds": [
+          "col-contract_chunk-id",
+          "col-contract_chunk-tenant_id",
+          "col-contract_chunk-contract_id",
+          "col-contract_chunk-clause_no",
+          "col-contract_chunk-chunk_text",
+          "col-contract_chunk-lang",
+          "col-contract_chunk-embedding"
+        ],
+        "ui": {
+          "x": 1345.5265,
+          "y": 71.8422,
+          "zIndex": 2,
+          "widthName": 82,
+          "widthComment": 205,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066312077,
+          "createAt": 1754524800000
+        }
+      },
+      "table-rights_grant": {
+        "id": "table-rights_grant",
+        "name": "rights_grant",
+        "comment": "권리 레코드 — 지역 1개당 1행. 담당 P2",
+        "columnIds": [
+          "col-rights_grant-id",
+          "col-rights_grant-tenant_id",
+          "col-rights_grant-contract_id",
+          "col-rights_grant-content_id",
+          "col-rights_grant-territory",
+          "col-rights_grant-rights_type",
+          "col-rights_grant-period",
+          "col-rights_grant-is_exclusive",
+          "col-rights_grant-confidence",
+          "col-rights_grant-verified_by",
+          "col-rights_grant-verified_at",
+          "col-rights_grant-source_page",
+          "col-rights_grant-source_clause",
+          "col-rights_grant-source_quote"
+        ],
+        "seqColumnIds": [
+          "col-rights_grant-id",
+          "col-rights_grant-tenant_id",
+          "col-rights_grant-contract_id",
+          "col-rights_grant-content_id",
+          "col-rights_grant-territory",
+          "col-rights_grant-rights_type",
+          "col-rights_grant-period",
+          "col-rights_grant-is_exclusive",
+          "col-rights_grant-confidence",
+          "col-rights_grant-verified_by",
+          "col-rights_grant-verified_at",
+          "col-rights_grant-source_page",
+          "col-rights_grant-source_clause",
+          "col-rights_grant-source_quote"
+        ],
+        "ui": {
+          "x": 507.3684,
+          "y": 491.8421,
+          "zIndex": 2,
+          "widthName": 65,
+          "widthComment": 210,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066269107,
+          "createAt": 1754524800000
+        }
+      },
+      "table-change_log": {
+        "id": "table-change_log",
+        "name": "change_log",
+        "comment": "변경 로그 — 워커가 폴링 (SFR-010) 담당 P1",
+        "columnIds": [
+          "col-change_log-id",
+          "col-change_log-tenant_id",
+          "col-change_log-table_name",
+          "col-change_log-row_id",
+          "col-change_log-op",
+          "col-change_log-processed_at",
+          "col-change_log-created_at"
+        ],
+        "seqColumnIds": [
+          "col-change_log-id",
+          "col-change_log-table_name",
+          "col-change_log-row_id",
+          "col-change_log-op",
+          "col-change_log-processed_at",
+          "col-change_log-created_at",
+          "col-change_log-tenant_id"
+        ],
+        "ui": {
+          "x": 1268.6842,
+          "y": 496.3158,
+          "zIndex": 2,
+          "widthName": 63,
+          "widthComment": 233,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066350640,
+          "createAt": 1754524800000
+        }
+      }
+    },
+    "tableColumnEntities": {
+      "col-content-id": {
+        "id": "col-content-id",
+        "tableId": "table-content",
+        "name": "id",
+        "comment": "",
+        "dataType": "BIGSERIAL",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-content-tenant_id": {
+        "id": "col-content-tenant_id",
+        "tableId": "table-content",
+        "name": "tenant_id",
+        "comment": "테넌트 격리 키 (SER-002)",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 135,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-content-title": {
+        "id": "col-content-title",
+        "tableId": "table-content",
+        "name": "title",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-id": {
+        "id": "col-contract-id",
+        "tableId": "table-contract",
+        "name": "id",
+        "comment": "",
+        "dataType": "BIGSERIAL",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-tenant_id": {
+        "id": "col-contract-tenant_id",
+        "tableId": "table-contract",
+        "name": "tenant_id",
+        "comment": "테넌트 격리 키 (SER-002)",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 135,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-counterparty": {
+        "id": "col-contract-counterparty",
+        "tableId": "table-contract",
+        "name": "counterparty",
+        "comment": "계약 당사자 (SFR-006)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 70,
+          "widthComment": 119,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-signed_date": {
+        "id": "col-contract-signed_date",
+        "tableId": "table-contract",
+        "name": "signed_date",
+        "comment": "체결일 (SFR-006)",
+        "dataType": "DATE",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 66,
+          "widthComment": 92,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-raw_text": {
+        "id": "col-contract-raw_text",
+        "tableId": "table-contract",
+        "name": "raw_text",
+        "comment": "계약 원문 — SER-006 암호화 대상 (미적용)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 229,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-amount": {
+        "id": "col-contract-amount",
+        "tableId": "table-contract",
+        "name": "amount",
+        "comment": "계약 금액 — SER-006 암호화 대상 (미적용)",
+        "dataType": "NUMERIC",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 229,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-version": {
+        "id": "col-contract-version",
+        "tableId": "table-contract",
+        "name": "version",
+        "comment": "문서 버전 (SFR-006)",
+        "dataType": "INT",
+        "default": "1",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 107,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract-created_at": {
+        "id": "col-contract-created_at",
+        "tableId": "table-contract",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "TIMESTAMPTZ",
+        "default": "now()",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 79,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-id": {
+        "id": "col-contract_chunk-id",
+        "tableId": "table-contract_chunk",
+        "name": "id",
+        "comment": "",
+        "dataType": "BIGSERIAL",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-tenant_id": {
+        "id": "col-contract_chunk-tenant_id",
+        "tableId": "table-contract_chunk",
+        "name": "tenant_id",
+        "comment": "복합 FK (id, tenant_id)의 일부 — 테넌트 불일치를 DB가 거부 (SER-002, P-2)",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-contract_id": {
+        "id": "col-contract_chunk-contract_id",
+        "tableId": "table-contract_chunk",
+        "name": "contract_id",
+        "comment": "ON DELETE CASCADE",
+        "dataType": "BIGINT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 116,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-clause_no": {
+        "id": "col-contract_chunk-clause_no",
+        "tableId": "table-contract_chunk",
+        "name": "clause_no",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-chunk_text": {
+        "id": "col-contract_chunk-chunk_text",
+        "tableId": "table-contract_chunk",
+        "name": "chunk_text",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-lang": {
+        "id": "col-contract_chunk-lang",
+        "tableId": "table-contract_chunk",
+        "name": "lang",
+        "comment": "한/영/일/중",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 64,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-contract_chunk-embedding": {
+        "id": "col-contract_chunk-embedding",
+        "tableId": "table-contract_chunk",
+        "name": "embedding",
+        "comment": "multilingual-e5-large. 컬럼 암호화 제외(계층2로 보호)",
+        "dataType": "vector(1024)",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 287,
+          "widthDataType": 68,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-id": {
+        "id": "col-rights_grant-id",
+        "tableId": "table-rights_grant",
+        "name": "id",
+        "comment": "",
+        "dataType": "BIGSERIAL",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-tenant_id": {
+        "id": "col-rights_grant-tenant_id",
+        "tableId": "table-rights_grant",
+        "name": "tenant_id",
+        "comment": "복합 FK (id, tenant_id)의 일부 — 테넌트 불일치를 DB가 거부 (SER-002, P-2)",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-contract_id": {
+        "id": "col-rights_grant-contract_id",
+        "tableId": "table-rights_grant",
+        "name": "contract_id",
+        "comment": "ON DELETE CASCADE",
+        "dataType": "BIGINT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 116,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-content_id": {
+        "id": "col-rights_grant-content_id",
+        "tableId": "table-rights_grant",
+        "name": "content_id",
+        "comment": "",
+        "dataType": "BIGINT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 2,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-territory": {
+        "id": "col-rights_grant-territory",
+        "tableId": "table-rights_grant",
+        "name": "territory",
+        "comment": "'JP','KR' 등 단일 값. TEXT[]는 GiST && opclass 부재로 불가 (DAR-001 v1.9)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 390,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-rights_type": {
+        "id": "col-rights_grant-rights_type",
+        "tableId": "table-rights_grant",
+        "name": "rights_type",
+        "comment": "STREAMING/REMAKE/MERCH/PUBLISHING",
+        "dataType": "rights_enum",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 231,
+          "widthDataType": 67,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-period": {
+        "id": "col-rights_grant-period",
+        "tableId": "table-rights_grant",
+        "name": "period",
+        "comment": "",
+        "dataType": "DATERANGE",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 68,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-is_exclusive": {
+        "id": "col-rights_grant-is_exclusive",
+        "tableId": "table-rights_grant",
+        "name": "is_exclusive",
+        "comment": "EXCLUDE 제약조건의 부분 인덱스 조건 (SFR-007)",
+        "dataType": "BOOLEAN",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 62,
+          "widthComment": 262,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-confidence": {
+        "id": "col-rights_grant-confidence",
+        "tableId": "table-rights_grant",
+        "name": "confidence",
+        "comment": "AI 추출 신뢰도 (SFR-004)",
+        "dataType": "NUMERIC(3,2)",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 134,
+          "widthDataType": 77,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-verified_by": {
+        "id": "col-rights_grant-verified_by",
+        "tableId": "table-rights_grant",
+        "name": "verified_by",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-verified_at": {
+        "id": "col-rights_grant-verified_at",
+        "tableId": "table-rights_grant",
+        "name": "verified_at",
+        "comment": "",
+        "dataType": "TIMESTAMPTZ",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 79,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-source_page": {
+        "id": "col-rights_grant-source_page",
+        "tableId": "table-rights_grant",
+        "name": "source_page",
+        "comment": "Evidence Anchoring (SFR-003, 원칙 P-3)",
+        "dataType": "INT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 68,
+          "widthComment": 212,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-source_clause": {
+        "id": "col-rights_grant-source_clause",
+        "tableId": "table-rights_grant",
+        "name": "source_clause",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 75,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-rights_grant-source_quote": {
+        "id": "col-rights_grant-source_quote",
+        "tableId": "table-rights_grant",
+        "name": "source_quote",
+        "comment": "인용 조항 — SER-006 암호화 대상 (미적용)",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 73,
+          "widthComment": 229,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-id": {
+        "id": "col-change_log-id",
+        "tableId": "table-change_log",
+        "name": "id",
+        "comment": "",
+        "dataType": "BIGSERIAL",
+        "default": "",
+        "options": 10,
+        "ui": {
+          "keys": 1,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-table_name": {
+        "id": "col-change_log-table_name",
+        "tableId": "table-change_log",
+        "name": "table_name",
+        "comment": "",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 63,
+          "widthComment": 60,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-row_id": {
+        "id": "col-change_log-row_id",
+        "tableId": "table-change_log",
+        "name": "row_id",
+        "comment": "FK 없음. table_name+row_id로 대상 행을 가리킨다",
+        "dataType": "BIGINT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 270,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-op": {
+        "id": "col-change_log-op",
+        "tableId": "table-change_log",
+        "name": "op",
+        "comment": "INSERT/UPDATE/DELETE",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 130,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-processed_at": {
+        "id": "col-change_log-processed_at",
+        "tableId": "table-change_log",
+        "name": "processed_at",
+        "comment": "NULL이면 미처리. 재시도 위해 상태 보존",
+        "dataType": "TIMESTAMPTZ",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 71,
+          "widthComment": 218,
+          "widthDataType": 79,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-created_at": {
+        "id": "col-change_log-created_at",
+        "tableId": "table-change_log",
+        "name": "created_at",
+        "comment": "",
+        "dataType": "TIMESTAMPTZ",
+        "default": "now()",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 60,
+          "widthDataType": 79,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "col-change_log-tenant_id": {
+        "id": "col-change_log-tenant_id",
+        "tableId": "table-change_log",
+        "name": "tenant_id",
+        "comment": "SER-002 RLS 대상. 트리거가 NEW.tenant_id를 함께 기록",
+        "dataType": "UUID",
+        "default": "",
+        "options": 8,
+        "ui": {
+          "keys": 0,
+          "widthName": 72,
+          "widthComment": 369,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      }
+    },
+    "relationshipEntities": {
+      "rel-1": {
+        "id": "rel-1",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "table-contract",
+          "columnIds": [
+            "col-contract-id",
+            "col-contract-tenant_id"
+          ],
+          "x": 923.3422,
+          "y": 306.6842,
+          "direction": 8
+        },
+        "end": {
+          "tableId": "table-rights_grant",
+          "columnIds": [
+            "col-rights_grant-contract_id",
+            "col-rights_grant-tenant_id"
+          ],
+          "x": 1054.1184,
+          "y": 491.8421,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "rel-2": {
+        "id": "rel-2",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "table-content",
+          "columnIds": [
+            "col-content-id",
+            "col-content-tenant_id"
+          ],
+          "x": 508.9473,
+          "y": 233.2107,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "table-rights_grant",
+          "columnIds": [
+            "col-rights_grant-content_id",
+            "col-rights_grant-tenant_id"
+          ],
+          "x": 689.6184000000001,
+          "y": 491.8421,
+          "direction": 4
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "rel-3": {
+        "id": "rel-3",
+        "identification": false,
+        "relationshipType": 16,
+        "startRelationshipType": 2,
+        "start": {
+          "tableId": "table-contract",
+          "columnIds": [
+            "col-contract-id",
+            "col-contract-tenant_id"
+          ],
+          "x": 1204.8422,
+          "y": 182.6842,
+          "direction": 2
+        },
+        "end": {
+          "tableId": "table-contract_chunk",
+          "columnIds": [
+            "col-contract_chunk-contract_id",
+            "col-contract_chunk-tenant_id"
+          ],
+          "x": 1345.5265,
+          "y": 183.8422,
+          "direction": 1
+        },
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      }
+    },
+    "indexEntities": {
+      "index-1": {
+        "id": "index-1",
+        "name": "contract_chunk_embedding_hnsw",
+        "tableId": "table-contract_chunk",
+        "indexColumnIds": [
+          "index-1-col-1"
+        ],
+        "seqIndexColumnIds": [
+          "index-1-col-1"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "index-2": {
+        "id": "index-2",
+        "name": "change_log_processed_at_partial",
+        "tableId": "table-change_log",
+        "indexColumnIds": [
+          "index-2-col-1"
+        ],
+        "seqIndexColumnIds": [
+          "index-2-col-1"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      }
+    },
+    "indexColumnEntities": {
+      "index-1-col-1": {
+        "id": "index-1-col-1",
+        "indexId": "index-1",
+        "columnId": "col-contract_chunk-embedding",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      },
+      "index-2-col-1": {
+        "id": "index-2-col-1",
+        "indexId": "index-2",
+        "columnId": "col-change_log-processed_at",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1754524800000,
+          "createAt": 1754524800000
+        }
+      }
+    },
+    "memoEntities": {
+      "memo-1": {
+        "id": "memo-1",
+        "value": "SFR-007 충돌 판정 (ERD에 표현 불가 — 아래 제약조건이 프로젝트의 핵심)\n\nALTER TABLE rights_grant\nADD CONSTRAINT no_exclusive_overlap\nEXCLUDE USING gist (\n    tenant_id   WITH =,\n    content_id  WITH =,\n    rights_type WITH =,\n    territory   WITH =,\n    period      WITH &&\n)\nWHERE (is_exclusive);\n\n같은 테넌트·콘텐츠·권리유형·지역에서 기간이 겹치는\n독점권 두 건이면 INSERT가 실패한다.\n애플리케이션 코드로 우회 불가 (원칙 P-2, P-4).\n\n필요 확장: btree_gist, vector\n\n─ 미구현 (P2) ─\n· SER-002 RLS ENABLE+FORCE (벡터 테이블 포함)\n· SFR-006 이전 버전 보존 테이블 · 변경 주체 기록\n· SER-006 raw_text/amount/source_quote ARIA·SEED 암호화\n· change_log 기록 트리거 자체가 없음 (SFR-010, P1)\n· 워커 롤의 RLS 통과 방식 미결 (BYPASSRLS vs 테넌트 순회)\n\n─ 적용됨 ─\n· content/contract UNIQUE (id, tenant_id)\n· 자식 테이블은 (id, tenant_id) 복합 FK로 참조\n  → 테넌트 불일치 행 삽입 불가 (충돌 판정 우회 차단)",
+        "ui": {
+          "x": 16.3159,
+          "y": 490.7895,
+          "zIndex": 1,
+          "width": 460,
+          "height": 520,
+          "color": ""
+        },
+        "meta": {
+          "updateAt": 1786066276105,
+          "createAt": 1754524800000
+        }
+      }
+    }
+  }
+}

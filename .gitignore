@@ -39,6 +39,21 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
+# 개인 작업 문서 — 커밋하지 않는다
+#
+# 세션 진행 기록과 미결 판단은 개인 보관이다. 팀 공유 산출물은
+# docs/RIGHTS-VOCABULARY.md, docs/mindex.erd.json, CLAUDE.md 쪽이다.
+# SessionStart 훅이 아래 파일을 로컬에서 읽지만, 없으면 조용히 넘어간다.
+docs/WORKLOG.md
+docs/DECISIONS.md
+
+# 개인 메모 일반 규칙 — 새로 만들 때는 이 규칙을 쓴다
+docs/personal/
+*.local.md
+
+# 개인 Claude Code 설정 (환경변수·권한 등). settings.json은 팀 공유 훅만 담는다
+.claude/settings.local.json
+
 # 기타
 .DS_Store
 *.log
