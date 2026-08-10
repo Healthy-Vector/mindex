@@ -11,6 +11,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./sql/init:/docker-entrypoint-initdb.d
+      - archive:/var/lib/postgresql/archive
+    command: >
+      postgres
+      -c wal_level=replica
+      -c archive_mode=on
+      -c archive_command='test ! -f /var/lib/postgresql/archive/%f && cp %p /var/lib/postgresql/archive/%f'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mindex}"]
       interval: 5s
@@ -18,7 +24,4 @@ services:
 
 volumes:
   pgdata:
-
-# pgvector/pgvector:pg16 = PostgreSQL 16 + pgvector 내장.
-# OpenSQL(PostgreSQL 16.8 기반)과 같은 메이저 버전이라 이관 시 스키마 그대로 호환된다.
-# 라이선스가 오면 .env의 DATABASE_URL 접속 정보만 OpenSQL 실물로 교체한다 (CR-03).
+  archive:
