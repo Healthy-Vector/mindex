@@ -4,9 +4,9 @@
   "settings": {
     "width": 2000,
     "height": 2000,
-    "scrollTop": -769,
-    "scrollLeft": -306,
-    "zoomLevel": 0.17,
+    "scrollTop": -519.5565,
+    "scrollLeft": -707.674,
+    "zoomLevel": 0.23,
     "show": 431,
     "database": 16,
     "databaseName": "mindex",
@@ -101,15 +101,15 @@
           "col-tenant-created_at"
         ],
         "ui": {
-          "x": 1850,
-          "y": 12,
+          "x": 3337.1391,
+          "y": 563.3398,
           "zIndex": 2,
-          "widthName": 90,
-          "widthComment": 400,
+          "widthName": 60,
+          "widthComment": 463,
           "color": ""
         },
         "meta": {
-          "updateAt": 1786752000000,
+          "updateAt": 1786699567073,
           "createAt": 1786752000000
         }
       },
@@ -157,15 +157,15 @@
           "col-territory_group-note"
         ],
         "ui": {
-          "x": 1495.3289,
-          "y": 12.3027,
+          "x": 1329.4198,
+          "y": 5.4845,
           "zIndex": 2,
           "widthName": 82,
           "widthComment": 298,
           "color": ""
         },
         "meta": {
-          "updateAt": 1786691649072,
+          "updateAt": 1786699350067,
           "createAt": 1786752000000
         }
       },
@@ -271,15 +271,15 @@
           "col-right_mapping-advisory"
         ],
         "ui": {
-          "x": 690,
-          "y": 140,
+          "x": 694.5457,
+          "y": 135.4546,
           "zIndex": 2,
           "widthName": 79,
           "widthComment": 360,
           "color": ""
         },
         "meta": {
-          "updateAt": 1786691504079,
+          "updateAt": 1786699346072,
           "createAt": 1786752000000
         }
       },
@@ -599,15 +599,15 @@
           "col-schema_meta-note"
         ],
         "ui": {
-          "x": 1501.25,
-          "y": 1342.5,
+          "x": 805.7955,
+          "y": 1865.2273,
           "zIndex": 2,
           "widthName": 74,
           "widthComment": 349,
           "color": ""
         },
         "meta": {
-          "updateAt": 1786691455066,
+          "updateAt": 1786699365079,
           "createAt": 1786752000000
         }
       }
@@ -624,9 +624,9 @@
         "ui": {
           "keys": 1,
           "widthName": 60,
-          "widthComment": 380,
+          "widthComment": 352,
           "widthDataType": 60,
-          "widthDefault": 110
+          "widthDefault": 104
         },
         "meta": {
           "updateAt": 1786752000000,
@@ -663,8 +663,8 @@
         "options": 8,
         "ui": {
           "keys": 0,
-          "widthName": 110,
-          "widthComment": 330,
+          "widthName": 88,
+          "widthComment": 372,
           "widthDataType": 60,
           "widthDefault": 60
         },
@@ -683,9 +683,9 @@
         "options": 8,
         "ui": {
           "keys": 0,
-          "widthName": 70,
+          "widthName": 60,
           "widthComment": 60,
-          "widthDataType": 90,
+          "widthDataType": 79,
           "widthDefault": 60
         },
         "meta": {
@@ -1162,7 +1162,7 @@
         "default": "",
         "options": 8,
         "ui": {
-          "keys": 0,
+          "keys": 2,
           "widthName": 60,
           "widthComment": 403,
           "widthDataType": 60,
@@ -1302,7 +1302,7 @@
         "default": "",
         "options": 8,
         "ui": {
-          "keys": 0,
+          "keys": 2,
           "widthName": 60,
           "widthComment": 265,
           "widthDataType": 60,
@@ -2283,8 +2283,8 @@
         "options": 0,
         "ui": {
           "keys": 0,
-          "widthName": 90,
-          "widthComment": 330,
+          "widthName": 78,
+          "widthComment": 423,
           "widthDataType": 60,
           "widthDefault": 60
         },
@@ -2740,54 +2740,168 @@
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 100, "direction": 8 },
-        "end": { "tableId": "table-content", "columnIds": ["col-content-tenant_id"], "x": 645, "y": 307, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 576.0064666666667,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-content",
+          "columnIds": [
+            "col-content-tenant_id"
+          ],
+          "x": 1372.5262,
+          "y": 475.6316,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-tenant-contract": {
         "id": "rel-tenant-contract",
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 130, "direction": 8 },
-        "end": { "tableId": "table-contract", "columnIds": ["col-contract-tenant_id"], "x": 726, "y": 1094, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 677.3398000000002,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-contract",
+          "columnIds": [
+            "col-contract-tenant_id"
+          ],
+          "x": 1325.3157999999999,
+          "y": 1230.2105,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-tenant-contract_version": {
         "id": "rel-tenant-contract_version",
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 160, "direction": 8 },
-        "end": { "tableId": "table-contract_version", "columnIds": ["col-contract_version-tenant_id"], "x": 26, "y": 1071, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 652.0064666666668,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-contract_version",
+          "columnIds": [
+            "col-contract_version-tenant_id"
+          ],
+          "x": 568.7107,
+          "y": 1127.6447,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-tenant-rights_grant": {
         "id": "rel-tenant-rights_grant",
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 190, "direction": 8 },
-        "end": { "tableId": "table-rights_grant", "columnIds": ["col-rights_grant-tenant_id"], "x": 16, "y": 558, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 601.3398000000001,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-rights_grant",
+          "columnIds": [
+            "col-rights_grant-tenant_id"
+          ],
+          "x": 850.25,
+          "y": 636.0833333333334,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-tenant-rights_grant_history": {
         "id": "rel-tenant-rights_grant_history",
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 220, "direction": 8 },
-        "end": { "tableId": "table-rights_grant_history", "columnIds": ["col-rights_grant_history-tenant_id"], "x": 1323, "y": 544, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 626.6731333333335,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-rights_grant_history",
+          "columnIds": [
+            "col-rights_grant_history-tenant_id"
+          ],
+          "x": 2125.1579,
+          "y": 800.2105,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-tenant-contract_chunk": {
         "id": "rel-tenant-contract_chunk",
         "identification": false,
         "relationshipType": 16,
         "startRelationshipType": 2,
-        "start": { "tableId": "table-tenant", "columnIds": ["col-tenant-id"], "x": 1850, "y": 250, "direction": 8 },
-        "end": { "tableId": "table-contract_chunk", "columnIds": ["col-contract_chunk-tenant_id"], "x": 716, "y": 1589, "direction": 1 },
-        "meta": { "updateAt": 1786752000000, "createAt": 1786752000000 }
+        "start": {
+          "tableId": "table-tenant",
+          "columnIds": [
+            "col-tenant-id"
+          ],
+          "x": 3337.1391,
+          "y": 702.6731333333336,
+          "direction": 1
+        },
+        "end": {
+          "tableId": "table-contract_chunk",
+          "columnIds": [
+            "col-contract_chunk-tenant_id"
+          ],
+          "x": 1335.2723,
+          "y": 1725.7514,
+          "direction": 2
+        },
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       },
       "rel-contract-contract_version": {
         "id": "rel-contract-contract_version",
@@ -2811,7 +2925,7 @@
             "col-contract_version-tenant_id"
           ],
           "x": 568.7107,
-          "y": 1183.6447,
+          "y": 1239.6447,
           "direction": 2
         },
         "meta": {
@@ -2830,7 +2944,7 @@
             "col-contract-id",
             "col-contract-tenant_id"
           ],
-          "x": 1025.8157999999999,
+          "x": 876.0658,
           "y": 1094.2105,
           "direction": 4
         },
@@ -2841,7 +2955,7 @@
             "col-rights_grant-tenant_id"
           ],
           "x": 850.25,
-          "y": 906.75,
+          "y": 945.4166666666666,
           "direction": 2
         },
         "meta": {
@@ -2920,9 +3034,9 @@
             "col-contract-id",
             "col-contract-tenant_id"
           ],
-          "x": 1325.3157999999999,
-          "y": 1230.2105,
-          "direction": 2
+          "x": 1175.5657999999999,
+          "y": 1094.2105,
+          "direction": 4
         },
         "end": {
           "tableId": "table-rights_grant_history",
@@ -2930,9 +3044,9 @@
             "col-rights_grant_history-contract_id",
             "col-rights_grant_history-tenant_id"
           ],
-          "x": 1653.6579,
-          "y": 1080.2105000000001,
-          "direction": 8
+          "x": 1323.1579,
+          "y": 928.2105,
+          "direction": 1
         },
         "meta": {
           "updateAt": 1786752000000,
@@ -2951,7 +3065,7 @@
             "col-content-tenant_id"
           ],
           "x": 1372.5262,
-          "y": 419.6316,
+          "y": 363.6316,
           "direction": 2
         },
         "end": {
@@ -2960,7 +3074,7 @@
             "col-rights_grant_history-content_id",
             "col-rights_grant_history-tenant_id"
           ],
-          "x": 1488.4079,
+          "x": 1523.6579,
           "y": 544.2105,
           "direction": 4
         },
@@ -2980,7 +3094,7 @@
             "col-rights_grant-id"
           ],
           "x": 850.25,
-          "y": 674.75,
+          "y": 790.75,
           "direction": 2
         },
         "end": {
@@ -2989,7 +3103,7 @@
             "col-rights_grant_history-rights_grant_id"
           ],
           "x": 1323.1579,
-          "y": 812.2105,
+          "y": 672.2105,
           "direction": 1
         },
         "meta": {
@@ -3016,7 +3130,7 @@
           "columnIds": [
             "col-rights_grant_history-conflict_code"
           ],
-          "x": 1818.9079,
+          "x": 1924.6579,
           "y": 544.2105,
           "direction": 4
         },
@@ -3035,8 +3149,8 @@
           "columnIds": [
             "col-territory_group-code"
           ],
-          "x": 1495.3289,
-          "y": 76.3027,
+          "x": 1329.4198,
+          "y": 69.4845,
           "direction": 1
         },
         "end": {
@@ -3100,8 +3214,8 @@
           "columnIds": [
             "col-right_mapping-statutory_code"
           ],
-          "x": 690,
-          "y": 254,
+          "x": 694.5457,
+          "y": 249.4546,
           "direction": 1
         },
         "meta": {
@@ -3128,8 +3242,8 @@
           "columnIds": [
             "col-right_mapping-jurisdiction"
           ],
-          "x": 690,
-          "y": 178,
+          "x": 694.5457,
+          "y": 173.4546,
           "direction": 1
         },
         "meta": {
@@ -3359,15 +3473,15 @@
         "id": "memo-1",
         "value": "SFR-007 충돌 판정 — D-17로 status 필터가 추가됐다 (ERD 관계선으로 표현 불가)\n\nALTER TABLE rights_grant\nADD CONSTRAINT no_exclusive_overlap\nEXCLUDE USING gist (\n    tenant_id   WITH =,\n    content_id  WITH =,\n    rights_type WITH =,\n    territory   WITH =,\n    period      WITH &&\n)\nWHERE (exclusivity <> 'non_exclusive' AND status IN ('provisional','complete'));\n\n같은 테넌트·콘텐츠·권리유형·지역에서 기간이 겹치는\n독점권 두 건이면 INSERT가 실패한다. draft·review·terminated는\n판정 대상이 아니다. 애플리케이션 코드로 우회 불가 (P-2, P-4).\n\n독점↔비독점은 02_conflict_rules.sql의 STATEMENT 트리거가 잡는다\n(같은 status 필터 적용). 필요 확장: btree_gist, vector",
         "ui": {
-          "x": 1392.9681,
-          "y": 1584.9777,
+          "x": 34.5172,
+          "y": 1742.7115,
           "zIndex": 1,
           "width": 440,
           "height": 317,
           "color": ""
         },
         "meta": {
-          "updateAt": 1786691863967,
+          "updateAt": 1786699410066,
           "createAt": 1786752000000
         }
       },
