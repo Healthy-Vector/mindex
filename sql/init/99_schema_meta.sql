@@ -24,4 +24,9 @@ INSERT INTO schema_meta (version, note) VALUES
      'D-18 rights_grant_history 원장 + conflict_code · D-19 probe_rights_conflict/register_rights_grant 함수'),
     ('2026-08-14.2',
      'D-20 tenant 테이블(팀 공유 API 키, bcrypt 해시만 저장) + 각 테이블 tenant_id FK 추가 · '
-     'D-21 rights_grant_history.ai_note → conflict_report jsonb로 교체');
+     'D-21 rights_grant_history.ai_note → conflict_report jsonb로 교체'),
+    ('2026-08-14.3',
+     'D-22 코드리뷰 반영 — contract_version 스냅샷 트리거 연결 · '
+     'rights_grant_history.history_seq 제거(id로 전역 순서 보장) · '
+     'register_rights_grant()가 parsed 행을 더 이상 UPDATE하지 않음(진짜 append-only) · '
+     'change_log에서 rights_grant 트리거 제거(벡터 재생성과 무관)');

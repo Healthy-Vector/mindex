@@ -41,13 +41,11 @@ BEGIN
 END;
 $$;
 
--- 재색인이 필요한 테이블에만 건다.
--- rights_grant는 충돌 판정 트리거(02)와 같은 테이블에 붙지만 서로 독립이다 —
--- 02는 AFTER STATEMENT, 이쪽은 AFTER ROW라 이벤트가 겹치지 않는다.
+-- 재색인이 필요한 테이블에만 건다. D-22 — rights_grant 트리거는 코드리뷰로
+-- 제거했다. change_log_worker.py의 실제 목적은 계약 원문 재청킹·재임베딩이고
+-- (docstring: "벡터를 재생성한다"), rights_grant는 벡터화 대상이 아니다.
+-- 권리 데이터 자체의 감사 추적은 rights_grant_history(D-18)가 이미 더
+-- 풍부하게 맡고 있으므로 이 큐에 중복해서 쌓을 이유가 없다.
 CREATE TRIGGER contract_change_log
     AFTER INSERT OR UPDATE OR DELETE ON contract
-    FOR EACH ROW EXECUTE FUNCTION log_change();
-
-CREATE TRIGGER rights_grant_change_log
-    AFTER INSERT OR UPDATE OR DELETE ON rights_grant
     FOR EACH ROW EXECUTE FUNCTION log_change();

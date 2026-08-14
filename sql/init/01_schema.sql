@@ -193,6 +193,33 @@ CREATE TABLE contract_version (
     UNIQUE (contract_id, version)
 );
 
+-- D-22 — contract_version은 코드리뷰 시점까지 실제로 채우는 경로가 없었다
+-- (앱 코드 grep 0건). 삭제 대신 트리거로 제대로 연결한다 — SFR-006 요구사항이고,
+-- 원칙 P-4와 같은 논리로 앱이 스냅샷 INSERT를 빠뜨려도 DB가 대신 채운다.
+--
+-- BEFORE UPDATE에서 NEW.version을 올리고, 같은 함수가 OLD 스냅샷을
+-- contract_version에 남긴다. changed_by는 앱이 세션 GUC로 넘기면 반영되고,
+-- 안 넘기면 NULL로 남는다(감사 추적의 '누가'는 앱 레이어 소관, DB는 '무엇이 언제'만 보장).
+CREATE OR REPLACE FUNCTION snapshot_contract_version() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO contract_version (tenant_id, contract_id, version, changed_by, snapshot)
+    VALUES (
+        OLD.tenant_id, OLD.id, OLD.version,
+        NULLIF(current_setting('mindex.changed_by', true), ''),
+        to_jsonb(OLD)
+    );
+    NEW.version := OLD.version + 1;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER contract_version_snapshot
+    BEFORE UPDATE ON contract
+    FOR EACH ROW
+    WHEN (OLD.* IS DISTINCT FROM NEW.*)
+    EXECUTE FUNCTION snapshot_contract_version();
+
 -- ─────────────────────────────────────────────────────────────
 -- 권리 레코드 — 플랫폼의 심장 (DAR-001)
 -- ─────────────────────────────────────────────────────────────
@@ -313,14 +340,24 @@ CREATE INDEX rights_grant_review_queue
 -- rights_grant는 status로 UPDATE(현재 시점만 관리), history는 오직 INSERT다.
 -- 기존 change_log(05)는 P1 재색인 워커용 기술 로그이고 이것과 목적이 다르다 —
 -- 둘 다 유지한다.
+--
+-- D-22 — history_seq(계약 내 순번, MAX+1) 제거. 코드리뷰로 지적된 대로 동시
+-- 등록 시 UNIQUE(contract_id, history_seq) 위반이 나는 구조였다. id(bigserial)가
+-- 이미 전역 삽입 순서를 보장하고 recorded_at도 있으므로, 순번이 필요하면
+-- 조회 시점에 ROW_NUMBER() OVER (PARTITION BY contract_id ORDER BY id)로
+-- 계산하면 된다 — 저장할 이유가 없다.
 CREATE TABLE rights_grant_history (
     id               bigserial PRIMARY KEY,
     tenant_id        uuid   NOT NULL REFERENCES tenant(id),  -- D-20
     contract_id      bigint NOT NULL,
     content_id       bigint NOT NULL,
-    history_seq      int    NOT NULL,      -- 계약 내 순번
 
-    rights_grant_id  bigint REFERENCES rights_grant(id),  -- 등록 전이면 NULL
+    -- D-22 — parsed 행은 등록돼도 이 컬럼을 UPDATE하지 않는다(진짜 append-only).
+    -- "이 parsed가 등록됐는지"는 rights_grant_history에서
+    -- source_history_id = 이 행의 id 인 'registered' 이벤트가 있는지로 판단한다.
+    -- 이 컬럼은 오직 'registered'/'status_changed'/'terminated' 이벤트 INSERT
+    -- 시점에 트리거가 채우는 값이다 — 그 이벤트들은 정의상 특정 rights_grant를 가리킨다.
+    rights_grant_id  bigint REFERENCES rights_grant(id),
     event_type       text   NOT NULL
                      CHECK (event_type IN ('parsed', 'registered', 'status_changed', 'terminated')),
     source_history_id bigint REFERENCES rights_grant_history(id),  -- registered가 가리키는 원본 parsed 행
@@ -345,9 +382,12 @@ CREATE TABLE rights_grant_history (
     recorded_at      timestamptz NOT NULL DEFAULT now(),
 
     FOREIGN KEY (contract_id, tenant_id) REFERENCES contract (id, tenant_id) ON DELETE CASCADE,
-    FOREIGN KEY (content_id,  tenant_id) REFERENCES content  (id, tenant_id),
-    UNIQUE (contract_id, history_seq)
+    FOREIGN KEY (content_id,  tenant_id) REFERENCES content  (id, tenant_id)
 );
+
+CREATE INDEX rights_grant_history_by_source
+    ON rights_grant_history (source_history_id)
+    WHERE source_history_id IS NOT NULL;
 
 CREATE INDEX rights_grant_history_by_grant
     ON rights_grant_history (rights_grant_id)

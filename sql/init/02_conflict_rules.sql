@@ -205,7 +205,6 @@ LANGUAGE plpgsql AS $$
 DECLARE
   v_event text;
   v_src   bigint;
-  v_seq   int;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     v_event := 'registered';
@@ -218,19 +217,14 @@ BEGIN
     v_src := NULL;
   END IF;
 
-  -- 계약 내 순번. 동시에 같은 contract_id로 여러 트랜잭션이 들어오면 UNIQUE
-  -- (contract_id, history_seq) 위반으로 한쪽이 에러날 수 있다 — 재시도로 해결하는
-  -- 드문 경합이며, 계약 1건 등록은 보통 단일 세션이 순차 처리한다(D-07 규약과 같은 전제).
-  SELECT COALESCE(MAX(history_seq), 0) + 1 INTO v_seq
-  FROM rights_grant_history WHERE contract_id = NEW.contract_id;
-
+  -- D-22 — history_seq 제거됨. id(bigserial)가 삽입 순서를 이미 보장한다.
   INSERT INTO rights_grant_history (
-      tenant_id, contract_id, content_id, history_seq, rights_grant_id,
+      tenant_id, contract_id, content_id, rights_grant_id,
       event_type, source_history_id, status_at_event,
       territory, rights_type, period, exclusivity,
       confidence, source_page, source_clause, source_quote
   ) VALUES (
-      NEW.tenant_id, NEW.contract_id, NEW.content_id, v_seq, NEW.id,
+      NEW.tenant_id, NEW.contract_id, NEW.content_id, NEW.id,
       v_event, v_src, NEW.status,
       NEW.territory, NEW.rights_type, NEW.period, NEW.exclusivity,
       NEW.confidence, NEW.source_page, NEW.source_clause, NEW.source_quote
@@ -319,6 +313,10 @@ DECLARE
   h rights_grant_history%ROWTYPE;
   v_new_id bigint;
 BEGIN
+  -- FOR UPDATE로 이 parsed 행에 대한 동시 등록 시도를 직렬화한다. D-22 — 이 행
+  -- 자체는 더 이상 UPDATE하지 않지만(진짜 append-only), 행 잠금 자체는 여전히
+  -- "같은 history_id로 동시에 register 호출" 경합을 막아 준다. 먼저 커밋된 쪽이
+  -- 남긴 'registered' 이벤트를 뒤 트랜잭션이 잠금 해제 후 EXISTS로 보고 걸러낸다.
   SELECT * INTO h FROM rights_grant_history WHERE id = p_history_id FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'history 행 %를 찾을 수 없다', p_history_id;
@@ -326,8 +324,11 @@ BEGIN
   IF h.event_type <> 'parsed' THEN
     RAISE EXCEPTION 'history 행 %는 parsed 이벤트가 아니다 (event_type=%)', p_history_id, h.event_type;
   END IF;
-  IF h.rights_grant_id IS NOT NULL THEN
-    RAISE EXCEPTION 'history 행 %는 이미 등록됐다 (rights_grant_id=%)', p_history_id, h.rights_grant_id;
+  IF EXISTS (
+      SELECT 1 FROM rights_grant_history
+      WHERE source_history_id = p_history_id AND event_type = 'registered'
+  ) THEN
+    RAISE EXCEPTION 'history 행 %는 이미 등록됐다', p_history_id;
   END IF;
   IF p_status NOT IN ('provisional', 'complete', 'draft', 'review') THEN
     RAISE EXCEPTION '등록 상태로 쓸 수 없다: %', p_status;
@@ -346,9 +347,9 @@ BEGIN
   )
   RETURNING id INTO v_new_id;
 
-  -- history 원본 parsed 행에도 어느 rights_grant로 이어졌는지 남긴다.
-  UPDATE rights_grant_history SET rights_grant_id = v_new_id WHERE id = p_history_id;
-
+  -- D-22 — 원본 parsed 행은 건드리지 않는다. 방금 트리거가 자동 기록한
+  -- 'registered' history 행의 source_history_id = p_history_id 연결만으로
+  -- "이 parsed가 어느 rights_grant로 이어졌는지"가 충분히 추적된다.
   RETURN v_new_id;
 END;
 $$;

@@ -74,7 +74,8 @@
       "index-2",
       "index-3",
       "index-4",
-      "index-5"
+      "index-5",
+      "index-6"
     ],
     "memoIds": [
       "memo-1",
@@ -455,7 +456,6 @@
           "col-rights_grant_history-tenant_id",
           "col-rights_grant_history-contract_id",
           "col-rights_grant_history-content_id",
-          "col-rights_grant_history-history_seq",
           "col-rights_grant_history-rights_grant_id",
           "col-rights_grant_history-event_type",
           "col-rights_grant_history-source_history_id",
@@ -477,7 +477,6 @@
           "col-rights_grant_history-tenant_id",
           "col-rights_grant_history-contract_id",
           "col-rights_grant_history-content_id",
-          "col-rights_grant_history-history_seq",
           "col-rights_grant_history-rights_grant_id",
           "col-rights_grant_history-event_type",
           "col-rights_grant_history-source_history_id",
@@ -2014,26 +2013,6 @@
           "createAt": 1786752000000
         }
       },
-      "col-rights_grant_history-history_seq": {
-        "id": "col-rights_grant_history-history_seq",
-        "tableId": "table-rights_grant_history",
-        "name": "history_seq",
-        "comment": "계약 내 순번. UNIQUE(contract_id, history_seq)",
-        "dataType": "INT",
-        "default": "",
-        "options": 8,
-        "ui": {
-          "keys": 0,
-          "widthName": 61,
-          "widthComment": 249,
-          "widthDataType": 60,
-          "widthDefault": 60
-        },
-        "meta": {
-          "updateAt": 1786752000000,
-          "createAt": 1786752000000
-        }
-      },
       "col-rights_grant_history-rights_grant_id": {
         "id": "col-rights_grant_history-rights_grant_id",
         "tableId": "table-rights_grant_history",
@@ -3295,6 +3274,22 @@
           "updateAt": 1786752000000,
           "createAt": 1786752000000
         }
+      },
+      "index-6": {
+        "id": "index-6",
+        "name": "rights_grant_history_by_source",
+        "tableId": "table-rights_grant_history",
+        "indexColumnIds": [
+          "index-6-col-1"
+        ],
+        "seqIndexColumnIds": [
+          "index-6-col-1"
+        ],
+        "unique": false,
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       }
     },
     "indexColumnEntities": {
@@ -3347,6 +3342,16 @@
           "updateAt": 1786752000000,
           "createAt": 1786752000000
         }
+      },
+      "index-6-col-1": {
+        "id": "index-6-col-1",
+        "indexId": "index-6",
+        "columnId": "col-rights_grant_history-source_history_id",
+        "orderType": 1,
+        "meta": {
+          "updateAt": 1786752000000,
+          "createAt": 1786752000000
+        }
       }
     },
     "memoEntities": {
@@ -3368,7 +3373,7 @@
       },
       "memo-2": {
         "id": "memo-2",
-        "value": "D-17~D-19 (2026-08-14) — probe/history 워크플로우\n\n업로드→파싱→검증 →\nprobe_rights_conflict() : rights_grant에 INSERT 시도 후 무조건 ROLLBACK\n  → 충돌 여부(conflict_code)만 반환, 흔적 0\n→ \"저장\" 버튼 : rights_grant_history에 event_type='parsed' INSERT\n→ \"등록\" 버튼 : register_rights_grant(history_id)\n  → rights_grant에 진짜 INSERT (여기서 재판정됨)\n  → 트리거가 event_type='registered' history 자동 기록\n→ 이후 status UPDATE(가확정/완료/종료)마다\n  트리거가 status_changed/terminated history 자동 기록\n\n실측 확인 (spike-p2/14~16, 2026-08-14):\n· pg_advisory_xact_lock은 ROLLBACK TO SAVEPOINT로 즉시 풀린다\n  (D-07 당시 가정과 반대 — 스파이크로 뒤집힘)\n· KO-C03(문 내부 다중 행 중 1건 충돌 시 전체 롤백)이\n  ROW 레벨 history 트리거와 공존해도 그대로 성립\n\nD-20~D-21 (같은 날 후속) — 팀 요청 3건 반영\n· tenant 테이블 신설. access_key_hash는 bcrypt 해시만 저장\n  (CHECK access_key_hash_is_bcrypt, pgcrypto crypt()/gen_salt('bf'))\n· content·contract·contract_version·rights_grant·\n  rights_grant_history·contract_chunk의 tenant_id에\n  tenant(id) 단일 컬럼 FK 추가 (기존 D-09 복합 FK와 별개로 얹음)\n· rights_grant_history.ai_note(text) → conflict_report(jsonb)로 교체.\n  conflict_code는 필터·집계용으로 그대로 유지\n\n─ 미구현 (P2) ─\n· SER-002 RLS ENABLE+FORCE (벡터 테이블 포함)\n· SER-006 raw_text/amount/source_quote ARIA·SEED 암호화\n· 워커 롤의 RLS 통과 방식 미결 (BYPASSRLS vs 테넌트 순회)",
+        "value": "D-17~D-19 (2026-08-14) — probe/history 워크플로우\n\n업로드→파싱→검증 →\nprobe_rights_conflict() : rights_grant에 INSERT 시도 후 무조건 ROLLBACK\n  → 충돌 여부(conflict_code)만 반환, 흔적 0\n→ \"저장\" 버튼 : rights_grant_history에 event_type='parsed' INSERT\n→ \"등록\" 버튼 : register_rights_grant(history_id)\n  → rights_grant에 진짜 INSERT (여기서 재판정됨)\n  → 트리거가 event_type='registered' history 자동 기록\n→ 이후 status UPDATE(가확정/완료/종료)마다\n  트리거가 status_changed/terminated history 자동 기록\n\n실측 확인 (spike-p2/14~16, 2026-08-14):\n· pg_advisory_xact_lock은 ROLLBACK TO SAVEPOINT로 즉시 풀린다\n  (D-07 당시 가정과 반대 — 스파이크로 뒤집힘)\n· KO-C03(문 내부 다중 행 중 1건 충돌 시 전체 롤백)이\n  ROW 레벨 history 트리거와 공존해도 그대로 성립\n\nD-20~D-21 (같은 날 후속) — 팀 요청 3건 반영\n· tenant 테이블 신설. access_key_hash는 bcrypt 해시만 저장\n  (CHECK access_key_hash_is_bcrypt, pgcrypto crypt()/gen_salt('bf'))\n· content·contract·contract_version·rights_grant·\n  rights_grant_history·contract_chunk의 tenant_id에\n  tenant(id) 단일 컬럼 FK 추가 (기존 D-09 복합 FK와 별개로 얹음)\n· rights_grant_history.ai_note(text) → conflict_report(jsonb)로 교체.\n  conflict_code는 필터·집계용으로 그대로 유지\n\nD-22 (같은 날, 코드리뷰 반영) — 4건\n· contract_version: 미사용 확인(grep 0건) → 삭제 대신\n  snapshot_contract_version() BEFORE UPDATE 트리거로 연결\n· rights_grant_history.history_seq 제거 (MAX+1의 동시등록\n  경합 원천 차단). id(bigserial)로 순서 보장\n· register_rights_grant()가 parsed 행을 더 이상 UPDATE 안 함\n  → 선언한 대로 진짜 append-only. '이미 등록?' 체크는\n  EXISTS(source_history_id=...)로 대체\n· change_log에서 rights_grant 트리거 제거 (워커 목적=\n  계약 재임베딩, 권리 데이터와 무관함을 코드로 확인)\n· statutory_right/right_mapping 앱 설정 이관은 기각(유지)\n\n─ 미구현 (P2) ─\n· SER-002 RLS ENABLE+FORCE (벡터 테이블 포함)\n· SER-006 raw_text/amount/source_quote ARIA·SEED 암호화\n· 워커 롤의 RLS 통과 방식 미결 (BYPASSRLS vs 테넌트 순회)",
         "ui": {
           "x": 29.0542,
           "y": 1308.0405,
