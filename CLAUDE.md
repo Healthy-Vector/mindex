@@ -25,6 +25,22 @@ OpenSQL 기반 저작권 계약 인텔리전스 플랫폼. 2026 오픈소스 개
 
 경계 원칙: **P2가 SQL과 DB 규칙을 만들고, P1이 OpenSQL 실물에 배포해 제품 기능을 검증한다.**
 
+## 서브에이전트 (`.claude/agents/`)
+
+작업 성격에 따라 둘로 나눈다. 파일 확장자가 아니라 **성격**이 기준이다 — 같은 `.sql` 파일이라도 제약조건은 `db`, 그 위의 설명 주석은 `docs`다.
+
+| 이름 | 담당 | 하지 않는 것 |
+|---|---|---|
+| `p2-db` | 스키마 · migration SQL · EXCLUDE/트리거 · RLS · DB 롤 · DB 테스트 · CI | 문서(`.md`) 수정 |
+| `p2-docs` | WORKLOG · DECISIONS · CLAUDE.md · RIGHTS-VOCABULARY · ERD · 주석 · PR 본문 | 코드 로직 수정 |
+
+접두사 `p2-`는 담당 파트(P2 데이터/보안)를 뜻한다. 다른 파트가 자기 에이전트를 추가하면 `p1-*`·`p3-*`로 붙여 섞이지 않게 한다.
+
+- **호출은 메인 세션에서만 한다.** 서브에이전트끼리 부르지 않는다 — 무엇이 실제로 바뀌었는지 추적을 잃는다
+- **둘 다 커밋·푸시하지 않는다.** 사람이 확인한 뒤 메인 세션에서 커밋한다
+- `p2-docs`는 무엇을 했는지 모른다. 호출할 때 `p2-db`가 반환한 사실을 그대로 실어 보낸다. **`p2-docs`는 추측하지 않는다**
+- 서브에이전트에는 `SessionStart` 훅이 걸리지 않는다. 그래서 두 정의 모두 첫머리에서 `WORKLOG`·`DECISIONS`를 직접 읽게 해 뒀다
+
 ## 설계 원칙 (변경 불가)
 
 | | |
@@ -49,6 +65,9 @@ OpenSQL 기반 저작권 계약 인텔리전스 플랫폼. 2026 오픈소스 개
 - ~~git 저장소 루트가 `mindex/`가 아니다~~ → **2026-08-09 해소.** 루트는 이제 `mindex/`이고 원격은 `Healthy-Vector/mindex`다 (O-03)
 - **로컬 파일이 최신이라고 가정하지 말 것.** 2026-08-09에 로컬 워킹트리가 원격보다 낡아 `frontend/` 전체와 라우터 등록이 빠져 있었다. **작업 시작 전 `git fetch && git status`**. 팀은 PR 기반으로 일한다 — `main`에 직접 push하지 않는다
 - **`git push --force` 금지.** 원격에 팀 작업과 열린 PR이 있다
+- **로컬에서 `pip-audit`이 `UnicodeDecodeError: 'cp949'`로 죽는다** → `requirements.txt`의 한글 주석을 파서가 Windows 로케일 인코딩으로 읽어서다. CI(ubuntu)에서는 안 난다. 로컬 재현은 `PYTHONUTF8=1 python -m pip_audit -r requirements.txt`
+- **이 PC에 `psql`·`gitleaks`가 없다** → DB는 컨테이너를 통해 쓴다: `docker exec -i mindex-spike psql -U mindex -d mindex < 파일.sql`
+- **`RAISE ... '%s'`는 에러를 내지 않는다** → 자리표시자는 `%` 하나뿐이라 `%s`는 `new=1s`처럼 **조용히 깨진 메시지**가 된다. `analysis/04` DDL 시안을 그대로 옮기지 말 것
 - **`fatal: detected dubious ownership`** → 폴더 소유 SID가 현재 Windows 계정과 달라서다. `git config --global --add safe.directory 'E:/석 공부/오픈소스/mindex'` 한 번 실행하면 된다. 파일은 건드리지 않는다
 
 ## 문서 위치
