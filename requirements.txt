@@ -2,6 +2,7 @@
 # fastapi 0.115 계열은 starlette <0.47을 끌어와 SER-008(pip-audit)에서 CVE 8건이 뜬다.
 # 0.141 계열이 starlette 1.x를 허용해 전부 해소된다. 사용 API는 FastAPI/APIRouter/Depends뿐이라 영향 없음.
 fastapi==0.141.*
+starlette==1.6.*
 uvicorn[standard]==0.32.*
 python-multipart==0.0.*
 pydantic==2.*
@@ -31,7 +32,7 @@ httpx==0.27.*
 
 # --- 테스트 / 품질 ---
 # pytest 9로 올려야 PYSEC-2026-1845가 해소된다. pytest-asyncio 0.24는 pytest<9을 요구하므로 함께 올린다.
-pytest==9.*
-pytest-asyncio==1.*
+pytest==9.1.*
+pytest-asyncio==1.4.*
 ruff==0.6.*
 pip-audit==2.*

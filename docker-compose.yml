@@ -1,6 +1,6 @@
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:0.8.1-pg17
     container_name: mindex-db
     environment:
       POSTGRES_USER: ${DB_USER:-mindex}

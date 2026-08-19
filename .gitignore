@@ -13,6 +13,7 @@ openproxy.config.env
 
 # 생성 설정 파일
 patroni.yml
+!ops/ha/patroni.yml
 openproxy.toml
 
 # SSH 키
@@ -61,3 +62,37 @@ CLAUDE.md
 *.log
 .idea/
 .vscode/
+
+# OpenSQL 벤더 배포물 (티베로 비공개 — 절대 커밋 금지)
+Tmax_OpenSQL_*/
+opensql-pkg.tar.gz
+*.tar.gz
+
+# 자격증명
+*credentials*
+.pgpass
+*.pgpass
+secrets/
+
+# 키 · 인증서
+*.pem
+*.key
+*.p12
+mindex-key*
+
+# 백업 · 복구본
+recover_test/
+pgdata/
+*.dump
+*.backup
+*.sql.gz
+
+# AI 모델 · 임베딩 캐시
+models/
+*.bin
+*.safetensors
+*.gguf
+embeddings_cache/
+
+# 도커
+docker-compose.override.yml

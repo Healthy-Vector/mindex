@@ -1,0 +1,51 @@
+scope: mindex-cluster
+namespace: /mindex/
+name: node1   # 노드마다 node1 / node2 / node3 로 변경
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: <NODE_IP>:8008   # TODO: 실제 노드 IP
+
+etcd3:
+  hosts: <ETCD1_IP>:2379,<ETCD2_IP>:2379,<ETCD3_IP>:2379   # TODO
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 5
+        max_replication_slots: 5
+
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: <NODE_IP>:5432   # TODO: 실제 노드 IP
+  data_dir: /data/opensql            # TODO: OpenSQL 실제 데이터 디렉터리 경로로 확인
+  bin_dir: /usr/lib/opensql/bin      # TODO: OpenSQL 실제 바이너리 경로로 확인
+  authentication:
+    replication:
+      username: replicator
+      password: <REPLICATOR_PASSWORD>   # .env로 관리, 커밋 금지
+    superuser:
+      username: postgres
+      password: <SUPERUSER_PASSWORD>    # .env로 관리, 커밋 금지
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false
