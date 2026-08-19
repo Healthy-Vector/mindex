@@ -12,7 +12,6 @@
 원문(ground_truth.txt)을 알고 있으므로 OCR 정확도를 정량 측정할 수 있다.
 """
 
-import os
 import random
 from pathlib import Path
 
@@ -59,10 +58,10 @@ CONTRACT_TEXT = """콘텐츠 이용허락 계약서
 (OUT / "ground_truth.txt").write_text(CONTRACT_TEXT, encoding="utf-8")
 
 # ── 1) 디지털 PDF 생성 (reportlab, BSD 라이선스) ─────────────
-from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 
 # ── 한글 폰트 ─────────────────────────────────────────────────
 # ⚠️ 오픈소스 대회 제출물이므로 폰트도 재배포 가능한 것을 써야 한다.

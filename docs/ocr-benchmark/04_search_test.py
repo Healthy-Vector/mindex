@@ -14,8 +14,9 @@
 """
 
 import os
-from sentence_transformers import SentenceTransformer
+
 import psycopg2
+from sentence_transformers import SentenceTransformer
 
 QUERIES = [
     ("계약 기간이 언제까지야?",           "제3조(계약 기간) 이 나와야 함"),

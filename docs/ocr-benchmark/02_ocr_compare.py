@@ -7,9 +7,9 @@
 설치 안 된 엔진은 자동으로 건너뛴다.
 """
 
+import difflib
 import re
 import time
-import difflib
 from pathlib import Path
 
 OUT = Path(__file__).parent / "out"
@@ -78,7 +78,7 @@ try:
     results["PaddleOCR"] = {"cer": cer(truth, hyp), "sec": time.time() - t0, "text": hyp}
 except ImportError:
     print("PaddleOCR 미설치 — 건너뜀  (pip install paddlepaddle paddleocr)")
-except Exception as e:
+except Exception as e:  # noqa: BLE001 — 비교 스크립트: 한쪽이 죽어도 계속 진행
     print(f"PaddleOCR 실패: {e}")
 
 # ── Tesseract ──────────────────────────────────────────────
@@ -92,7 +92,7 @@ try:
     results["Tesseract"] = {"cer": cer(truth, hyp), "sec": time.time() - t0, "text": hyp}
 except ImportError:
     print("pytesseract 미설치 — 건너뜀  (brew install tesseract tesseract-lang && pip install pytesseract)")
-except Exception as e:
+except Exception as e:  # noqa: BLE001 — 비교 스크립트: 한쪽이 죽어도 계속 진행
     print(f"Tesseract 실패: {e}")
 
 # ── 리포트 ─────────────────────────────────────────────────
@@ -136,5 +136,5 @@ report += [
 report_md = "\n".join(report)
 (OUT / "ocr_report.md").write_text(report_md, encoding="utf-8")
 print("\n" + report_md)
-print(f"\n상세 출력: out/ocr_output_*.txt / 리포트: out/ocr_report.md")
+print("\n상세 출력: out/ocr_output_*.txt / 리포트: out/ocr_report.md")
 print("다음: python3 03_embed_load.py")

@@ -34,10 +34,14 @@
 pip3 install reportlab pypdfium2 pillow sentence-transformers psycopg2-binary
 
 # OCR 엔진 (둘 다 설치해야 비교 가능)
-pip3 install paddlepaddle paddleocr          # PaddleOCR
+# Apple Silicon(M1/M2/M3)은 기본 PyPI 로 설치하면 실패할 수 있어 전용 index 사용
+pip3 install paddlepaddle -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+pip3 install paddleocr
 brew install tesseract tesseract-lang        # Tesseract + 한국어팩
 pip3 install pytesseract
 ```
+
+> 칩 확인: `python3 -c "import platform; print(platform.machine())"` — `arm64` 면 위 index 필수, `x86_64` 면 기본 PyPI 로 충분.
 
 > ⚠️ 첫 실행 시 다운로드가 큼: e5-large 모델 ~2.2GB, PaddleOCR 모델 ~수십MB
 > ⚠️ DB 접속은 `~/.pgpass` 를 사용. 시연 준비 때 만든 그대로면 비밀번호 입력 없이 동작
