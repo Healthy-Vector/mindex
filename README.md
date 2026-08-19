@@ -89,4 +89,8 @@ mindex/
 
 ## 문서
 
-프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에 있습니다. 이 저장소는 코드 전용입니다.
+- 데이터 모델 정본: [`docs/mindex_remastered.dbml`](docs/mindex_remastered.dbml)
+- DB 구조와 서비스 플로우: [`docs/mindex DB 설명서.md`](docs/mindex%20DB%20설명서.md)
+- 문서 목록: [`docs/README.md`](docs/README.md)
+
+프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에서 관리합니다.

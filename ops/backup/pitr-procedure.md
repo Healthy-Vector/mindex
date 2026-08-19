@@ -63,8 +63,7 @@ docker logs -f mindex-restore   # "database system is ready to accept connection
 # 9. 복구 검증 — 삭제된 데이터 존재 + EXCLUDE 제약조건 재동작 확인
 docker exec mindex-restore psql -U mindex -d mindex -c "SELECT * FROM rights_grant WHERE id = 1;"
 docker exec mindex-restore psql -U mindex -d mindex -c "
-INSERT INTO rights_grant (tenant_id, contract_id, content_id, territory, rights_type, period, is_exclusive)
-VALUES ('<복구된 행과 동일 tenant_id>',1,1,'<동일 territory>','STREAMING','<겹치는 기간>',true);
+SELECT register_candidate(<복구된 권리와 충돌하도록 준비한 candidate_id>, 'pitr-check');
 "
 # → ERROR: conflicting key value violates exclusion constraint "no_exclusive_overlap" 나와야 정상
 

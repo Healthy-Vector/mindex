@@ -1,55 +1,102 @@
 -- 01_schema.sql — 핵심 테이블 · EXCLUDE 제약 · 인덱스 (DAR-001, SFR-007)
 --
+-- D-24·D-25로 리마스터된 스키마다 (docs/mindex_remastered.dbml).
+-- 이전 세대(draft/review/provisional/complete/terminated 5-status rights_grant
+-- 단일 테이블 + probe/register 함수)를 완전히 대체한다 — 증분 ALTER가 아니라
+-- 새 init이다(D-10, alembic 미도입 + `docker compose down -v` 재생성 전제).
+--
 -- 이 파일은 테이블 정의만 담는다. 참조 데이터 적재는 03_reference_data.sql,
 -- 트리거·리포트 함수는 02_conflict_rules.sql이다.
 --
+-- 테이블 생성 순서는 FK 의존성을 따른다: ip/contract → contract_document →
+-- rights_grant_candidate → candidate_evidence → rights_grant(candidate가
+-- source_candidate_id로 필요) → rights_evaluation(candidate 필요) →
+-- rights_evaluation_reason(evaluation·rights_grant 둘 다 필요) →
+-- conflict_resolution → rights_grant_history. contract와
+-- contract_document는 서로를 참조하는 순환이라 final_document_id의 FK만
+-- contract_document 생성 뒤 ALTER로 붙인다.
+--
 -- 설계 근거는 docs/DECISIONS.md — D-03(지역 행 정규화) · D-04(3값 enum) ·
--- D-05(2단 판정) · D-09(복합 FK) · D-13(권리유형 5종) · D-15(국가코드만 저장) ·
--- D-16(검수 행 분리).
+-- D-05(2단 판정) · D-08(제약명 유지) · D-13(권리유형 5종) ·
+-- D-15(국가코드만 저장) · D-24(candidate/판정결과/
+-- conflict_resolution 분리, WAIVER=충돌 원인 제거) · D-25(candidate_status
+-- 4값+review_reason 분리·
+-- contract/document 상태 비동기화).
+--
+-- D-27 — 판정축을 legal_right × exploitation_mode 2축으로 분리하고(둘 다
+-- nested-set 계층), 판정 사유를 reason_code 단일 마스터로 정규화했다.
+-- rights_type_kind·review_reason_kind ENUM과 conflict_code 테이블이 사라졌고
+-- conflict_result가 rights_evaluation + rights_evaluation_reason으로 쪼개졌다.
+-- D-29 — 설치당 단일 회사인 온프레미스 제품 경계를 반영해 tenant와 tenant_id를
+-- 제거했다. 후보 근거는 candidate_evidence N행으로 분리한다.
 
 -- ─────────────────────────────────────────────────────────────
 -- 타입
 -- ─────────────────────────────────────────────────────────────
 
--- D-13 — 권리유형은 유통창구(distribution window) 5종.
--- 법정 지분권(공중송신권 등)이 아니다. 그쪽은 statutory_right 축에서 다루며
--- 판정이 아니라 자문·경고 용도다. 두 축을 섞지 않는다.
-CREATE TYPE rights_type_kind AS ENUM (
-    'SVOD',         -- 구독형 VOD
-    'AVOD',         -- 광고형 VOD
-    'TVOD',         -- 건별 과금 VOD
-    'TV_LINEAR',    -- 선형 TV 방송
-    'THEATRICAL'    -- 극장 상영·배급
-);
+-- D-27 — D-13의 rights_type_kind ENUM(유통창구 5종)을 폐기한다.
+-- 판정축이 하나가 아니라 둘이기 때문이다:
+--   legal_right       — 법적으로 무엇을 할 권리인가 (R3)
+--   exploitation_mode — 그 권리를 사업적으로 어떻게 이용하는가 (R4)
+-- 둘 다 상위-하위 포함관계를 갖는 계층이라 ENUM으로는 표현할 수 없다.
+-- 참조 테이블 + nested-set 구간(span)으로 아래에 정의한다.
+--
+-- D-13이 "두 축을 섞으면 판정이 결정론을 잃는다"고 우려했던 것은 두 축을
+-- 하나의 어휘에 뭉쳐 넣는 경우다. 여기서는 섞지 않는다 — 서로 독립적인
+-- 두 개의 결정론적 축이고, EXCLUDE가 둘을 각각 && 로 비교한다.
+
+-- D-27 — 판정 결과 4종. 시나리오 문서의 expected_result와 같은 값이다.
+CREATE TYPE result_kind AS ENUM ('NORMAL', 'CONFLICT', 'REVIEW_REQUIRED', 'WARNING');
 
 -- D-04 — 독점은 boolean이 아니라 3값.
 -- 'sole'은 제3자에게는 배타적이나 라이선서 본인은 계속 이용할 수 있는 형태다.
 -- 판정에서는 'exclusive'와 동일하게 취급한다 (둘 다 제3자 배타).
---
--- 'unresolved'가 없는 것은 의도적이다 — D-16에 따라 독점 여부가 미확정인 행은
--- 애초에 이 테이블에 들어오지 않는다. 표현할 상태가 없다.
 CREATE TYPE exclusivity_kind AS ENUM ('exclusive', 'sole', 'non_exclusive');
 
--- D-17 이전 D-16 — 검수로 보내는 사유. rights_grant.review_reason이 참조한다.
--- 앞의 셋은 EXCLUDE 키 컬럼이 비어 판정 자체가 불가능한 경우다.
-CREATE TYPE review_reason_kind AS ENUM (
-    'TERRITORY_UNRESOLVED',      -- 별지 국가목록 누락 등 (시나리오 KO-R01)
-    'PERIOD_UNRESOLVED',         -- 기준 사건 부재 "release + 3Y" (EN-R01)
-    'EXCLUSIVITY_UNRESOLVED',    -- 독점 여부 문구 없음 (JA-R01)
-    'RIGHTS_SCOPE_UNSPECIFIED',  -- 2차적저작물권 세부유형 미명시 (데모 시나리오 3)
-    'LOW_CONFIDENCE'             -- SFR-004 신뢰도 0.85 미만
+-- D-24 — 계약 건(case) 자체의 워크플로우 상태.
+CREATE TYPE contract_status AS ENUM (
+    'draft',       -- 계약 건 생성/문서 업로드 전후
+    'review',      -- AI 분석 및 사용자 검토 중
+    'approved',    -- 1차 승인 완료. 최종 계약 등록 전
+    'final',       -- 최종 계약으로 등록 완료
+    'rejected',    -- 사용자가 계약 진행을 파기/거절
+    'terminated'   -- 최종 계약 이후 해지/종료
 );
 
--- D-17 — 업로드→파싱→probe→history저장→등록 워크플로우의 권리 행 상태.
--- 판정(EXCLUDE/트리거) 대상은 provisional·complete 뿐이다. draft·review·terminated는
--- "아직 살아있는 권리가 아니다"이므로 같은 구간에 다른 권리가 들어와도 막지 않는다.
-CREATE TYPE rights_grant_status AS ENUM (
-    'draft',        -- 파싱 직후, 아직 저장(history)도 안 한 상태
-    'review',       -- 구 D-16 검수 스테이징 흡수. 필드가 비어 있을 수 있다
-    'provisional',  -- 가확정 — 판정 대상
-    'complete',     -- 완료 — 판정 대상
-    'terminated'    -- 계약 종료. period 만료와 별개로 명시적으로 닫힌 상태
+-- D-24 — 계약 건에 업로드된 PDF/문서 한 버전의 상태.
+CREATE TYPE document_status AS ENUM (
+    'uploaded', 'parsing', 'parsed', 'review', 'approved', 'rejected', 'final', 'failed'
 );
+
+-- D-25 — 상태(candidate_status)와 원인(review_reason)을 분리한다.
+-- extracted: AI 추출 직후, 아직 사람이 안 본 상태.
+-- review: 사람의 확인/수정이 필요 — review_reason이 왜인지 말한다.
+CREATE TYPE candidate_status AS ENUM ('extracted', 'review', 'approved', 'rejected');
+
+-- D-27 — D-25의 review_reason_kind ENUM을 폐기한다.
+-- "왜 검토가 필요한가"(후보 단계)와 "왜 이 판정이 나왔는가"(판정 단계)가
+-- 사실상 같은 축인데 ENUM과 conflict_code 두 군데서 따로 관리되고 있었다 —
+-- 실제로 드리프트가 일어났다(D-25가 TERRITORY_UNRESOLVED를 MISSING_FIELD로
+-- 뭉갰지만 시나리오 문서는 여전히 TERRITORY_UNRESOLVED를 정답 코드로 쓴다).
+-- 둘 다 아래 reason_code 마스터 하나를 FK로 참조한다.
+
+-- D-24 — rights_grant는 이제 "승인된 권리"만 담는다. 미확정 후보의 워크플로우
+-- 상태는 candidate_status가 담당하므로 draft/review는 여기 없다.
+CREATE TYPE rights_grant_status AS ENUM ('approved', 'final', 'terminated');
+
+-- D-24 — 판정 사유 한 건의 처리 상태. D-27에서 rights_evaluation_reason으로 옮겨갔다.
+CREATE TYPE conflict_status AS ENUM ('detected', 'resolved', 'waived');
+
+-- D-24 — MVP 지원: waiver·amended·rejected. MUTUAL_AGREEMENT·MANUAL_OVERRIDE는
+-- 겹친 두 rights_grant를 그대로 공존시켜야 하는데, EXCLUDE의 WHERE절은 다른
+-- 테이블(conflict_resolution)을 참조하는 서브쿼리를 못 쓴다. 이걸 트리거로
+-- 새로 구현하면 D-05·D-08의 "EXCLUDE=결정론적 무조건 차단" 원칙이 흔들리므로
+-- 이번 범위에서는 뺀다. 값은 남겨 향후 확장 지점만 표시한다.
+CREATE TYPE resolution_type AS ENUM (
+    'waiver', 'amended', 'rejected', 'mutual_agreement', 'manual_override'
+);
+
+CREATE TYPE resolution_status AS ENUM ('pending', 'approved', 'rejected');
 
 -- ─────────────────────────────────────────────────────────────
 -- 참조 테이블 (시드는 03_reference_data.sql)
@@ -63,12 +110,9 @@ CREATE TABLE country (
     in_scope   boolean NOT NULL DEFAULT false   -- WORLDWIDE 전개 대상 8개국 여부
 );
 
--- D-15 — 지역·대륙 그룹. "아시아", "동남아", "WORLDWIDE" 같은 표현이 여기 산다.
--- 저장 계층이 아니라 전개용 참조다. rights_grant는 이 테이블을 참조하지 않는다.
---
--- 왜 저장 단위로 쓰면 안 되는가: EXCLUDE는 territory를 동등 비교한다.
--- 태국 권리가 한쪽은 'TH', 다른 쪽은 'SEA'로 저장되면 두 값이 같지 않아
--- 겹치는데도 인덱스가 충돌을 보지 못한다. 그리고 에러도 나지 않는다.
+-- D-15 — 지역·대륙 그룹. 저장 계층이 아니라 전개용 참조다.
+-- EXCLUDE는 territory를 동등 비교하므로, 태국 권리가 한쪽은 'TH' 다른 쪽은
+-- 'SEA'로 저장되면 겹치는데도 인덱스가 충돌을 못 본다 — 저장 단위로 쓰면 안 된다.
 CREATE TABLE territory_group (
     code       text PRIMARY KEY,        -- 'WORLDWIDE', 'APAC', 'SEA', 'NA'
     name_ko    text NOT NULL,
@@ -81,135 +125,224 @@ CREATE TABLE territory_group_member (
     PRIMARY KEY (group_code, country_code)
 );
 
--- 법정 지분권 어휘 (한국 저작권법 / 일본 著作権法).
--- 판정에 쓰지 않는다. 데모 시나리오 1(겨울연가·NHK 유형)의 경고 근거다.
+-- ── 판정축 1: 법적 권리 (R3) ────────────────────────────────
+--
+-- D-27 — 관할 중립 taxonomy다. 관할별 실제 조문(공중송신권 / 公衆送信権 /
+-- public performance)은 statutory_right가 따로 담는다. 판정축을 관할별 코드로
+-- 두면 KR_TRANSMISSION과 JP_TRANSMISSION이 서로 다른 트리에 있어 영영 안 겹치는
+-- 버그가 된다 — JA-C05(自動公衆送信 vs 기존 전송권)가 정확히 그 케이스다.
+--
+-- lft/rgt는 nested-set 좌표(preorder)다. span은 그로부터 생성되는 반열림
+-- 구간이며, EXCLUDE가 이 구간을 && 로 비교해 계층 포함관계를 판정한다:
+--   PUBLIC_TRANSMISSION [1,7) && BROADCAST [2,4)  → 겹침 (상위가 하위를 포함)
+--   BROADCAST           [2,4) && TRANSMISSION [4,6) → 안 겹침 (형제)
+-- 생성 컬럼이라 lft/rgt와 어긋날 수 없다.
+CREATE TABLE legal_right (
+    code        text PRIMARY KEY,
+    parent_code text REFERENCES legal_right(code),
+    name_ko     text NOT NULL,
+    lft         int  NOT NULL,
+    rgt         int  NOT NULL,
+    span        int4range GENERATED ALWAYS AS (int4range(lft, rgt + 1)) STORED,
+    note        text,
+
+    CONSTRAINT legal_right_span_sane CHECK (rgt > lft)
+);
+
+-- ── 판정축 2: 사업적 이용형태 (R4) ──────────────────────────
+--
+-- D-27 — D-13의 5종(SVOD/AVOD/TVOD/TV_LINEAR/THEATRICAL)을 그대로 품되,
+-- 계약서가 실제로 쓰는 넓은 표현("all on-demand audiovisual streaming rights")을
+-- 받을 상위 노드 VOD를 추가했다. VOD [1,9)는 SVOD/AVOD/TVOD를 전부 포함하므로
+-- 넓은 이용형태 부여와 개별 창구 부여가 겹치는 L2 케이스를 EXCLUDE가 잡는다.
+CREATE TABLE exploitation_mode (
+    code        text PRIMARY KEY,
+    parent_code text REFERENCES exploitation_mode(code),
+    name_ko     text NOT NULL,
+    lft         int  NOT NULL,
+    rgt         int  NOT NULL,
+    span        int4range GENERATED ALWAYS AS (int4range(lft, rgt + 1)) STORED,
+    note        text,
+
+    CONSTRAINT exploitation_mode_span_sane CHECK (rgt > lft)
+);
+
+-- 관할별 법정 지분권(자문축). 판정에 직접 쓰지 않는다 — 화면 표시와
+-- 데모 시나리오 1(겨울연가·NHK)의 경고 근거다.
+-- D-27 — legal_right_code로 관할 중립 판정축에 연결된다. 이래야 JA-C05의
+-- 自動公衆送信이 legal_right=TRANSMISSION으로 정규화되면서도 화면에는
+-- 일본 조문명을 그대로 보여줄 수 있다.
 CREATE TABLE statutory_right (
-    code            text PRIMARY KEY,   -- 'KR_BROADCAST', 'JP_PUBLIC_TRANSMISSION'
-    jurisdiction    char(2) NOT NULL REFERENCES country(code),
-    name_local      text NOT NULL,
-    name_ko         text NOT NULL,
-    parent_code     text REFERENCES statutory_right(code),  -- 상위-하위 포함관계
-    note            text
+    code             text PRIMARY KEY,
+    jurisdiction     char(2) NOT NULL REFERENCES country(code),
+    legal_right_code text NOT NULL REFERENCES legal_right(code),
+    name_local       text NOT NULL,
+    name_ko          text NOT NULL,
+    parent_code      text REFERENCES statutory_right(code),  -- 관할 내부 상위-하위
+    note             text
 );
 
--- 유통창구(판정축) ↔ 법정 지분권(자문축) 매핑.
+-- D-27 — 역할 재정의. 예전에는 (유통창구 → 법정권리) 변환표였으나, 이제는
+-- 두 판정축 조합이 해당 관할에서 통상 성립하는지를 말하는 자문/검증표다.
 --
--- 이 테이블이 존재하는 이유: 같은 'TV_LINEAR' 권리라도 한국에서는 방송권,
--- 일본에서는 공중송신권 범주로 다뤄지고 정산 관행이 다르다. 계약서 텍스트가
--- 정상으로 보여도 국가 간 관행 차이는 드러나지 않는다.
---
--- advisory 컬럼이 사람에게 띄울 경고 문구다. 저장을 거부하지 않는다 —
--- 관행 차이는 결정론적 판정의 대상이 아니다 (원칙 P-2).
+-- **자동 변환에 쓰지 않는다.** "SVOD이니까 legal_right는 TRANSMISSION"으로
+-- 채우는 코드를 만들지 않는다 — 계약서에 안 쓰인 법적 권리를 시스템이 창작하는
+-- 것이고, 그건 P-1(LLM은 변환만, 판정 안 함)이 금지하는 바로 그 행위다.
+-- 용도는 둘뿐이다:
+--   1. 조합이 없거나 is_typical=false → AMBIGUOUS_CLAUSE 사유로 review 큐에 올림
+--   2. advisory 문구 조회 (rights_advisory(), 02_conflict_rules.sql)
 CREATE TABLE right_mapping (
-    rights_type      rights_type_kind NOT NULL,
-    jurisdiction     char(2)          NOT NULL REFERENCES country(code),
-    statutory_code   text             NOT NULL REFERENCES statutory_right(code),
-    advisory         text,
-    PRIMARY KEY (rights_type, jurisdiction, statutory_code)
+    legal_right       text    NOT NULL REFERENCES legal_right(code),
+    exploitation_mode text    NOT NULL REFERENCES exploitation_mode(code),
+    jurisdiction      char(2) NOT NULL REFERENCES country(code),
+    is_typical        boolean NOT NULL DEFAULT true,
+    advisory          text,
+    PRIMARY KEY (legal_right, exploitation_mode, jurisdiction)
 );
 
--- D-18 — 충돌 리포트 코드. 값은 EXCLUDE/트리거의 constraint_name과 동일하게 맞춘다.
--- 새 어휘를 만들지 않고 D-05가 이미 만든 결정론적 구분(no_exclusive_overlap ↔
--- no_exclusivity_conflict)을 그대로 재사용한다. AI는 template 문구에 첨언만 한다.
-CREATE TABLE conflict_code (
-    code         text PRIMARY KEY,
-    template_ko  text NOT NULL,
-    template_en  text NOT NULL
+-- ── 판정 사유 마스터 (D-27) ─────────────────────────────────
+--
+-- D-25의 review_reason_kind ENUM과 D-18의 conflict_code 테이블을 하나로 합친
+-- 단일 코드셋이다. "왜 검토가 필요한가"와 "왜 이 판정이 나왔는가"는 의미상
+-- 용도만 다를 뿐 같은 축이라, 두 군데서 관리하면 드리프트가 생긴다.
+-- 용도 구분은 is_review_trigger / is_decision_reason 두 플래그가 한다.
+--
+-- 코드 체계에서 MISSING과 UNRESOLVED를 반드시 구분한다:
+--   TERRITORY_MISSING     — territory 컬럼 자체가 NULL (DB가 결정론적으로 판단)
+--   TERRITORY_UNRESOLVED  — "Worldwide except Korea"처럼 표현은 있으나
+--                            국가코드로 정규화 실패 (추출기만 알 수 있다)
+CREATE TABLE reason_code (
+    code               text PRIMARY KEY,
+    category           text NOT NULL,          -- DATA_QUALITY/AI_QUALITY/SCOPE/AUTHORITY/EXTERNAL
+    result_type        result_kind NOT NULL,   -- 이 사유가 유발하는 판정 결과
+    rule_code          text,                   -- 'R3' · 'R7' — 시나리오 문서의 판정 규칙 번호
+    severity           smallint NOT NULL DEFAULT 50,  -- 클수록 중대. primary 사유 선택 정렬용
+    is_blocking        boolean NOT NULL,       -- register_candidate()를 막는가
+    is_review_trigger  boolean NOT NULL,       -- candidate.review_reason_code로 쓸 수 있는가
+    is_decision_reason boolean NOT NULL,       -- 판정 산출물 사유로 쓸 수 있는가
+    name_ko            text NOT NULL,
+    template_ko        text NOT NULL,          -- 화면 표시·AI 첨언 생성의 기본 문구
+    template_en        text NOT NULL,
+    implemented        boolean NOT NULL DEFAULT false,  -- 판정 엔진이 실제로 방출하는가
+    active             boolean NOT NULL DEFAULT true,
+
+    CONSTRAINT reason_code_has_a_use CHECK (is_review_trigger OR is_decision_reason),
+    -- NORMAL은 "사유 없음"이라 코드가 존재할 수 없다.
+    CONSTRAINT reason_code_not_normal CHECK (result_type <> 'NORMAL')
 );
 
--- ─────────────────────────────────────────────────────────────
--- 테넌트(팀) — D-20
--- ─────────────────────────────────────────────────────────────
---
--- 지금까지 tenant_id는 각 테이블에 UUID로만 떠돌고 실체 테이블이 없었다.
--- 여기서 공식 테이블로 만든다. content·contract·rights_grant 등의 tenant_id는
--- 아래에서 이 테이블에 대한 단일 컬럼 FK를 추가로 받는다(기존 (id, tenant_id)
--- 복합 FK 구조(D-09)는 그대로 유지 — 이건 그 위에 얹는 참조 무결성이다).
---
--- access_key_hash — 팀 공유 API 인증 키. 평문을 저장하지 않는다. crypt()로
--- 해싱한 값만 들어오고, CHECK로 bcrypt 형식이 아니면 INSERT 자체를 거부한다 —
--- 앱이 해싱을 빠뜨려도 DB가 막는다(P-4와 같은 논리).
---
--- 삽입 예: INSERT INTO tenant (id, name, access_key_hash)
---          VALUES (gen_random_uuid(), 'A사', crypt('발급한-키', gen_salt('bf')));
--- 인증 예: SELECT id FROM tenant WHERE access_key_hash = crypt('입력값', access_key_hash);
-CREATE TABLE tenant (
-    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            text NOT NULL,
-    access_key_hash text NOT NULL,
-    created_at      timestamptz NOT NULL DEFAULT now(),
-
-    CONSTRAINT access_key_hash_is_bcrypt CHECK (access_key_hash ~ '^\$2[aby]?\$')
+-- D-08 보존 — EXCLUDE/트리거가 던지는 constraint_name을 사용자에게 보여줄
+-- reason_code로 번역한다. 제약명 2개가 같은 코드 하나로 귀결되는 N:1이라
+-- reason_code의 컬럼으로는 표현할 수 없어 별도 표로 둔다.
+-- 앱의 SFR-011 핸들러가 ExclusionViolation을 잡으면 diag.constraint_name으로
+-- 이 표를 조회한다.
+CREATE TABLE constraint_reason_map (
+    constraint_name text PRIMARY KEY,
+    reason_code     text NOT NULL REFERENCES reason_code(code)
 );
 
 -- ─────────────────────────────────────────────────────────────
 -- 도메인 테이블
 -- ─────────────────────────────────────────────────────────────
 
--- 콘텐츠(IP). 언어가 달라도 같은 IP면 같은 행이다 —
--- '겨울의 신호' / 'Signal of Winter' / '冬のシグナル' → 모두 같은 content.
--- 다국어 충돌(시나리오 JA-C02)이 성립하는 근거가 이것이다.
-CREATE TABLE content (
+-- 작품(IP). 언어가 달라도 같은 IP면 같은 행이다 — 다국어 충돌(JA-C02)의 근거.
+CREATE TABLE ip (
     id          bigserial PRIMARY KEY,
-    tenant_id   uuid NOT NULL REFERENCES tenant(id),  -- D-20
     title_ko    text,
     title_en    text,
     title_ja    text,
     kind        text,                    -- '드라마' · '영화'
-    created_at  timestamptz NOT NULL DEFAULT now(),
-
-    -- D-09 — 복합 FK의 참조 대상. 이게 없으면 자식이 (id, tenant_id)를 못 건다.
-    UNIQUE (id, tenant_id)
+    created_at  timestamptz NOT NULL DEFAULT now()
 );
 
+-- D-24 — contract는 이제 "하나의 계약 업무 건(case)"이다. PDF 원문·버전은
+-- contract_document로 옮겼다(SER-006 암호화 대상 raw_text도 함께 옮김, D-14).
+-- final_document_id의 FK는 contract_document 생성 뒤 ALTER로 붙인다 —
+-- 두 테이블이 서로를 참조하는 순환이라 한쪽을 먼저 완성할 수 없다.
 CREATE TABLE contract (
-    id            bigserial PRIMARY KEY,
-    tenant_id     uuid NOT NULL REFERENCES tenant(id),  -- D-20
-    counterparty  text NOT NULL,
-    signed_date   date,
-    lang          char(2),               -- 'ko' · 'en' · 'ja'
-    version       int  NOT NULL DEFAULT 1,
-    created_at    timestamptz NOT NULL DEFAULT now(),
+    id                bigserial PRIMARY KEY,
+    counterparty      text NOT NULL,
+    signed_date       date,
+    lang              char(2),               -- 'ko' · 'en' · 'ja'
+    amount            numeric,               -- SER-006 계층1 암호화 대상 (D-14, 미적용)
+    currency          char(4),               -- 'KRW' · 'USD' · 'JPY'
+    status            contract_status NOT NULL DEFAULT 'draft',
+    final_document_id bigint,                -- 최종 채택 contract_document.id. FK는 아래서 ALTER로
 
-    -- SER-006 계층1 암호화 대상 (D-14). OpenCrypto는 OpenSQL 전용이라
-    -- Docker 검증 환경에서는 평문으로 남는다. 실물 배포 시 ARIA/SEED 적용.
-    raw_text      text,
-    amount        numeric,
+    -- SFR-006 메타데이터 버전 카운터. contract_version_snapshot 트리거가 관리한다.
+    version           int NOT NULL DEFAULT 1,
 
-    UNIQUE (id, tenant_id)
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    updated_at        timestamptz NOT NULL DEFAULT now(),
+
+    -- D-25 — status='final'인데 final_document_id가 비어 있는 행은 존재할 수 없다.
+    -- 이 CHECK는 contract 자기 컬럼만 보므로 plain CHECK로 충분하다. final_document_id가
+    -- 가리키는 문서 자체의 상태·소속 검증은 02_conflict_rules.sql의
+    -- validate_contract_finalize() 트리거가 한다(다른 테이블 참조가 필요해서).
+    CONSTRAINT final_requires_document CHECK (status <> 'final' OR final_document_id IS NOT NULL)
 );
 
--- SFR-006 — 메타데이터·버전 관리. 수정 시 이전 버전을 보존한다.
+-- 같은 계약 건에 수정 PDF를 여러 번 올릴 수 있다. raw_text가 여기로 옮겨왔다 —
+-- SER-006 계층1 암호화 대상은 이제 이 컬럼이다(D-14, 미적용).
+CREATE TABLE contract_document (
+    id           bigserial PRIMARY KEY,
+    contract_id  bigint NOT NULL,
+    version      int    NOT NULL,          -- 계약 건 내부 문서 버전
+    file_name    text   NOT NULL,
+    storage_key  text   NOT NULL,          -- S3/Object Storage key. PDF binary는 DB에 안 둠
+    file_hash    text   NOT NULL,          -- SHA-256 권장. 동일 파일 재업로드 탐지
+    mime_type    text   NOT NULL DEFAULT 'application/pdf',
+    status       document_status NOT NULL DEFAULT 'uploaded',
+    raw_text     text,                     -- PDF 파싱 원문 — SER-006 암호화 대상 (D-14, 미적용)
+    uploaded_by  text,
+    uploaded_at  timestamptz NOT NULL DEFAULT now(),
+    parsed_at    timestamptz,
+
+    FOREIGN KEY (contract_id) REFERENCES contract (id) ON DELETE CASCADE,
+    UNIQUE (contract_id, version)
+);
+
+CREATE INDEX idx_document_hash ON contract_document (file_hash);
+
+-- contract.final_document_id FK. contract_document가 방금 완성됐으므로
+-- 이제 붙일 수 있다. ON DELETE SET NULL — 문서가 지워지면 링크만 풀리고,
+-- 그 결과 final_requires_document CHECK가 status='final'인 행에 대해 이 UPDATE 자체를
+-- 거부한다(같은 트랜잭션의 SET NULL이 CHECK를 다시 태운다) — 즉 최종 계약의
+-- 유일한 근거 문서는 구조적으로 삭제될 수 없다.
+ALTER TABLE contract
+    ADD FOREIGN KEY (final_document_id)
+    REFERENCES contract_document (id)
+    ON DELETE SET NULL;
+
+-- 계약 메타데이터 변경 이력(append-only). PDF 버전은 contract_document가 담당하고
+-- 이 테이블은 counterparty·status·final_document_id 등 메타데이터 변경만 스냅샷한다.
 CREATE TABLE contract_version (
     id            bigserial PRIMARY KEY,
-    tenant_id     uuid NOT NULL REFERENCES tenant(id),  -- D-20
     contract_id   bigint NOT NULL,
     version       int    NOT NULL,
     changed_by    text,
     changed_at    timestamptz NOT NULL DEFAULT now(),
-    snapshot      jsonb  NOT NULL,       -- 변경 시점의 계약 필드 전체
+    snapshot      jsonb  NOT NULL,       -- 변경 시점의 계약 메타데이터 필드 전체
 
-    FOREIGN KEY (contract_id, tenant_id) REFERENCES contract (id, tenant_id) ON DELETE CASCADE,
+    FOREIGN KEY (contract_id) REFERENCES contract (id) ON DELETE CASCADE,
     UNIQUE (contract_id, version)
 );
 
--- D-22 — contract_version은 코드리뷰 시점까지 실제로 채우는 경로가 없었다
--- (앱 코드 grep 0건). 삭제 대신 트리거로 제대로 연결한다 — SFR-006 요구사항이고,
--- 원칙 P-4와 같은 논리로 앱이 스냅샷 INSERT를 빠뜨려도 DB가 대신 채운다.
---
--- BEFORE UPDATE에서 NEW.version을 올리고, 같은 함수가 OLD 스냅샷을
--- contract_version에 남긴다. changed_by는 앱이 세션 GUC로 넘기면 반영되고,
--- 안 넘기면 NULL로 남는다(감사 추적의 '누가'는 앱 레이어 소관, DB는 '무엇이 언제'만 보장).
+-- D-22에서 확립한 패턴 그대로 유지 — contract_version을 실제로 채우는 경로가
+-- 앱에 없어도 DB가 대신 채운다(P-4). BEFORE UPDATE에서 NEW.version을 올리고
+-- OLD 스냅샷을 contract_version에 남긴다. changed_by는 앱이 세션 GUC
+-- (mindex.changed_by)로 넘기면 반영되고, 안 넘기면 NULL로 남는다.
 CREATE OR REPLACE FUNCTION snapshot_contract_version() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
-    INSERT INTO contract_version (tenant_id, contract_id, version, changed_by, snapshot)
+    INSERT INTO contract_version (contract_id, version, changed_by, snapshot)
     VALUES (
-        OLD.tenant_id, OLD.id, OLD.version,
+        OLD.id, OLD.version,
         NULLIF(current_setting('mindex.changed_by', true), ''),
         to_jsonb(OLD)
     );
     NEW.version := OLD.version + 1;
+    NEW.updated_at := now();
     RETURN NEW;
 END;
 $$;
@@ -221,65 +354,129 @@ CREATE TRIGGER contract_version_snapshot
     EXECUTE FUNCTION snapshot_contract_version();
 
 -- ─────────────────────────────────────────────────────────────
--- 권리 레코드 — 플랫폼의 심장 (DAR-001)
+-- AI 추출 / 검토 staging (D-24)
+-- ─────────────────────────────────────────────────────────────
+--
+-- AI가 문서에서 추출한 아직 미확정인 권리 후보. 사용자가 승인하기 전에는
+-- rights_grant에 넣지 않는다 — register_candidate()(02_conflict_rules.sql)가
+-- 유일한 승격 경로다.
+CREATE TABLE rights_grant_candidate (
+    id            bigserial PRIMARY KEY,
+    contract_id   bigint NOT NULL,
+    document_id   bigint NOT NULL,
+    ip_id         bigint NOT NULL,
+
+    -- D-27 — 판정축 2개. 둘 다 nullable이다(추출 실패 시 review로 간다).
+    territory          char(2)   REFERENCES country(code),
+    legal_right        text      REFERENCES legal_right(code),
+    exploitation_mode  text      REFERENCES exploitation_mode(code),
+    period             daterange,
+    exclusivity        exclusivity_kind,
+
+    confidence    numeric(3,2),      -- AI 추출 신뢰도 0.00~1.00 (SFR-004)
+
+    status        candidate_status NOT NULL DEFAULT 'extracted',
+    -- D-25 — 이력 보존을 위해 status가 review를 벗어나도 지우지 않는다.
+    -- D-27 — ENUM에서 reason_code 마스터 FK로 바뀌었다. 판정 사유와 같은 코드셋을
+    -- 쓰되 is_review_trigger=true인 코드만 허용한다(검증은 classify_candidate()).
+    review_reason_code text REFERENCES reason_code(code),
+    decided_by    text,
+    decided_at    timestamptz,
+    created_at    timestamptz NOT NULL DEFAULT now(),
+
+    FOREIGN KEY (contract_id) REFERENCES contract         (id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES contract_document(id) ON DELETE CASCADE,
+    FOREIGN KEY (ip_id)       REFERENCES ip               (id),
+
+    -- D-25 — review 상태인데 사유가 없는 행은 존재할 수 없다.
+    CONSTRAINT review_requires_reason CHECK (status <> 'review' OR review_reason_code IS NOT NULL)
+);
+
+CREATE INDEX idx_candidate_document ON rights_grant_candidate (document_id);
+CREATE INDEX idx_candidate_review_queue ON rights_grant_candidate (created_at)
+    WHERE status = 'review';
+CREATE INDEX idx_candidate_probe_key
+    ON rights_grant_candidate (ip_id, territory, legal_right, exploitation_mode);
+
+-- D-29 — 후보 하나의 판단 근거는 여러 페이지·조항에 걸칠 수 있으므로 N행으로
+-- 분리한다. document_id는 candidate에서 결정되므로 중복 저장하지 않는다.
+-- 페이지를 알 수 없는 OCR/파서도 수용하되, 인용 원문은 반드시 남긴다.
+CREATE TABLE candidate_evidence (
+    id            bigserial PRIMARY KEY,
+    candidate_id  bigint NOT NULL REFERENCES rights_grant_candidate(id) ON DELETE CASCADE,
+    page_start    int,
+    page_end      int,
+    source_clause text,
+    source_quote  text NOT NULL,
+    created_at    timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT evidence_quote_not_blank CHECK (btrim(source_quote) <> ''),
+    CONSTRAINT evidence_page_start_positive CHECK (page_start IS NULL OR page_start > 0),
+    CONSTRAINT evidence_page_end_valid CHECK (
+        page_end IS NULL OR (page_start IS NOT NULL AND page_end >= page_start)
+    )
+);
+
+CREATE INDEX idx_candidate_evidence_candidate ON candidate_evidence (candidate_id);
+
+-- ─────────────────────────────────────────────────────────────
+-- 권리 레코드 — 승인된 데이터의 Single Source of Truth (DAR-001, D-24)
 -- ─────────────────────────────────────────────────────────────
 --
 -- D-03 · D-15 — 지역 1개당 1행. 여러 지역을 커버하는 권리는 지역 수만큼 행이 된다.
--- 'WORLDWIDE'는 앱이 등록 시점에 in_scope 국가 8개로 전개해 8행으로 넣는다.
---
--- 계약 1건이 여러 행이 되므로 PER-001 측정 단위는 "계약 1건 등록 트랜잭션"이어야
--- 한다. 현 SRS 문면("INSERT 트랜잭션 소요 시간")은 1행 INSERT로 읽힌다 → O-04 인접 항목.
+-- source_candidate_id가 어떤 AI 후보 승인으로 생성됐는지 추적한다(D-25) — 이 FK가
+-- 걸려 있는 한 그 candidate 행은 삭제되지 않으므로 Evidence Anchoring(P-3)이
+-- 구조적으로 보존된다. rights_grant_candidate 바로 다음에 만드는 이유는
+-- source_candidate_id FK가 그 테이블을 필요로 하기 때문이다 —
+-- rights_evaluation_reason이 이 테이블도 참조하므로 그보다 먼저 와야 한다.
 CREATE TABLE rights_grant (
-    id            bigserial PRIMARY KEY,
-    tenant_id     uuid   NOT NULL REFERENCES tenant(id),  -- D-20
-    contract_id   bigint NOT NULL,
-    content_id    bigint NOT NULL,
+    id                   bigserial PRIMARY KEY,
+    contract_id          bigint NOT NULL,
+    document_id          bigint NOT NULL,   -- 이 권리 데이터가 확정된 근거 PDF
+    source_candidate_id  bigint NOT NULL UNIQUE,
+    ip_id                bigint NOT NULL,
 
-    -- D-17 — 워크플로우 상태. provisional·complete만 판정(EXCLUDE·트리거) 대상이다.
-    status        rights_grant_status NOT NULL DEFAULT 'draft',
+    status       rights_grant_status NOT NULL DEFAULT 'approved',
+    territory    char(2)          NOT NULL REFERENCES country(code),
 
-    -- D-17 — nullable로 바뀌었다. status='review'(구 D-16 검수 스테이징) 행은
-    -- 값이 없어도 이 테이블에 존재해야 한다. 대신 아래 resolved_fields_when_live가
-    -- provisional·complete 상태에서는 반드시 채워져 있도록 강제한다.
-    territory     char(2)          REFERENCES country(code),
-    rights_type   rights_type_kind,
-    period        daterange,
-    exclusivity   exclusivity_kind,
+    -- D-27 — 판정축 2개.
+    legal_right       text NOT NULL REFERENCES legal_right(code),
+    exploitation_mode text NOT NULL REFERENCES exploitation_mode(code),
 
-    -- D-17 — review 상태로 보내는 사유. status<>'review'면 NULL이다.
-    review_reason review_reason_kind,
+    -- D-27 — 비정규화된 nested-set 구간. EXCLUDE의 WHERE절·키 표현식은
+    -- 서브쿼리를 못 쓰므로 참조 테이블에서 조인해 올 수 없다 — 행에 실물로
+    -- 있어야 한다. sync_rights_grant_spans() 트리거가 채우며, 앱이 넘긴 값은
+    -- 무조건 덮어쓴다(앱이 span을 직접 쓰는 경로를 열면 P-4가 깨진다).
+    legal_right_span       int4range NOT NULL,
+    exploitation_mode_span int4range NOT NULL,
 
-    -- SFR-004 — 신뢰도. 여기 들어온 행은 이미 검수를 통과했거나 임계값 이상이다.
-    confidence    numeric(3,2),
-    verified_by   text,
-    verified_at   timestamptz,
+    period       daterange        NOT NULL,   -- 반열림 구간 [start,end)
+    exclusivity  exclusivity_kind NOT NULL,
 
-    -- P-3 Evidence Anchoring — 모든 추출값은 원문 인용을 동반한다 (SFR-002·003)
-    source_page   int,
-    source_clause text,
-    source_quote  text,                  -- SER-006 계층1 암호화 대상 (D-14)
+    verified_by  text NOT NULL,      -- 승인 사용자
+    verified_at  timestamptz NOT NULL DEFAULT now(),
+    created_at   timestamptz NOT NULL DEFAULT now(),
 
-    created_at    timestamptz NOT NULL DEFAULT now(),
-
-    -- D-09 — 복합 FK.
-    -- 단일 컬럼 FK면 A테넌트 계약에 B테넌트 tenant_id를 단 행을 넣을 수 있고,
-    -- 그러면 EXCLUDE 키가 겹치지 않아 충돌 판정이 통째로 우회된다.
-    -- RLS는 테이블마다 자기 컬럼이 있어야 걸리고 EXCLUDE는 조인을 못 하므로
-    -- tenant_id를 제거할 수 없다. 대신 복합 FK로 불일치를 DB가 거부하게 한다.
-    FOREIGN KEY (contract_id, tenant_id) REFERENCES contract (id, tenant_id) ON DELETE CASCADE,
-    FOREIGN KEY (content_id,  tenant_id) REFERENCES content  (id, tenant_id),
+    -- source_candidate_id는 candidate 삭제를 막는 게 목적이라
+    -- CASCADE를 안 준다 — 나머지는 contract가 지워지면 함께 정리되는 게 자연스럽다.
+    --
+    -- 미검증 위험 — source_candidate_id가 CASCADE가 아니고
+    -- rights_grant_candidate.contract_id는 CASCADE라서, `DELETE FROM contract`가
+    -- rights_grant보다 rights_grant_candidate 캐스케이드를 먼저 처리하면 이
+    -- RESTRICT에 걸려 삭제 전체가 실패할 수 있다(diamond cascade 순서는
+    -- PostgreSQL이 보장하지 않는다). 실사용에서는 `docker compose down -v`
+    -- 볼륨 재생성으로 정리하므로 안 부딪히지만, 테스트 하네스가 `DELETE FROM
+    -- contract`로 건별 정리를 시도한다면 스파이크로 실측 확인 후 안전한
+    -- 순서(rights_grant → rights_grant_candidate → contract)로 명시적 DELETE를
+    -- 쓸 것.
+    FOREIGN KEY (contract_id)         REFERENCES contract              (id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id)         REFERENCES contract_document     (id) ON DELETE CASCADE,
+    FOREIGN KEY (source_candidate_id) REFERENCES rights_grant_candidate(id),
+    FOREIGN KEY (ip_id)               REFERENCES ip                    (id),
 
     -- 기간은 반열림 구간이어야 한다. 종료 12/31 다음 날 시작(2027-01-01)이
-    -- 겹치지 않는다는 것이 시나리오 EN-B01의 판정 근거다. NULL은 허용(review 상태).
-    CONSTRAINT period_not_empty CHECK (period IS NULL OR NOT isempty(period)),
-
-    -- D-17 — "판정 가능한 완결 행"이라는 원래 전제를 provisional·complete로 좁혀 유지한다.
-    -- 판정할 수 없는 행을 판정 대상 상태로 두지 않는다는 원칙(D-16의 논리)은 그대로다.
-    CONSTRAINT resolved_fields_when_live CHECK (
-        status NOT IN ('provisional', 'complete')
-        OR (territory IS NOT NULL AND rights_type IS NOT NULL
-            AND period IS NOT NULL AND exclusivity IS NOT NULL)
-    )
+    -- 겹치지 않는다는 것이 시나리오 EN-B01의 판정 근거다.
+    CONSTRAINT period_not_empty CHECK (NOT isempty(period))
 );
 
 -- ─────────────────────────────────────────────────────────────
@@ -289,110 +486,176 @@ CREATE TABLE rights_grant (
 -- 담당: 독점/sole ↔ 독점/sole. 비독점이 낀 조합은 트리거가 맡는다(02_conflict_rules.sql).
 -- 담당을 XOR로 배타 분할해 "어느 층이 잡았는지"가 결정론적으로 구분되게 한다.
 --
--- 제약명을 바꾸지 않는다 (D-08) — RFP §6.3.2가 시연 구간 C에서 이 에러 문구를
+-- 제약명을 바꾸지 않는다(D-08) — RFP §6.3.2가 시연 구간 C에서 이 에러 문구를
 -- 화면에 크게 노출하라고 규정하고 README도 이 이름을 문서화하고 있다.
--- D-17 — status 필터 추가. draft·review·terminated는 "살아있는" 권리가 아니므로
--- 같은 구간에 다른 권리가 들어와도 막지 않는다. 스파이크 8(spike-p2/14~15)에서
--- 5개 상태 조합 전부 실측 확인했다.
+--
+-- D-24 — status 필터가 provisional·complete에서 approved·final로 바뀌었다.
+-- rights_grant_status에는 이제 draft·review가 없다(그 워크플로우는
+-- rights_grant_candidate.status로 옮겨갔다) — approved·final 둘 다 "살아있는"
+-- 권리이므로 둘 다 판정 대상이다. terminated만 제외된다.
+-- D-27 — rights_type WITH = 한 축이 legal_right_span/exploitation_mode_span
+-- 두 축의 && 로 바뀌었다. 등호가 아니라 구간 겹침이라 상위-하위 포함관계가
+-- 그대로 충돌로 잡힌다(R3·R4):
+--   PUBLIC_TRANSMISSION [1,7) && TRANSMISSION [4,6) → 충돌 (JA-C05)
+--   VOD [1,9)                 && AVOD [4,6)        → 충돌 (넓은 이용형태 L2)
+--   SVOD [2,4)                && TVOD [6,8)        → 통과 (동일 권리, 다른 창구)
+-- int4range는 GiST 기본 opclass가 있어 확장이 필요 없다. 스칼라 = 축은
+-- 기존대로 btree_gist가 담당한다(00_extensions.sql 무변경).
 ALTER TABLE rights_grant
 ADD CONSTRAINT no_exclusive_overlap
 EXCLUDE USING gist (
-    tenant_id   WITH =,
-    content_id  WITH =,
-    rights_type WITH =,
-    territory   WITH =,
-    period      WITH &&
+    ip_id                  WITH =,
+    legal_right_span       WITH &&,
+    exploitation_mode_span WITH &&,
+    territory              WITH =,
+    period                 WITH &&
 )
-WHERE (exclusivity <> 'non_exclusive' AND status IN ('provisional', 'complete'));
+WHERE (exclusivity <> 'non_exclusive' AND status IN ('approved', 'final'));
 
-CREATE INDEX rights_grant_lookup
-    ON rights_grant (tenant_id, content_id, rights_type, territory);
+CREATE INDEX idx_rights_grant_status ON rights_grant (status);
+CREATE INDEX idx_rights_grant_document ON rights_grant (document_id);
 
-CREATE INDEX rights_grant_period
-    ON rights_grant USING gist (period);
+-- D-27 — 판정키 조회용. 구간 축이 섞여 있어 btree가 아니라 GiST다.
+-- check_exclusivity_conflict()와 evaluate_candidate()의 비교 쿼리가 탄다.
+CREATE INDEX idx_rights_grant_conflict_key ON rights_grant
+    USING gist (ip_id, territory, legal_right_span, exploitation_mode_span, period);
 
 -- 만료 감시(SFR-012)용. 선택 항목이지만 인덱스는 지금 만들어 두는 편이 싸다.
-CREATE INDEX rights_grant_expiry
-    ON rights_grant (tenant_id, (upper(period)));
+CREATE INDEX rights_grant_expiry ON rights_grant ((upper(period)));
 
 -- ─────────────────────────────────────────────────────────────
--- 검수 — D-16의 rights_grant_staging은 D-17로 대체됐다
+-- DB가 계산한 충돌 사실 (D-24)
 -- ─────────────────────────────────────────────────────────────
 --
--- 판정할 수 없는 행을 판정 테이블에 넣지 않는다는 원칙(D-16)은 유지되지만,
--- 별도 테이블 대신 rights_grant.status='review'로 흡수했다. territory·period·
--- exclusivity가 nullable이 됐고, resolved_fields_when_live CHECK가 provisional·
--- complete 상태에서만 완결값을 강제한다. 큐 조회는 부분 인덱스로 지원한다.
-CREATE INDEX rights_grant_review_queue
-    ON rights_grant (tenant_id, created_at)
-    WHERE status = 'review';
+-- D-27 — conflict_result를 2층으로 나눈다.
+--
+-- 판정 결과(Result)와 판정 사유(Reason Code)는 다른 것이다. CONFLICT는 "결론"이고
+-- EXCLUSIVE_RIGHT_OVERLAP은 "왜 그 결론인가"다. 게다가 결론 하나에 사유가 여럿일
+-- 수 있다 — 기존 독점권 침해 + 상위 계약 기간 초과 + sublicense 금지가 동시에
+-- 성립하면 결과는 CONFLICT 하나지만 사유는 셋이다.
+--
+-- 옛 conflict_result는 이름부터 CONFLICT만 담을 수 있어 REVIEW_REQUIRED·WARNING을
+-- 넣을 자리가 없었다(상대 grant가 없는 판정이라 conflicting_grant_id NOT NULL에
+-- 걸린다). 이제 결과는 rights_evaluation, 사유는 rights_evaluation_reason이다.
+--
+-- 판정 1회 = rights_evaluation 1행. 재판정(WAIVER 처리 후 재검사 등)하면 새 행이
+-- 쌓인다 — append-only이고 "현재 판정"은 candidate별 MAX(id)다.
+CREATE TABLE rights_evaluation (
+    id                bigserial PRIMARY KEY,
+    candidate_id      bigint NOT NULL,
+    result_type       result_kind NOT NULL,
+
+    -- AI 첨언은 판정 전체에 대해 1건이다(화면이 primary 사유 하나를 크게 보여주고
+    -- 그 아래 세부 사유를 나열하는 구조와 맞다). DB 판정 사실과 컬럼 레벨로
+    -- 분리한다 — P-1(LLM은 변환만, 판정 안 함)을 구조로 강제한다.
+    ai_commentary     text,
+    ai_recommendation text,
+    ai_model          text,
+    ai_generated_at   timestamptz,
+
+    evaluated_at      timestamptz NOT NULL DEFAULT now(),
+
+    FOREIGN KEY (candidate_id)
+        REFERENCES rights_grant_candidate (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_evaluation_candidate ON rights_evaluation (candidate_id);
+CREATE INDEX idx_evaluation_result ON rights_evaluation (result_type);
+
+-- 사유 N건. 충돌 상대 grant와 겹침 구간이 여기 붙는다 — 한 후보가 서로 다른
+-- 기존 권리 3건과 각각 다른 사유로 부딪히는 경우를 자연스럽게 표현한다.
+-- REVIEW_REQUIRED·WARNING 사유는 상대 grant가 없으므로 conflicting_grant_id가 NULL이다.
+CREATE TABLE rights_evaluation_reason (
+    id                   bigserial PRIMARY KEY,
+    evaluation_id        bigint NOT NULL,
+    reason_code          text   NOT NULL REFERENCES reason_code(code),
+    is_primary           boolean NOT NULL DEFAULT false,
+    status               conflict_status NOT NULL DEFAULT 'detected',
+
+    conflicting_grant_id bigint,      -- CONFLICT 사유만. 나머지는 NULL
+    overlap_period       daterange,   -- DB가 계산한 실제 겹침 기간
+    deterministic_detail jsonb,       -- 비교 필드·값 등 재현 가능한 DB 판정 결과
+
+    FOREIGN KEY (evaluation_id)        REFERENCES rights_evaluation (id) ON DELETE CASCADE,
+    FOREIGN KEY (conflicting_grant_id) REFERENCES rights_grant      (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_evaluation_reason_eval ON rights_evaluation_reason (evaluation_id);
+CREATE INDEX idx_evaluation_reason_grant ON rights_evaluation_reason (conflicting_grant_id);
+CREATE INDEX idx_evaluation_reason_status ON rights_evaluation_reason (status);
+
+-- 화면에서 크게 보여줄 대표 사유는 판정당 최대 1건이다.
+CREATE UNIQUE INDEX uq_evaluation_primary_reason
+    ON rights_evaluation_reason (evaluation_id) WHERE is_primary;
+
+-- D-24 — 충돌을 무시하지 않는다. WAIVER 승인 시 트리거(02_conflict_rules.sql의
+-- apply_waiver_termination())가 conflicting_grant_id가 가리키는 기존 rights_grant를
+-- TERMINATED로 정리해 충돌의 물리적 원인을 제거한다. 그 뒤 candidate를 재검사하고,
+-- 통과하면 신규 rights_grant를 INSERT한다 — 이 INSERT는 다른 모든 INSERT와 동일하게
+-- EXCLUDE를 통과해야 한다. EXCLUDE에는 예외 조건이 없다.
+--
+-- AMENDED/REJECTED는 rights_grant를 건드리지 않는다 — candidate 쪽에서 끝난다.
+-- D-27 — 참조 대상이 conflict_result에서 rights_evaluation_reason으로 내려왔다.
+-- WAIVER 트리거가 "정확히 어느 기존 grant를 종료할지" 결정해야 하는데 그
+-- conflicting_grant_id가 이제 사유 행에 있기 때문이다. 판정 단위로만 알면
+-- 사유가 여럿일 때 어느 상대를 정리할지 결정할 수 없다.
+CREATE TABLE conflict_resolution (
+    id                    bigserial PRIMARY KEY,
+    evaluation_reason_id  bigint NOT NULL,
+    resolution_type       resolution_type NOT NULL,
+    status                resolution_status NOT NULL DEFAULT 'pending',
+    reason                text NOT NULL,     -- 왜 충돌을 이렇게 처리하는지 감사 가능한 근거
+    evidence_document_id  bigint,            -- 합의서/수정본 등이 시스템 문서라면 연결
+    approved_by           text,
+    approved_at           timestamptz,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+
+    FOREIGN KEY (evaluation_reason_id) REFERENCES rights_evaluation_reason (id) ON DELETE CASCADE,
+    FOREIGN KEY (evidence_document_id) REFERENCES contract_document        (id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_resolution_conflict ON conflict_resolution (evaluation_reason_id);
+CREATE INDEX idx_resolution_status ON conflict_resolution (status);
 
 -- ─────────────────────────────────────────────────────────────
--- history — append-only 원장 (D-17, D-18)
+-- history — 확정 데이터의 감사 로그 (D-18, D-24)
 -- ─────────────────────────────────────────────────────────────
 --
--- 두 가지 이벤트가 이 테이블에 쌓인다:
---   1. 'parsed'    — 파싱+probe 직후 "저장" 버튼. rights_grant_id는 아직 NULL이다.
---                    아직 마스터에 아무 행도 없을 수 있다.
---   2. 'registered'/'status_changed'/'terminated' — rights_grant 실제 변경 시
---      AFTER ROW 트리거(02_conflict_rules.sql)가 자동 기록한다.
---
--- rights_grant는 status로 UPDATE(현재 시점만 관리), history는 오직 INSERT다.
--- 기존 change_log(05)는 P1 재색인 워커용 기술 로그이고 이것과 목적이 다르다 —
--- 둘 다 유지한다.
---
--- D-22 — history_seq(계약 내 순번, MAX+1) 제거. 코드리뷰로 지적된 대로 동시
--- 등록 시 UNIQUE(contract_id, history_seq) 위반이 나는 구조였다. id(bigserial)가
--- 이미 전역 삽입 순서를 보장하고 recorded_at도 있으므로, 순번이 필요하면
--- 조회 시점에 ROW_NUMBER() OVER (PARTITION BY contract_id ORDER BY id)로
--- 계산하면 된다 — 저장할 이유가 없다.
+-- D-24 — staging 용도로 쓰지 않는다. 미확정 AI 추출 이력은 이제
+-- rights_grant_candidate 자체가 담당하므로, 이 테이블은 rights_grant의 실제
+-- INSERT·UPDATE에만 반응하는 순수 append-only 감사 로그다. 그래서 'parsed'
+-- 이벤트와 source_history_id 자기참조가 사라졌다 — "이 승인이 어느 후보에서
+-- 왔는지"는 rights_grant.source_candidate_id 하나로 항상 answerable하므로
+-- 이벤트마다 따로 연결을 추적할 필요가 없다.
 CREATE TABLE rights_grant_history (
     id               bigserial PRIMARY KEY,
-    tenant_id        uuid   NOT NULL REFERENCES tenant(id),  -- D-20
+    rights_grant_id  bigint NOT NULL,
     contract_id      bigint NOT NULL,
-    content_id       bigint NOT NULL,
+    document_id      bigint NOT NULL,
 
-    -- D-22 — parsed 행은 등록돼도 이 컬럼을 UPDATE하지 않는다(진짜 append-only).
-    -- "이 parsed가 등록됐는지"는 rights_grant_history에서
-    -- source_history_id = 이 행의 id 인 'registered' 이벤트가 있는지로 판단한다.
-    -- 이 컬럼은 오직 'registered'/'status_changed'/'terminated' 이벤트 INSERT
-    -- 시점에 트리거가 채우는 값이다 — 그 이벤트들은 정의상 특정 rights_grant를 가리킨다.
-    rights_grant_id  bigint REFERENCES rights_grant(id),
-    event_type       text   NOT NULL
-                     CHECK (event_type IN ('parsed', 'registered', 'status_changed', 'terminated')),
-    source_history_id bigint REFERENCES rights_grant_history(id),  -- registered가 가리키는 원본 parsed 행
+    event_type       text NOT NULL
+                      CHECK (event_type IN ('registered', 'finalized', 'terminated', 'status_changed')),
 
-    -- rights_grant와 동일한 타입의 스냅샷 컬럼 (probe 결과 그대로 반영)
-    status_at_event  rights_grant_status NOT NULL,
-    territory        char(2),
-    rights_type      rights_type_kind,
-    period           daterange,
-    exclusivity      exclusivity_kind,
-    confidence       numeric(3,2),
-    source_page      int,
-    source_clause    text,
-    source_quote     text,
+    -- rights_grant와 동일한 타입의 스냅샷 컬럼 (이벤트 시점 값 그대로)
+    -- D-27 — rights_type 한 컬럼이 판정축 2개로 늘었다. span은 스냅샷하지 않는다
+    -- — 파생값이라 코드만 있으면 언제든 참조 테이블에서 다시 얻을 수 있다.
+    status_at_event   rights_grant_status NOT NULL,
+    territory         char(2)          NOT NULL,
+    legal_right       text             NOT NULL,
+    exploitation_mode text             NOT NULL,
+    period            daterange        NOT NULL,
+    exclusivity       exclusivity_kind NOT NULL,
 
-    -- D-18 — probe 결과. 충돌 없으면 NULL. conflict_code는 필터·집계용 요약값이고
-    -- conflict_report가 화면에 뿌릴 전체 내용이다 — 상대 계약·겹침 기간·근거 조항·
-    -- AI 첨언까지 하나의 JSON으로 묶는다(D-21). 화면 렌더링은 프런트가 이 JSON을 그대로 쓴다.
-    conflict_code    text REFERENCES conflict_code(code),
-    conflict_report  jsonb,
+    changed_by       text,       -- 세션 GUC(mindex.changed_by)로 앱/트리거가 넘김
+    change_reason    text,       -- WAIVER 트리거가 'WAIVER: <reason>'으로 채우기도 함
+    snapshot         jsonb,      -- 필요 시 당시 전체 row 스냅샷
 
     recorded_at      timestamptz NOT NULL DEFAULT now(),
 
-    FOREIGN KEY (contract_id, tenant_id) REFERENCES contract (id, tenant_id) ON DELETE CASCADE,
-    FOREIGN KEY (content_id,  tenant_id) REFERENCES content  (id, tenant_id)
+    FOREIGN KEY (rights_grant_id) REFERENCES rights_grant      (id) ON DELETE CASCADE,
+    FOREIGN KEY (contract_id)     REFERENCES contract         (id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id)     REFERENCES contract_document(id) ON DELETE CASCADE
 );
 
-CREATE INDEX rights_grant_history_by_source
-    ON rights_grant_history (source_history_id)
-    WHERE source_history_id IS NOT NULL;
-
-CREATE INDEX rights_grant_history_by_grant
-    ON rights_grant_history (rights_grant_id)
-    WHERE rights_grant_id IS NOT NULL;
-
-CREATE INDEX rights_grant_history_pending
-    ON rights_grant_history (tenant_id, contract_id, recorded_at)
-    WHERE event_type = 'parsed' AND rights_grant_id IS NULL;
+CREATE INDEX idx_history_grant ON rights_grant_history (rights_grant_id);
+CREATE INDEX idx_history_event ON rights_grant_history (event_type);

@@ -7,10 +7,13 @@
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
+-- D-24 — PDF 원문이 contract_document로 옮겨갔으므로 chunk도 문서 버전 단위로
+-- 붙는다. document_id가 없으면 수정 전/후 PDF의 조항이 섞인다 — 예전 버전
+-- 계약서로 검색했는데 최신 버전 조항이 튀어나오는 사고를 막는다.
 CREATE TABLE contract_chunk (
     id           bigserial PRIMARY KEY,
-    tenant_id    uuid   NOT NULL REFERENCES tenant(id),  -- D-20
     contract_id  bigint NOT NULL,
+    document_id  bigint NOT NULL,
 
     clause_no    text,                   -- '제8조'
     chunk_text   text NOT NULL,
@@ -28,13 +31,17 @@ CREATE TABLE contract_chunk (
 
     created_at   timestamptz NOT NULL DEFAULT now(),
 
-    FOREIGN KEY (contract_id, tenant_id) REFERENCES contract (id, tenant_id) ON DELETE CASCADE
+    FOREIGN KEY (contract_id) REFERENCES contract         (id) ON DELETE CASCADE,
+    FOREIGN KEY (document_id) REFERENCES contract_document(id) ON DELETE CASCADE
 );
 
 CREATE INDEX contract_chunk_embedding
     ON contract_chunk USING hnsw (embedding vector_cosine_ops);
 
 -- SFR-009-P — 후보 축소 필터가 먼저 돌고 그다음 벡터 랭킹이다.
--- 테넌트·언어로 좁히는 경로를 인덱스로 받쳐 둔다.
+-- 계약으로 좁히는 경로를 인덱스로 받쳐 둔다.
 CREATE INDEX contract_chunk_scope
-    ON contract_chunk (tenant_id, contract_id);
+    ON contract_chunk (contract_id);
+
+CREATE INDEX idx_chunk_document
+    ON contract_chunk (document_id);

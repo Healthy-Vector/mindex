@@ -1,6 +1,6 @@
 ---
 name: p2-docs
-description: WORKLOG 항목 추가, DECISIONS의 D-xx/O-xx 갱신, CLAUDE.md·RIGHTS-VOCABULARY·ERD 동기화, 코드 주석·docstring 정리, PR 본문·커밋 메시지 초안 작성. 산문을 쓰거나 고칠 때 사용하며 코드 로직은 건드리지 않는다.
+description: WORKLOG·DECISIONS·CLAUDE.md 갱신, DB 설명서·정본 DBML 동기화, 코드 주석·docstring 정리, PR 본문·커밋 메시지 초안 작성. 산문을 쓰거나 고칠 때 사용하며 코드 로직은 건드리지 않는다.
 tools: Read, Edit, Write, Grep, Glob, Bash
 ---
 
@@ -24,22 +24,27 @@ K-RIGHTS(`mindex`) 저장소의 문서 담당이다. 코드 로직은 만지지 
 
 ### `docs/WORKLOG.md` (개인 문서, gitignore 대상)
 
-- **최신이 위.** 새 항목은 맨 위 `---` 아래에 `## YYYY-MM-DD (요일) — 제목`으로
+- **최신이 위.** 새 항목은 소개문 아래에 `## YYYY-MM-DD — 제목`으로 추가한다
 - 절 구성: **한 일 / 확인한 사실 (재조사 불필요) / 막힌 것 / 다음 할 일**
-- "다음 할 일"은 다음 세션이 그대로 집어 들 수 있게 구체적으로. 끝난 항목은 지우지 말고 `~~취소선~~` + 결과 링크
+- "다음 할 일"은 다음 세션이 그대로 집어 들 수 있게 구체적으로 쓴다
 - 상대 날짜("어제", "지난주") 금지. 절대 날짜로 쓴다
 
 ### `docs/DECISIONS.md` (개인 문서, gitignore 대상)
 
-- 확정은 `D-xx`, 미결은 `O-xx`. 번호를 재사용하지 않는다
+- 확정은 `D-xx`, 미결은 `O-xx`. DBML·SQL 주석이 참조하는 번호를 유지한다
 - 각 항목에 **결정 내용 + 근거 + 영향 범위**. 미결은 **무엇을 기다리는지, 무엇이 여기에 묶여 있는지**
-- O-xx가 해소되면 지우지 말고 "해소됨 (날짜, 경위)"로 남긴다
+- 과거 스키마 세대의 결정을 현행 결정처럼 남기지 않는다. 해소·대체된 내용은 현재 결정에 필요한 근거만 합친다
 
-### 팀 공유 문서 (`CLAUDE.md`, `docs/RIGHTS-VOCABULARY.md`, `docs/mindex.erd.json`, `README`)
+### `CLAUDE.md` (개인 문서, gitignore 대상)
+
+- 내 작업 환경과 규칙을 담는다. 팀원은 clone해도 이 파일이 없다 — 각자 자기 것을 쓴다
+- "함정" 절은 **실제로 당한 것만** 넣는다. 예방적 일반론은 넣지 않는다
+
+### 팀 공유 문서 (`docs/mindex_remastered.dbml`, `docs/mindex DB 설명서.md`, `README`)
 
 - 저장소에 커밋되어 **팀원이 읽는다.** 내 개인 맥락("내가 어제 헤맸다")은 빼고, 다른 사람이 바로 쓸 수 있는 형태로 쓴다
-- `CLAUDE.md`의 "함정" 절은 **실제로 당한 것만** 넣는다. 예방적 일반론은 넣지 않는다
-- `mindex.erd.json`은 `sql/init/`의 실제 스키마와 일치해야 한다. 어긋나면 고치기 전에 어긋난 지점을 먼저 보고한다
+- `mindex_remastered.dbml`은 유일한 데이터 모델 정본이며 `sql/init/`의 실제 스키마와 일치해야 한다. 어긋나면 고치기 전에 어긋난 지점을 먼저 보고한다
+- 구세대 ERD export나 별도 스키마 설명 파일을 다시 만들지 않는다
 
 ### 코드 주석·docstring
 

@@ -6,7 +6,6 @@
 
 CREATE TABLE change_log (
     id           bigserial PRIMARY KEY,
-    tenant_id    uuid,
     table_name   text   NOT NULL,
     row_id       bigint NOT NULL,
     op           char(1) NOT NULL CHECK (op IN ('I', 'U', 'D')),
@@ -30,9 +29,8 @@ CREATE INDEX change_log_pending
 CREATE OR REPLACE FUNCTION log_change() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
-    INSERT INTO change_log (tenant_id, table_name, row_id, op)
+    INSERT INTO change_log (table_name, row_id, op)
     VALUES (
-        COALESCE(NEW.tenant_id, OLD.tenant_id),
         TG_TABLE_NAME,
         COALESCE(NEW.id, OLD.id),
         CASE TG_OP WHEN 'INSERT' THEN 'I' WHEN 'UPDATE' THEN 'U' ELSE 'D' END
@@ -46,6 +44,12 @@ $$;
 -- (docstring: "벡터를 재생성한다"), rights_grant는 벡터화 대상이 아니다.
 -- 권리 데이터 자체의 감사 추적은 rights_grant_history(D-18)가 이미 더
 -- 풍부하게 맡고 있으므로 이 큐에 중복해서 쌓을 이유가 없다.
-CREATE TRIGGER contract_change_log
-    AFTER INSERT OR UPDATE OR DELETE ON contract
+--
+-- D-24 — 트리거를 contract가 아니라 contract_document에 건다. raw_text(재청킹
+-- 대상)가 D-24에서 contract로부터 contract_document로 옮겨갔기 때문이다.
+-- contract 자체(counterparty·status 등 메타데이터)가 바뀌어도 재임베딩할
+-- 내용이 없으므로, contract 트리거를 그대로 뒀다면 목적에 안 맞는 로그만
+-- 쌓였을 것이다.
+CREATE TRIGGER contract_document_change_log
+    AFTER INSERT OR UPDATE OR DELETE ON contract_document
     FOR EACH ROW EXECUTE FUNCTION log_change();
