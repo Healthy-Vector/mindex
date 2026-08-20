@@ -14,13 +14,50 @@ Project mindex {
   '''
 }
 
-Enum result_kind { NORMAL CONFLICT REVIEW_REQUIRED WARNING }
-Enum exclusivity_kind { exclusive sole non_exclusive }
-Enum contract_status { draft active final rejected terminated }
-Enum contract_history_status { registered conflicted }
-Enum rights_grant_status { active terminated }
-Enum terminated_reason_kind { superseded expired waiver cancelled }
-Enum asset_scope_kind { SERIES_ALL SEASON EPISODE EDITION }
+Enum result_kind {
+  NORMAL
+  CONFLICT
+  REVIEW_REQUIRED
+  WARNING
+}
+
+Enum exclusivity_kind {
+  exclusive
+  sole
+  non_exclusive
+}
+
+Enum contract_status {
+  draft
+  active
+  final
+  rejected
+  terminated
+}
+
+Enum contract_history_status {
+  registered
+  conflicted
+}
+
+Enum rights_grant_status {
+  active
+  terminated
+}
+
+Enum terminated_reason_kind {
+  superseded
+  expired
+  waiver
+  cancelled
+}
+
+Enum asset_scope_kind {
+  SERIES_ALL
+  SEASON
+  EPISODE
+  EDITION
+}
 
 Table country {
   code CHAR(2) [pk]
