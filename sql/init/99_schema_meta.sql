@@ -80,4 +80,22 @@ INSERT INTO schema_meta (version, note) VALUES
      'D-28·D-29 프로세스 정합화 — probe_rights()가 단일 source 파라미터 대신 '
      'evidence JSON 배열을 받아 candidate_evidence N행을 검증하도록 변경. 최초 업로드는 '
      '오브젝트 스토리지와 앱 작업 데이터에만 두고, 검증은 전부 롤백하며, 실제 등록에서 '
-     'contract → document → candidate → evidence → grant 순으로 ID를 받는 흐름을 문서화');
+     'contract → document → candidate → evidence → grant 순으로 ID를 받는 흐름을 문서화'),
+    ('2026-08-20.1',
+     'D-30 전면 재설계 — "PDF 한 건 = 판정 한 건" 계약서 단위 all-or-nothing 모델로 '
+     '교체. candidate 스테이징 계층(rights_grant_candidate·candidate_evidence·'
+     'rights_evaluation·rights_evaluation_reason·conflict_resolution·'
+     'rights_grant_history·contract_version·statutory_right·right_mapping)을 '
+     '전부 삭제. contract_document를 contract_history로 흡수(all-or-nothing 판정 '
+     '단위 1세대=1행, conflict_report jsonb 보유). ip_alias·content_asset·team 신설. '
+     'rights_grant를 재정의(lineage_id·evidence jsonb·conditions_raw·2단계 status). '
+     'probe_rights()/evaluate_candidate()를 validate_rights_batch()로, '
+     'register_candidate()를 save_rights_batch()로, apply_waiver_termination()을 '
+     'terminate_rights_grant() 직접 호출로 교체. attempt_rights_batch_insert() 신설로 '
+     '배치 전체를 단일 다중행 INSERT로 시도해 all-or-nothing을 EXCLUDE에 위임. '
+     'D-27의 legal_right × exploitation_mode 2축 EXCLUDE(&& 비교) 구조와 D-28의 '
+     'sentinel-rollback(SQLSTATE MXP01) 패턴은 그대로 유지. country/territory_group의 '
+     'name_ko/name_en을 country_label/territory_group_label로 정규화. reason_code에서 '
+     'is_blocking/is_review_trigger 컬럼 삭제(워크플로우 구동을 멈추고 순수 어휘로 전환), '
+     'right_mapping 삭제로 AMBIGUOUS_CLAUSE/CROSS_BORDER_MUSIC_CLEARANCE는 '
+     'implemented=false로 되돌림');

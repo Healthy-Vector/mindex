@@ -4,16 +4,24 @@
 -- 00~03과 05·99는 pgvector 없는 순수 PostgreSQL 16에서도 그대로 돈다.
 -- 충돌 판정 검증 환경의 선택지를 넓히기 위한 의도적 분리이며,
 -- 이 파일만 빼고 실행해도 SFR-007은 완전하게 동작한다.
+--
+-- D-30 — document_id를 contract_history_id로 재조준했다. contract_document가
+-- contract_history로 흡수됐기 때문이다(§1.4). save_rights_batch()가 선택적
+-- p_chunks 인자로 이 테이블에 청크를 넣을 수 있지만(02_conflict_rules.sql),
+-- 그 CREATE FUNCTION은 이 테이블이 아직 없어도 성공한다 — PL/pgSQL 함수
+-- 본문은 최초 호출 시점에야 SQL이 컴파일되므로, 04가 05·99보다 먼저
+-- 실행되는 한 실제 호출 시점에는 항상 테이블이 존재한다.
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- D-24 — PDF 원문이 contract_document로 옮겨갔으므로 chunk도 문서 버전 단위로
--- 붙는다. document_id가 없으면 수정 전/후 PDF의 조항이 섞인다 — 예전 버전
--- 계약서로 검색했는데 최신 버전 조항이 튀어나오는 사고를 막는다.
+-- D-30 — PDF 원문이 contract_history로 옮겨갔으므로 chunk도 계약서 세대
+-- 단위로 붙는다. contract_history_id가 없으면 수정 전/후 PDF의 조항이
+-- 섞인다 — 예전 세대 계약서로 검색했는데 최신 세대 조항이 튀어나오는
+-- 사고를 막는다.
 CREATE TABLE contract_chunk (
-    id           bigserial PRIMARY KEY,
-    contract_id  bigint NOT NULL,
-    document_id  bigint NOT NULL,
+    id                    bigserial PRIMARY KEY,
+    contract_id           bigint NOT NULL,
+    contract_history_id   bigint NOT NULL,
 
     clause_no    text,                   -- '제8조'
     chunk_text   text NOT NULL,
@@ -31,8 +39,8 @@ CREATE TABLE contract_chunk (
 
     created_at   timestamptz NOT NULL DEFAULT now(),
 
-    FOREIGN KEY (contract_id) REFERENCES contract         (id) ON DELETE CASCADE,
-    FOREIGN KEY (document_id) REFERENCES contract_document(id) ON DELETE CASCADE
+    FOREIGN KEY (contract_id)         REFERENCES contract         (id) ON DELETE CASCADE,
+    FOREIGN KEY (contract_history_id) REFERENCES contract_history (id) ON DELETE CASCADE
 );
 
 CREATE INDEX contract_chunk_embedding
@@ -43,5 +51,5 @@ CREATE INDEX contract_chunk_embedding
 CREATE INDEX contract_chunk_scope
     ON contract_chunk (contract_id);
 
-CREATE INDEX idx_chunk_document
-    ON contract_chunk (document_id);
+CREATE INDEX idx_chunk_history
+    ON contract_chunk (contract_history_id);

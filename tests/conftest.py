@@ -1,12 +1,14 @@
-"""DB 테스트 공용 픽스처 (D-29 스키마 기준).
+"""DB 테스트 공용 픽스처 (D-30 스키마 기준).
 
-실행 전 `docker compose up -d`로 DB가 떠 있어야 한다.
+실행 전 DB가 떠 있어야 한다(`docker compose up -d`, 또는 동등한 PostgreSQL 16 인스턴스).
 
-각 테스트는 자기 트랜잭션에서 ip · contract · document를 만들고 teardown에서
-통째로 rollback한다.
+각 테스트는 자기 트랜잭션에서 ip · content_asset · contract · contract_history를
+만들고 teardown에서 통째로 rollback한다.
 """
 
 from __future__ import annotations
+
+import json
 
 import psycopg2
 import pytest
@@ -32,12 +34,17 @@ def cur(conn):
 
 @pytest.fixture
 def ctx(cur):
-    """테스트 1건이 쓸 ip · contract · document 한 벌."""
+    """테스트 1건이 쓸 ip · content_asset · contract · contract_history 한 벌."""
     cur.execute(
-        "INSERT INTO ip (title_ko, title_en, kind) "
-        "VALUES ('겨울의 신호', 'Signal of Winter', '드라마') RETURNING id",
+        "INSERT INTO ip (title, kind) VALUES ('겨울의 신호', '드라마') RETURNING id",
     )
     ip_id = cur.fetchone()[0]
+
+    cur.execute(
+        "SELECT id FROM content_asset WHERE ip_id = %s AND scope_type = 'SERIES_ALL'",
+        (ip_id,),
+    )
+    content_asset_id = cur.fetchone()[0]
 
     cur.execute(
         "INSERT INTO contract (counterparty) VALUES ('테스트 상대방') RETURNING id",
@@ -45,69 +52,40 @@ def ctx(cur):
     contract_id = cur.fetchone()[0]
 
     cur.execute(
-        "INSERT INTO contract_document "
-        "  (contract_id, version, file_name, storage_key, file_hash) "
-        "VALUES (%s, 1, 'test.pdf', 's3://test/1.pdf', 'sha256:test') RETURNING id",
+        "INSERT INTO contract_history "
+        "  (contract_id, version, status, file_name, file_path, file_hash) "
+        "VALUES (%s, 1, 'registered', 'test.pdf', 's3://test/1.pdf', 'sha256:test') "
+        "RETURNING id",
         (contract_id,),
     )
-    document_id = cur.fetchone()[0]
+    history_id = cur.fetchone()[0]
 
     return {
         "ip_id": ip_id,
+        "content_asset_id": content_asset_id,
         "contract_id": contract_id,
-        "document_id": document_id,
+        "history_id": history_id,
+    }
+
+
+def _default_evidence():
+    entry = {"quote": "제8조 (권리의 부여) 본 계약에 따라...", "page": 8, "clause": "제8조"}
+    return {
+        "legal_right": entry,
+        "exploitation_mode": entry,
+        "territory": entry,
+        "period": entry,
+        "exclusivity": entry,
     }
 
 
 @pytest.fixture
-def make_candidate(cur, ctx):
-    """rights_grant_candidate 한 행을 만든다. 기본값은 '전부 확정된 정상 후보'다."""
-
-    def _make(
-        legal_right="TRANSMISSION",
-        exploitation_mode="SVOD",
-        territory="JP",
-        period="[2027-01-01,2028-01-01)",
-        exclusivity="exclusive",
-        confidence=0.99,
-        review_reason_code=None,
-    ):
-        cur.execute(
-            """
-            INSERT INTO rights_grant_candidate
-              (contract_id, document_id, ip_id,
-               territory, legal_right, exploitation_mode, period, exclusivity,
-               confidence, review_reason_code)
-            VALUES (%s, %s, %s,
-                    %s, %s, %s, %s::daterange, %s,
-                    %s, %s)
-            RETURNING id
-            """,
-            (
-                ctx["contract_id"], ctx["document_id"], ctx["ip_id"],
-                territory, legal_right, exploitation_mode, period, exclusivity,
-                confidence, review_reason_code,
-            ),
-        )
-        candidate_id = cur.fetchone()[0]
-        cur.execute(
-            "INSERT INTO candidate_evidence "
-            "(candidate_id, page_start, source_clause, source_quote) "
-            "VALUES (%s, 8, '제8조', '제8조 (권리의 부여) 본 계약에 따라...')",
-            (candidate_id,),
-        )
-        return candidate_id
-
-    return _make
-
-
-@pytest.fixture
-def make_grant(cur, ctx, make_candidate):
+def make_grant(cur, ctx):
     """rights_grant 행을 EXCLUDE 경로로 직접 INSERT한다.
 
-    register_candidate()를 거치지 않는다 — 이 픽스처를 쓰는 테스트가 검증하려는
+    save_rights_batch()를 거치지 않는다 — 이 픽스처를 쓰는 테스트가 검증하려는
     것은 판정 함수가 아니라 EXCLUDE/트리거 자체이기 때문이다.
-    span 두 컬럼은 넘기지 않는다: sync_rights_grant_spans()가 채운다.
+    span 두 컬럼과 lineage_id는 넘기지 않는다: 트리거가 채운다.
     """
 
     def _make(
@@ -116,28 +94,57 @@ def make_grant(cur, ctx, make_candidate):
         territory="JP",
         period="[2027-01-01,2028-01-01)",
         exclusivity="exclusive",
+        contract_id=None,
+        content_asset_id=None,
+        evidence=None,
     ):
-        candidate_id = make_candidate(
-            legal_right=legal_right,
-            exploitation_mode=exploitation_mode,
-            territory=territory,
-            period=period,
-            exclusivity=exclusivity,
-        )
         cur.execute(
             """
             INSERT INTO rights_grant
-              (contract_id, document_id, source_candidate_id, ip_id,
-               territory, legal_right, exploitation_mode, period, exclusivity, verified_by)
-            VALUES (%s, %s, %s, %s,
-                    %s, %s, %s, %s::daterange, %s, 'tester')
+              (contract_id, contract_history_id, content_asset_id,
+               territory, legal_right, exploitation_mode, period, exclusivity, evidence)
+            VALUES (%s, %s, %s,
+                    %s, %s, %s, %s::daterange, %s, %s::jsonb)
             RETURNING id
             """,
             (
-                ctx["contract_id"], ctx["document_id"], candidate_id,
-                ctx["ip_id"], territory, legal_right, exploitation_mode, period, exclusivity,
+                contract_id or ctx["contract_id"], ctx["history_id"],
+                content_asset_id or ctx["content_asset_id"],
+                territory, legal_right, exploitation_mode, period, exclusivity,
+                json.dumps(evidence or _default_evidence()),
             ),
         )
         return cur.fetchone()[0]
+
+    return _make
+
+
+@pytest.fixture
+def make_batch_row():
+    """save_rights_batch()/validate_rights_batch()의 p_rights 배열 원소 하나."""
+
+    def _make(
+        legal_right="TRANSMISSION",
+        exploitation_mode="SVOD",
+        territory="JP",
+        period="[2027-01-01,2028-01-01)",
+        exclusivity="exclusive",
+        content_asset_id=None,
+        evidence=None,
+        conditions_raw=None,
+    ):
+        row = {
+            "territory": territory,
+            "legal_right": legal_right,
+            "exploitation_mode": exploitation_mode,
+            "period": period,
+            "exclusivity": exclusivity,
+            "evidence": evidence or _default_evidence(),
+        }
+        if content_asset_id is not None:
+            row["content_asset_id"] = content_asset_id
+        if conditions_raw is not None:
+            row["conditions_raw"] = conditions_raw
+        return row
 
     return _make

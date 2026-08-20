@@ -1,31 +1,29 @@
--- 02_conflict_rules.sql — 충돌 판정 2단(트리거) + 감사 로그 + WAIVER + 후보 워크플로우
--- (D-05·D-06·D-07·D-24·D-25·D-27, SFR-007·011)
+-- 02_conflict_rules.sql — 충돌 판정 2단(트리거) + 배치 검증/저장 + WAIVER
+-- (D-05·D-27·D-30, SFR-007·011)
 --
 -- 이 파일이 담당하는 것:
---   1. sync_rights_grant_spans()          — 판정축 코드 → nested-set span 비정규화 (D-27)
---   2. guard_taxonomy_frozen()            — 데이터가 있는 상태의 taxonomy 좌표 변경 차단 (D-27)
---   3. check_exclusivity_conflict()       — 독점↔비독점 XOR 충돌 (D-05·D-06·D-07)
---   4. record_rights_grant_history()      — rights_grant 감사 로그 자동 기록
---   5. classify_candidate()               — candidate INSERT 시 검토 사유 자동 분류
---   6. evaluate_candidate()               — 판정 실행: rights_evaluation + 사유 N행 (D-27)
---   7. rights_advisory()                  — 자문 경고 (판정 아님)
---   8. register_candidate()               — candidate 승인 → rights_grant 실제 INSERT (최종 게이트)
---   9. validate_resolution_target()       — conflict_resolution 대상 사유 검증 (D-27)
---  10. apply_waiver_termination()         — WAIVER 승인 → 기존 rights_grant TERMINATED
---  11. validate_contract_finalize()       — contract.status='final' 전환 검증
---  12. probe_rights()                    — 검증 probe: INSERT 후 강제 롤백 (D-28)
+--   1. sync_rights_grant_spans()          — 판정축 코드 → nested-set span 비정규화 (D-27, 유지)
+--   2. guard_taxonomy_frozen()            — taxonomy 좌표 변경 차단 (D-27, 유지)
+--   3. is_valid_evidence_entry/is_valid_evidence — evidence JSONB 근거 검증 (D-30)
+--   4. default_lineage_id()               — lineage_id 자기참조 기본값 (D-30)
+--   5. ensure_default_content_asset()     — ip 생성 시 기본 content_asset 자동 생성 (D-30)
+--   6. check_exclusivity_conflict()       — 독점↔비독점 XOR 충돌 (D-05, D-30로 조인키 갱신)
+--   7. attempt_rights_batch_insert()      — 배치 INSERT 시도 내부 헬퍼 (D-30)
+--   8. validate_rights_batch()            — 검증: 배치 전체를 INSERT 후 강제 롤백 (D-28 계승, D-30)
+--   9. save_rights_batch()                — 등록: 배치 저장 + 세대 전환 + lineage 승계 (D-30)
+--  10. terminate_rights_grant()           — WAIVER/CANCELLED 수동 종료 (D-30)
+--  11. validate_contract_finalize()       — contract.status='final' 전환 검증 (D-30, 축소)
+--
+-- log_change()와 change_log 트리거는 05_change_log.sql이 그대로 담당한다
+-- (함수 본체 무변경, 트리거 바인딩만 contract_document → contract_history로 재부착).
 
 -- ─────────────────────────────────────────────────────────────
--- 1. 판정축 span 비정규화 (D-27)
+-- 1. 판정축 span 비정규화 (D-27, 변경 없음)
 -- ─────────────────────────────────────────────────────────────
 --
 -- EXCLUDE의 키 표현식은 서브쿼리를 못 쓴다 — 참조 테이블에서 조인해 올 수
 -- 없으므로 span이 rights_grant 행에 실물로 있어야 한다. 그 비정규화를 앱이
 -- 아니라 DB가 한다: 앱이 span 컬럼에 무엇을 넣든 여기서 덮어쓴다.
---
--- 앱이 span을 직접 쓸 수 있게 두면 "코드는 SVOD인데 span은 THEATRICAL"인 행을
--- 만들 수 있고, 그러면 EXCLUDE가 정상 동작하면서 충돌을 조용히 놓친다.
--- 에러도 경고도 없는 그 실패 모드가 정확히 P-4가 막으려는 것이다.
 CREATE OR REPLACE FUNCTION sync_rights_grant_spans() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -48,15 +46,8 @@ CREATE TRIGGER rights_grant_sync_spans
   FOR EACH ROW EXECUTE FUNCTION sync_rights_grant_spans();
 
 -- ─────────────────────────────────────────────────────────────
--- 2. taxonomy 좌표 동결 (D-27)
+-- 2. taxonomy 좌표 동결 (D-27, 변경 없음)
 -- ─────────────────────────────────────────────────────────────
---
--- 비정규화의 대가다. 참조 taxonomy의 lft/rgt가 바뀌면 이미 저장된
--- rights_grant.*_span이 전부 낡은 좌표계를 가리키게 되고, EXCLUDE는 그걸
--- 알아채지 못한 채 계속 "정상 동작"한다.
---
--- D-10(alembic 미도입, `docker compose down -v` 재생성 전제)과 같은 노선이다 —
--- taxonomy 변경은 마이그레이션이 아니라 재초기화로 처리한다.
 CREATE OR REPLACE FUNCTION guard_taxonomy_frozen() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -93,16 +84,91 @@ CREATE TRIGGER exploitation_mode_frozen
   FOR EACH ROW EXECUTE FUNCTION guard_taxonomy_frozen();
 
 -- ─────────────────────────────────────────────────────────────
--- 3. 충돌 판정 2단 — 트리거 (D-05·D-06·D-07)
+-- 3. evidence JSONB 근거 검증 (D-30, §1.5)
+-- ─────────────────────────────────────────────────────────────
+--
+-- P-3(모든 추출값은 원문 인용을 동반) 원칙을 candidate_evidence 테이블이
+-- 아니라 CHECK 제약으로 강제한다. 값은 객체 1개 또는 배열(여러 근거 위치)
+-- 둘 다 허용한다 — period는 본문·별표 두 군데에 근거가 흩어질 수 있다.
+CREATE OR REPLACE FUNCTION is_valid_evidence_entry(e jsonb) RETURNS boolean
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT jsonb_typeof(e) = 'object' AND (e ? 'quote') AND btrim(e->>'quote') <> ''
+$$;
+
+CREATE OR REPLACE FUNCTION is_valid_evidence(doc jsonb) RETURNS boolean
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT bool_and(
+             CASE jsonb_typeof(doc -> key)
+               WHEN 'object' THEN is_valid_evidence_entry(doc -> key)
+               WHEN 'array'  THEN NOT EXISTS (
+                   SELECT 1 FROM jsonb_array_elements(doc -> key) el WHERE NOT is_valid_evidence_entry(el)
+               )
+               ELSE false
+             END)
+    FROM unnest(ARRAY['legal_right','exploitation_mode','territory','period','exclusivity']) AS key
+$$;
+
+-- rights_grant 테이블은 01_schema.sql에서 이미 만들어졌다. 이 CHECK는 함수가
+-- 필요해 여기서 ALTER로 붙인다 — evidence_has_required_keys(같은 컬럼의
+-- 다른 CHECK, 함수 불필요)는 01에 이미 있다. 이 CHECK가 기존
+-- candidate_evidence.evidence_quote_not_blank의 P-3 근거-필수 원칙을 그대로
+-- 이어받는다.
+ALTER TABLE rights_grant
+    ADD CONSTRAINT evidence_quotes_present CHECK (is_valid_evidence(evidence));
+
+-- ─────────────────────────────────────────────────────────────
+-- 4. lineage_id 자기참조 기본값 (D-30)
+-- ─────────────────────────────────────────────────────────────
+--
+-- bigserial의 nextval()은 BEFORE ROW 트리거보다 먼저 확정되므로 NEW.id
+-- 참조가 안전하다 — DEFAULT 표현식은 트리거 실행 전에 NEW 레코드 구성
+-- 단계에서 이미 적용된다.
+CREATE OR REPLACE FUNCTION default_lineage_id() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.lineage_id IS NULL THEN
+    NEW.lineage_id := NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER rights_grant_default_lineage
+  BEFORE INSERT ON rights_grant
+  FOR EACH ROW EXECUTE FUNCTION default_lineage_id();
+
+-- ─────────────────────────────────────────────────────────────
+-- 5. ip 생성 시 기본 content_asset 자동 생성 (D-30, §1.2)
+-- ─────────────────────────────────────────────────────────────
+--
+-- 모든 권리 등록이 유효한 content_asset_id를 갖도록 보장한다. 시즌/에피소드
+-- 세분은 O-07 범위(다음 라운드)이고, MVP는 작품당 SERIES_ALL 자산 하나로
+-- 충분하다.
+CREATE OR REPLACE FUNCTION ensure_default_content_asset() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  INSERT INTO content_asset (ip_id, asset_type, scope_type, title)
+  VALUES (NEW.id, 'MAIN', 'SERIES_ALL', NEW.title);
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER ip_default_content_asset
+  AFTER INSERT ON ip
+  FOR EACH ROW EXECUTE FUNCTION ensure_default_content_asset();
+
+-- ─────────────────────────────────────────────────────────────
+-- 6. 충돌 판정 2단 — 트리거 (D-05, D-30으로 조인키 갱신)
 -- ─────────────────────────────────────────────────────────────
 --
 -- 담당: 독점/sole ↔ 비독점. 독점끼리는 EXCLUDE가 맡는다(01_schema.sql).
 -- 담당을 XOR로 배타 분할해 "어느 층이 잡았는지"가 결정론적으로 구분되게 한다.
 --
--- D-27 — 유일하게 바뀐 것은 조인 조건이다. rights_type 동등비교 한 줄이
--- 두 판정축의 span 겹침 두 줄이 됐다. EXCLUDE와 정확히 같은 비교식이어야
--- XOR 분할이 성립한다 — 한쪽만 고치면 두 층 사이에 판정되지 않는 틈이 생긴다.
--- 격리수준 가드·advisory lock·STATEMENT 트리거 구조는 스파이크 1~9로 실측된 그대로다.
+-- D-30 — ip_id가 content_asset_id로, status 필터가 'active' 단일값으로,
+-- 조인에 g.contract_id <> n.contract_id가 추가됐다. EXCLUDE와 정확히 같은
+-- 비교식이어야 XOR 분할이 성립한다 — 한쪽만 고치면 두 층 사이에 판정되지
+-- 않는 틈이 생긴다. 격리수준 가드·advisory lock·STATEMENT 트리거 구조는
+-- 스파이크 1~9로 실측된 그대로다.
 CREATE OR REPLACE FUNCTION check_exclusivity_conflict() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -118,29 +184,29 @@ BEGIN
       USING ERRCODE = '25001';
   END IF;
 
-  -- D-07·D-29 — 팬텀 차단. 설치 단위가 곧 회사 경계이므로 ip_id로 잠근다.
+  -- D-07·D-29 — 팬텀 차단. 설치 단위가 곧 회사 경계이므로 content_asset_id로 잠근다.
   FOR k IN
-    SELECT DISTINCT ip_id FROM new_rows
-    WHERE status IN ('approved', 'final')
-    ORDER BY ip_id
+    SELECT DISTINCT content_asset_id FROM new_rows
+    WHERE status = 'active'
+    ORDER BY content_asset_id
   LOOP
-    PERFORM pg_advisory_xact_lock(k.ip_id);
+    PERFORM pg_advisory_xact_lock(k.content_asset_id);
   END LOOP;
 
   SELECT n.id AS new_id, g.id AS old_id
     INTO hit
   FROM new_rows n
   JOIN rights_grant g
-    ON  g.ip_id                  =  n.ip_id
-    AND g.legal_right_span       && n.legal_right_span
-    AND g.exploitation_mode_span && n.exploitation_mode_span
-    AND g.territory              =  n.territory
-    AND g.period                 && n.period
+    ON  g.contract_id             <> n.contract_id
+    AND g.content_asset_id        =  n.content_asset_id
+    AND g.legal_right_span        && n.legal_right_span
+    AND g.exploitation_mode_span  && n.exploitation_mode_span
+    AND g.territory                =  n.territory
+    AND g.period                   && n.period
     AND g.id <> n.id
   -- XOR — 정확히 한쪽만 비독점일 때. 양쪽 독점은 EXCLUDE, 양쪽 비독점은 정상.
   WHERE (g.exclusivity = 'non_exclusive') <> (n.exclusivity = 'non_exclusive')
-    AND n.status IN ('approved', 'final')
-    AND g.status IN ('approved', 'final')
+    AND n.status = 'active' AND g.status = 'active'
   LIMIT 1;
 
   IF FOUND THEN
@@ -148,7 +214,7 @@ BEGIN
     -- ExclusionViolation 하나만 잡으면 되고, 어느 층이 잡았는지는
     -- diag.constraint_name으로 구분한다(constraint_reason_map으로 번역).
     RAISE EXCEPTION
-      '독점권과 비독점권이 같은 구간에 겹친다 (신규 행 %, 기존 행 %)', hit.new_id, hit.old_id
+      '독점권과 비독점권이 같은 대상에 겹친다 (신규 행 %, 기존 행 %)', hit.new_id, hit.old_id
       USING ERRCODE = '23P01', CONSTRAINT = 'no_exclusivity_conflict';
   END IF;
 
@@ -167,613 +233,480 @@ CREATE TRIGGER rights_grant_conflict_upd
   FOR EACH STATEMENT EXECUTE FUNCTION check_exclusivity_conflict();
 
 -- ─────────────────────────────────────────────────────────────
--- 4. history 자동 기록 (D-18, D-24)
+-- 7. 배치 INSERT 시도 — 내부 헬퍼 (D-30, §4.1)
 -- ─────────────────────────────────────────────────────────────
 --
--- change_reason/changed_by는 세션 GUC(mindex.change_reason/mindex.changed_by)로
--- 넘겨받는다 — register_candidate()와 apply_waiver_termination()이 채운다.
--- D-27 — 스냅샷 컬럼 rights_type 하나가 판정축 2개로 늘었다. span은 파생값이라
--- 스냅샷하지 않는다.
-CREATE OR REPLACE FUNCTION record_rights_grant_history() RETURNS trigger
+-- 배치 전체를 한 INSERT 문으로 시도한다. 단일 다중행 INSERT는 원자적이라,
+-- 배치 내 한 행이라도 no_exclusive_overlap에 걸리면 그 문장 전체가
+-- 롤백된다 — all-or-nothing이 "공짜로" 보장된다(§2). validate_rights_batch()와
+-- save_rights_batch() 둘 다 이 헬퍼를 공유해 판정 로직이 갈라지지 않게
+-- 한다(기존 evaluate_candidate()를 양쪽이 공유하던 것과 같은 원칙).
+--
+-- 문법 메모 — RETURN QUERY는 함수를 즉시 종료시키지 않는다(PL/pgSQL의 흔한
+-- 함정). try 경로와 except 경로 양쪽에서 RETURN QUERY를 각각 부르는 대신,
+-- 결과를 변수에 담아뒀다가 블록 밖에서 정확히 한 번만 RETURN QUERY한다 —
+-- D-28의 sentinel-rollback 패턴과 같은 이유로, 이 함수가 상위 서브트랜잭션
+-- 롤백에 물려도 반환값이 안전하게 살아남게 하기 위해서다.
+CREATE OR REPLACE FUNCTION attempt_rights_batch_insert(
+    p_contract_id         bigint,
+    p_contract_history_id bigint,
+    p_default_asset_id    bigint,
+    p_rights              jsonb
+) RETURNS TABLE (inserted_ids bigint[], constraint_name text, exception_detail text)
 LANGUAGE plpgsql AS $$
 DECLARE
-  v_event text;
+  v_ids        bigint[];
+  v_constraint text := NULL;
+  v_detail     text := NULL;
 BEGIN
-  IF TG_OP = 'INSERT' THEN
-    v_event := 'registered';
-  ELSIF NEW.status = 'terminated' AND OLD.status <> 'terminated' THEN
-    v_event := 'terminated';
-  ELSIF NEW.status = 'final' AND OLD.status <> 'final' THEN
-    v_event := 'finalized';
-  ELSE
-    v_event := 'status_changed';
-  END IF;
-
-  INSERT INTO rights_grant_history (
-      rights_grant_id, contract_id, document_id,
-      event_type, status_at_event,
-      territory, legal_right, exploitation_mode, period, exclusivity,
-      changed_by, change_reason
-  ) VALUES (
-      NEW.id, NEW.contract_id, NEW.document_id,
-      v_event, NEW.status,
-      NEW.territory, NEW.legal_right, NEW.exploitation_mode, NEW.period, NEW.exclusivity,
-      NULLIF(current_setting('mindex.changed_by', true), ''),
-      NULLIF(current_setting('mindex.change_reason', true), '')
-  );
-
-  RETURN NULL;
-END;
-$$;
-
-CREATE TRIGGER rights_grant_history_ins
-  AFTER INSERT ON rights_grant
-  FOR EACH ROW EXECUTE FUNCTION record_rights_grant_history();
-
-CREATE TRIGGER rights_grant_history_upd
-  AFTER UPDATE ON rights_grant
-  FOR EACH ROW EXECUTE FUNCTION record_rights_grant_history();
-
--- ─────────────────────────────────────────────────────────────
--- 5. candidate 자동 분류 (D-25, D-27)
--- ─────────────────────────────────────────────────────────────
---
--- DB가 판단할 수 있는 것만 DB가 한다(P-2). 여기서 판단 가능한 것은
--- "컬럼이 NULL인가"와 "confidence가 임계치 미만인가" 둘뿐이다.
---
--- D-27 — MISSING과 UNRESOLVED를 구분한다. 이 트리거는 *_MISSING만 찍는다:
---   territory IS NULL          → TERRITORY_MISSING     (DB가 안다)
---   "Worldwide except Korea"   → TERRITORY_UNRESOLVED  (추출기만 안다)
--- 후자는 원문에 표현이 있는데 정규화에 실패한 경우라 DB로서는 구별할 방법이
--- 없다. 그래서 앱이 review_reason_code를 채워 INSERT하면 그 값을 존중한다 —
--- D-25부터 있던 "앱이 판단한 사유는 덮어쓰지 않는다" 규칙 그대로다.
--- 근거 원문은 candidate_evidence.source_quote에 남는다.
---
--- 여러 필드가 동시에 비면 severity가 가장 높은 사유 하나를 대표로 찍는다.
--- 나머지 필드의 사유는 evaluate_candidate()가 사유 행으로 전부 남긴다.
-CREATE OR REPLACE FUNCTION classify_candidate() RETURNS trigger
-LANGUAGE plpgsql AS $$
-DECLARE
-  v_code text;
-BEGIN
-  IF NEW.review_reason_code IS NOT NULL THEN
-    -- 앱이 이미 판단해서 넘긴 사유가 있으면 그대로 둔다. 다만 검토 사유로
-    -- 쓸 수 없는 코드(CONFLICT 전용 등)를 넘긴 것은 앱 로직 에러다.
-    IF NOT EXISTS (
-        SELECT 1 FROM reason_code
-        WHERE code = NEW.review_reason_code AND is_review_trigger AND active
-    ) THEN
-      RAISE EXCEPTION
-        'review_reason_code %는 검토 사유로 쓸 수 없는 코드다 (is_review_trigger=false 또는 비활성)',
-        NEW.review_reason_code;
-    END IF;
-    NEW.status := 'review';
-    RETURN NEW;
-  END IF;
-
-  -- 비어 있는 필드 중 가장 중대한 사유 하나를 고른다.
-  SELECT rc.code INTO v_code
-  FROM reason_code rc
-  WHERE rc.code = ANY (ARRAY[
-        CASE WHEN NEW.legal_right       IS NULL THEN 'RIGHT_MISSING'             END,
-        CASE WHEN NEW.exploitation_mode IS NULL THEN 'EXPLOITATION_MODE_MISSING' END,
-        CASE WHEN NEW.territory         IS NULL THEN 'TERRITORY_MISSING'         END,
-        CASE WHEN NEW.period            IS NULL THEN 'PERIOD_MISSING'            END,
-        CASE WHEN NEW.exclusivity       IS NULL THEN 'EXCLUSIVITY_MISSING'       END
-      ])
-  ORDER BY rc.severity DESC
-  LIMIT 1;
-
-  IF v_code IS NOT NULL THEN
-    NEW.status := 'review';
-    NEW.review_reason_code := v_code;
-  ELSIF NEW.confidence IS NOT NULL AND NEW.confidence < 0.85 THEN
-    -- SFR-004 — 신뢰도 임계값 0.85. D-17 시절부터 쓰던 기준 그대로.
-    NEW.status := 'review';
-    NEW.review_reason_code := 'LOW_CONFIDENCE';
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER candidate_classify
-  BEFORE INSERT ON rights_grant_candidate
-  FOR EACH ROW EXECUTE FUNCTION classify_candidate();
-
--- ─────────────────────────────────────────────────────────────
--- 6. 판정 — candidate ↔ 기존 rights_grant (D-27)
--- ─────────────────────────────────────────────────────────────
---
--- 옛 detect_candidate_conflicts()를 대체한다. 이름이 바뀐 이유는 이 함수가
--- 이제 충돌만 찾지 않기 때문이다 — NORMAL·CONFLICT·REVIEW_REQUIRED·WARNING
--- 네 결과를 모두 산출한다.
---
--- 산출물은 2층이다: rights_evaluation 1행(결과) + rights_evaluation_reason N행(사유).
--- 호출할 때마다 새 evaluation 행이 쌓이고, "현재 판정"은 candidate별 MAX(id)다.
--- WAIVER로 기존 권리를 정리한 뒤 재호출하면 새 판정이 NORMAL로 나오는 식이다.
---
--- D-24의 논리는 그대로 유효하다: 이 함수가 놓친 충돌이 있어도 최종 게이트인
--- register_candidate()의 rights_grant INSERT가 EXCLUDE로 잡는다. 여기가 틀리면
--- 미리보기가 부정확할 뿐 DB 무결성은 안 깨진다.
-CREATE OR REPLACE FUNCTION evaluate_candidate(p_candidate_id bigint)
-RETURNS result_kind
-LANGUAGE plpgsql AS $$
-DECLARE
-  v_cand      rights_grant_candidate%ROWTYPE;
-  v_eval_id   bigint;
-  v_lr_span   int4range;
-  v_em_span   int4range;
-  v_result    result_kind;
-  v_advisory  text;
-BEGIN
-  SELECT * INTO v_cand FROM rights_grant_candidate WHERE id = p_candidate_id;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'candidate 행 %를 찾을 수 없다', p_candidate_id;
-  END IF;
-
-  INSERT INTO rights_evaluation (candidate_id, result_type)
-  VALUES (v_cand.id, 'NORMAL')
-  RETURNING id INTO v_eval_id;
-
-  -- ── (a) 미확정 필드 — 필드별로 사유를 남긴다 ────────────────
-  -- classify_candidate()는 대표 사유 하나만 찍지만 여기서는 전부 남긴다.
-  -- 사용자는 무엇을 채워야 하는지 다 알아야 한다.
-  INSERT INTO rights_evaluation_reason (evaluation_id, reason_code, deterministic_detail)
-  SELECT v_eval_id, c.code, jsonb_build_object('field', c.field)
-  FROM (VALUES
-        ('legal_right',       'RIGHT_MISSING',             v_cand.legal_right IS NULL),
-        ('exploitation_mode', 'EXPLOITATION_MODE_MISSING', v_cand.exploitation_mode IS NULL),
-        ('territory',         'TERRITORY_MISSING',         v_cand.territory IS NULL),
-        ('period',            'PERIOD_MISSING',            v_cand.period IS NULL),
-        ('exclusivity',       'EXCLUSIVITY_MISSING',       v_cand.exclusivity IS NULL)
-       ) AS c(field, code, is_missing)
-  WHERE c.is_missing;
-
-  -- ── (b) 앱/사람이 지정한 검토 사유 (*_UNRESOLVED · LOW_CONFIDENCE 등) ──
-  --
-  -- CONFLICT 계열은 여기서 옮기지 않는다. 충돌 사유는 반드시 (c)의 실제 비교로만
-  -- 생성돼야 한다 — 지난 판정에서 붙었던 EXCLUSIVE_RIGHT_OVERLAP이 candidate에
-  -- 남아 있다가 재판정 때 따라 들어오면, WAIVER로 충돌 원인을 없앤 뒤에도
-  -- 판정이 영영 CONFLICT로 굳는다. candidate.review_reason_code는 "왜 검토가
-  -- 필요했는지"의 이력이지 "지금도 충돌한다"는 사실이 아니다.
-  --
-  -- (a)에서 이미 같은 코드가 들어갔으면 중복시키지 않는다.
-  IF v_cand.review_reason_code IS NOT NULL THEN
-    INSERT INTO rights_evaluation_reason (evaluation_id, reason_code)
-    SELECT v_eval_id, v_cand.review_reason_code
-    WHERE EXISTS (
-            SELECT 1 FROM reason_code
-            WHERE code = v_cand.review_reason_code
-              AND is_decision_reason AND active
-              AND result_type <> 'CONFLICT'
-          )
-      AND NOT EXISTS (
-            SELECT 1 FROM rights_evaluation_reason
-            WHERE evaluation_id = v_eval_id AND reason_code = v_cand.review_reason_code
-          );
-  END IF;
-
-  -- ── (c) 판정축이 전부 확정된 경우에만 실제 비교를 한다 ──────
-  IF v_cand.legal_right IS NOT NULL AND v_cand.exploitation_mode IS NOT NULL
-     AND v_cand.territory IS NOT NULL AND v_cand.period IS NOT NULL
-     AND v_cand.exclusivity IS NOT NULL THEN
-
-    SELECT span INTO v_lr_span FROM legal_right       WHERE code = v_cand.legal_right;
-    SELECT span INTO v_em_span FROM exploitation_mode WHERE code = v_cand.exploitation_mode;
-
-    -- R3·R4·R5·R6·R7 — EXCLUDE와 같은 비교식이다.
-    INSERT INTO rights_evaluation_reason (
-        evaluation_id, reason_code,
-        conflicting_grant_id, overlap_period, deterministic_detail
+  BEGIN
+    WITH ins AS (
+      INSERT INTO rights_grant (
+          contract_id, contract_history_id, content_asset_id, lineage_id,
+          territory, legal_right, exploitation_mode, period, exclusivity,
+          evidence, conditions_raw
+      )
+      SELECT p_contract_id, p_contract_history_id,
+             COALESCE(r.content_asset_id, p_default_asset_id), r.lineage_id,
+             r.territory, r.legal_right, r.exploitation_mode, r.period, r.exclusivity,
+             r.evidence, r.conditions_raw
+      FROM jsonb_to_recordset(p_rights) AS r(
+          content_asset_id bigint, territory char(2), legal_right text,
+          exploitation_mode text, period daterange, exclusivity exclusivity_kind,
+          evidence jsonb, conditions_raw jsonb, lineage_id bigint)
+      RETURNING id
     )
-    SELECT
-        v_eval_id, 'EXCLUSIVE_RIGHT_OVERLAP',
-        g.id,
-        g.period * v_cand.period,
-        jsonb_build_object(
-            'existing_grant_id',        g.id,
-            'existing_contract_id',     g.contract_id,
-            'territory',                g.territory,
-            'existing_legal_right',     g.legal_right,
-            'candidate_legal_right',    v_cand.legal_right,
-            'existing_exploitation_mode',  g.exploitation_mode,
-            'candidate_exploitation_mode', v_cand.exploitation_mode,
-            -- 어느 축이 상위-하위 포함관계로 겹쳤는지 화면이 설명할 수 있게 남긴다
-            'legal_right_relation',
-                CASE WHEN g.legal_right = v_cand.legal_right THEN 'same'
-                     WHEN g.legal_right_span @> v_lr_span    THEN 'existing_is_broader'
-                     WHEN v_lr_span @> g.legal_right_span    THEN 'candidate_is_broader'
-                     ELSE 'overlap' END,
-            'exploitation_mode_relation',
-                CASE WHEN g.exploitation_mode = v_cand.exploitation_mode THEN 'same'
-                     WHEN g.exploitation_mode_span @> v_em_span          THEN 'existing_is_broader'
-                     WHEN v_em_span @> g.exploitation_mode_span          THEN 'candidate_is_broader'
-                     ELSE 'overlap' END,
-            'overlap_period',        (g.period * v_cand.period)::text,
-            'overlap_days',          (upper(g.period * v_cand.period) - lower(g.period * v_cand.period)),
-            'existing_exclusivity',  g.exclusivity,
-            'candidate_exclusivity', v_cand.exclusivity,
-            -- 어느 층이 잡을 조합인지 — D-05의 XOR 분할과 같은 기준
-            'blocking_layer',
-                CASE WHEN v_cand.exclusivity <> 'non_exclusive' AND g.exclusivity <> 'non_exclusive'
-                     THEN 'no_exclusive_overlap' ELSE 'no_exclusivity_conflict' END
-        )
-    FROM rights_grant g
-    WHERE g.ip_id                  =  v_cand.ip_id
-      AND g.legal_right_span       && v_lr_span
-      AND g.exploitation_mode_span && v_em_span
-      AND g.territory              =  v_cand.territory
-      AND g.period                 && v_cand.period
-      AND g.status IN ('approved', 'final')
-      -- 비독점끼리는 충돌이 아니다 (통과 조합)
-      AND NOT (v_cand.exclusivity = 'non_exclusive' AND g.exclusivity = 'non_exclusive');
+    SELECT array_agg(id) INTO v_ids FROM ins;
+  EXCEPTION WHEN exclusion_violation THEN
+    GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME, v_detail = PG_EXCEPTION_DETAIL;
+    v_ids := NULL;
+  END;
 
-    -- ── (d) 두 판정축 조합이 이 관할에서 통상적인가 (R3×R4 정합성) ──
-    -- 없는 조합을 "틀렸다"고 판정하지 않는다 — 계약서가 실제로 그렇게 쓰였을
-    -- 수 있다. 사람이 한 번 보라는 뜻으로만 올린다.
-    IF NOT EXISTS (
-        SELECT 1 FROM right_mapping m
-        WHERE m.legal_right       = v_cand.legal_right
-          AND m.exploitation_mode = v_cand.exploitation_mode
-          AND m.jurisdiction      = v_cand.territory
-          AND m.is_typical
-    ) AND NOT EXISTS (
-        SELECT 1 FROM rights_evaluation_reason
-        WHERE evaluation_id = v_eval_id AND reason_code = 'AMBIGUOUS_CLAUSE'
-    ) THEN
-      INSERT INTO rights_evaluation_reason (evaluation_id, reason_code, deterministic_detail)
-      VALUES (v_eval_id, 'AMBIGUOUS_CLAUSE',
-              jsonb_build_object(
-                  'legal_right',       v_cand.legal_right,
-                  'exploitation_mode', v_cand.exploitation_mode,
-                  'jurisdiction',      v_cand.territory,
-                  'note', '해당 관할에서 통상 성립하는 조합으로 등록돼 있지 않다'));
-    END IF;
-
-    -- ── (e) 자문 경고 — 판정이 아니라 업무 리스크 (WARNING) ────
-    SELECT m.advisory INTO v_advisory
-    FROM right_mapping m
-    WHERE m.legal_right       = v_cand.legal_right
-      AND m.exploitation_mode = v_cand.exploitation_mode
-      AND m.jurisdiction      = v_cand.territory
-      AND m.advisory IS NOT NULL;
-
-    IF v_advisory IS NOT NULL THEN
-      INSERT INTO rights_evaluation_reason (evaluation_id, reason_code, deterministic_detail)
-      VALUES (v_eval_id, 'CROSS_BORDER_MUSIC_CLEARANCE',
-              jsonb_build_object('advisory', v_advisory, 'jurisdiction', v_cand.territory));
-    END IF;
-  END IF;
-
-  -- ── (f) 결과 확정 — 가장 중대한 사유의 result_type이 판정 결과다 ──
-  -- result_kind ENUM의 정의 순서('NORMAL','CONFLICT','REVIEW_REQUIRED','WARNING')가
-  -- 곧 중대도 순이라 MIN()이 가장 중대한 결과를 고른다. 사유가 하나도 없으면
-  -- NULL이 되고 COALESCE가 NORMAL로 떨어뜨린다.
-  SELECT COALESCE(MIN(rc.result_type), 'NORMAL') INTO v_result
-  FROM rights_evaluation_reason r
-  JOIN reason_code rc ON rc.code = r.reason_code
-  WHERE r.evaluation_id = v_eval_id;
-
-  UPDATE rights_evaluation SET result_type = v_result WHERE id = v_eval_id;
-
-  -- ── (g) 대표 사유 — 화면이 크게 보여줄 하나 ──────────────────
-  UPDATE rights_evaluation_reason
-     SET is_primary = true
-   WHERE id = (
-       SELECT r.id
-       FROM rights_evaluation_reason r
-       JOIN reason_code rc ON rc.code = r.reason_code
-       WHERE r.evaluation_id = v_eval_id
-       ORDER BY rc.severity DESC, r.id
-       LIMIT 1
-   );
-
-  -- ── (h) 후보의 검토 상태를 이번 판정 결과에 맞춘다 ──────────
-  --
-  -- 등록을 막는 사유가 있으면 검토 큐로 보내고, 없으면 검토 큐에서 빼낸다.
-  -- 후자가 중요하다 — WAIVER로 충돌을 해소한 뒤 재판정하면 후보가 스스로
-  -- 검토 상태를 벗어나야 register_candidate()가 통과한다. 여기서 안 풀면
-  -- 해소된 후보가 영영 review에 갇힌다.
-  --
-  -- WARNING만 있는 경우는 검토 큐로 보내지 않는다 — 등록을 막지 않는 사유다.
-  -- 이미 붙어 있던 review_reason_code는 덮어쓰지 않는다(먼저 잡힌 사유가 대개
-  -- 더 근본적이다). 검토 상태를 벗어날 때도 코드 자체는 지우지 않는다 —
-  -- "왜 한 번 검토가 필요했는지"의 이력이다(D-25).
-  IF EXISTS (
-      SELECT 1 FROM rights_evaluation_reason r
-      JOIN reason_code rc ON rc.code = r.reason_code
-      WHERE r.evaluation_id = v_eval_id AND r.status = 'detected' AND rc.is_blocking
-  ) THEN
-    UPDATE rights_grant_candidate c
-       SET status = 'review',
-           review_reason_code = COALESCE(
-               c.review_reason_code,
-               (SELECT r.reason_code
-                FROM rights_evaluation_reason r
-                JOIN reason_code rc ON rc.code = r.reason_code
-                WHERE r.evaluation_id = v_eval_id
-                  AND r.status = 'detected' AND rc.is_blocking AND rc.is_review_trigger
-                ORDER BY rc.severity DESC, r.id
-                LIMIT 1))
-     WHERE c.id = p_candidate_id
-       AND c.status = 'extracted';
-  ELSE
-    UPDATE rights_grant_candidate c
-       SET status = 'extracted'
-     WHERE c.id = p_candidate_id
-       AND c.status = 'review';
-  END IF;
-
-  RETURN v_result;
+  RETURN QUERY SELECT v_ids, v_constraint, v_detail;
 END;
 $$;
 
 -- ─────────────────────────────────────────────────────────────
--- 7. 자문 경고 — 판정이 아니다 (데모 시나리오 1)
+-- 8. 검증 — 배치 전체를 INSERT 후 강제 롤백 (D-28 계승, D-30, §4.2)
 -- ─────────────────────────────────────────────────────────────
 --
--- D-27 — 시그니처가 판정축 2개 + 관할로 바뀌었다. advisory는 이제
--- right_mapping의 (legal_right × exploitation_mode × jurisdiction) 조합에 붙고,
--- 화면에 보여줄 조문명은 statutory_right에서 legal_right_code로 조인해 얻는다.
-CREATE OR REPLACE FUNCTION rights_advisory(
-    p_legal_right       text,
-    p_exploitation_mode text,
-    p_territory         char(2)
+-- probe_rights()/evaluate_candidate()를 대체한다. D-28의 sentinel-rollback
+-- 서브트랜잭션 패턴(SQLSTATE 'MXP01')을 그대로 계승하되, 단일 candidate가
+-- 아니라 배치 전체에 적용한다. right_mapping이 삭제됐으므로 advisory 단계는
+-- 없다 — 이 함수는 이제 REGISTERED/CONFLICTED 둘 중 하나만 판정한다.
+--
+-- 부모 행(ip·contract·contract_history)도 같은 서브트랜잭션에서 만든다.
+-- 지어내는 껍데기가 아니라 업로드·추출 단계에서 앱이 이미 들고 있는 값이며
+-- 커밋만 되지 않은 상태다.
+CREATE OR REPLACE FUNCTION validate_rights_batch(
+    p_contract_id  bigint,           -- NULL이면 신규 계약
+    p_counterparty text,
+    p_ip_id        bigint,           -- NULL이면 신규 작품
+    p_file_name    text,
+    p_file_path    text,
+    p_file_hash    text,
+    p_rights       jsonb,
+    p_mime_type    text DEFAULT 'application/pdf',
+    p_raw_text     text DEFAULT NULL
 )
 RETURNS TABLE (
-    statutory_code text,
-    name_local     text,
-    advisory       text
+    batch_result     text,           -- 'REGISTERED' · 'CONFLICTED'
+    constraint_name  text,
+    conflict_report  jsonb
 )
-LANGUAGE sql STABLE AS $$
-    SELECT s.code, s.name_local, m.advisory
-    FROM right_mapping m
-    JOIN statutory_right s
-      ON s.jurisdiction     = m.jurisdiction
-     AND s.legal_right_code = m.legal_right
-    WHERE m.legal_right       = p_legal_right
-      AND m.exploitation_mode = p_exploitation_mode
-      AND m.jurisdiction      = p_territory
-      AND m.advisory IS NOT NULL;
-$$;
-
--- ─────────────────────────────────────────────────────────────
--- 8. 등록 — candidate 승인 → rights_grant 실제 INSERT (D-24, 최종 게이트)
--- ─────────────────────────────────────────────────────────────
---
--- 이 INSERT가 EXCLUDE·트리거를 실제로 통과해야 하는 유일한 지점이다.
--- evaluate_candidate()가 놓친 게 있어도 여기서 진짜로 막힌다.
---
--- D-27 — 게이트 조건이 "미해결 충돌이 있으면 거부"에서 "등록을 막는 사유가
--- 있으면 거부"로 바뀌었다. WARNING(is_blocking=false)만 있는 후보는 통과한다 —
--- 업무 리스크 경고이지 권리 충돌이 아니기 때문이다.
--- 판단 대상은 최신 판정(MAX(id))뿐이다. 지난 판정의 사유가 남아 있어도
--- 재판정으로 해소됐다면 막지 않는다.
-CREATE OR REPLACE FUNCTION register_candidate(
-    p_candidate_id bigint,
-    p_verified_by  text
-)
-RETURNS bigint  -- 새 rights_grant.id
 LANGUAGE plpgsql AS $$
 DECLARE
-  c rights_grant_candidate%ROWTYPE;
-  v_new_id  bigint;
-  v_blocker text;
+  v_contract   bigint;
+  v_ip         bigint;
+  v_asset      bigint;
+  v_version    int;
+  v_history    bigint;
+  v_ids        bigint[];
+  v_constraint text;
+  v_detail     text;
+  v_report     jsonb;
+  v_result     text;
 BEGIN
-  -- FOR UPDATE로 같은 candidate에 대한 동시 승인 시도를 직렬화한다.
-  SELECT * INTO c FROM rights_grant_candidate WHERE id = p_candidate_id FOR UPDATE;
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'candidate 행 %를 찾을 수 없다', p_candidate_id;
-  END IF;
-  IF c.status = 'approved' THEN
-    RAISE EXCEPTION 'candidate 행 %는 이미 승인됐다', p_candidate_id;
-  END IF;
-  IF c.status = 'rejected' THEN
-    RAISE EXCEPTION 'candidate 행 %는 이미 거부됐다', p_candidate_id;
-  END IF;
-  IF c.legal_right IS NULL OR c.exploitation_mode IS NULL OR c.territory IS NULL
-     OR c.period IS NULL OR c.exclusivity IS NULL THEN
-    RAISE EXCEPTION 'candidate 행 %는 필수 필드가 비어 있어 등록할 수 없다', p_candidate_id;
-  END IF;
-  IF NOT EXISTS (
-      SELECT 1 FROM candidate_evidence WHERE candidate_id = p_candidate_id
-  ) THEN
-    RAISE EXCEPTION 'candidate 행 %는 인용 근거가 없어 등록할 수 없다', p_candidate_id;
-  END IF;
+  BEGIN  -- ← EXCEPTION 절이 서브트랜잭션을 연다. 이 블록의 쓰기는 전부 되돌아간다.
 
-  -- 검토 상태인 후보는 등록하지 않는다. 사유가 해소됐다면 evaluate_candidate()를
-  -- 다시 돌려야 하고, 그러면 (h)가 상태를 extracted로 되돌린다.
-  -- 판정을 거치지 않는 MANUAL_REVIEW·AMBIGUOUS_CLAUSE 지정도 이 관문이 잡는다.
-  IF c.status = 'review' THEN
-    RAISE EXCEPTION
-      'candidate 행 %는 검토 상태다 (사유: %). 값을 보완하거나 충돌을 해소한 뒤 evaluate_candidate()를 다시 실행할 것',
-      p_candidate_id, c.review_reason_code;
-  END IF;
+    IF p_ip_id IS NULL THEN
+      INSERT INTO ip (title) VALUES ('(검증)') RETURNING id INTO v_ip;
+    ELSE
+      v_ip := p_ip_id;
+    END IF;
 
-  SELECT r.reason_code INTO v_blocker
-  FROM rights_evaluation e
-  JOIN rights_evaluation_reason r ON r.evaluation_id = e.id
-  JOIN reason_code rc ON rc.code = r.reason_code
-  WHERE e.candidate_id = p_candidate_id
-    AND e.id = (SELECT MAX(id) FROM rights_evaluation WHERE candidate_id = p_candidate_id)
-    AND r.status = 'detected'
-    AND rc.is_blocking
-  ORDER BY rc.severity DESC
-  LIMIT 1;
+    SELECT id INTO v_asset FROM content_asset
+     WHERE ip_id = v_ip AND scope_type = 'SERIES_ALL'
+     ORDER BY id LIMIT 1;
 
-  IF v_blocker IS NOT NULL THEN
-    RAISE EXCEPTION
-      'candidate 행 %에 미해결 사유가 있다: % (conflict_resolution으로 먼저 처리하거나 값을 보완할 것)',
-      p_candidate_id, v_blocker;
-  END IF;
+    IF p_contract_id IS NULL THEN
+      INSERT INTO contract (counterparty) VALUES (p_counterparty) RETURNING id INTO v_contract;
+      v_version := 1;
+    ELSE
+      v_contract := p_contract_id;
+      SELECT COALESCE(MAX(version), 0) + 1 INTO v_version
+        FROM contract_history WHERE contract_id = v_contract;
+    END IF;
 
-  -- change_reason은 명시적으로 비운다 — 같은 트랜잭션에서 WAIVER 승인 직후
-  -- register_candidate()를 호출하면 apply_waiver_termination()이 남긴
-  -- 'mindex.change_reason'(transaction-local GUC)이 이 정상 등록 이벤트에도
-  -- 잘못 붙을 수 있다.
-  PERFORM set_config('mindex.changed_by', p_verified_by, true);
-  PERFORM set_config('mindex.change_reason', '', true);
+    INSERT INTO contract_history
+      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text)
+    VALUES
+      (v_contract, v_version, 'registered', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
+    RETURNING id INTO v_history;
 
-  -- legal_right_span/exploitation_mode_span은 넘기지 않는다 —
-  -- sync_rights_grant_spans()가 BEFORE INSERT에서 코드로부터 유도해 채운다.
-  -- BEFORE 트리거는 NOT NULL 검사보다 먼저 돌기 때문에 컬럼을 생략해도 된다.
-  INSERT INTO rights_grant (
-      contract_id, document_id, source_candidate_id, ip_id,
-      territory, legal_right, exploitation_mode,
-      period, exclusivity, verified_by
-  ) VALUES (
-      c.contract_id, c.document_id, c.id, c.ip_id,
-      c.territory, c.legal_right, c.exploitation_mode,
-      c.period, c.exclusivity, p_verified_by
-  )
-  RETURNING id INTO v_new_id;
+    SELECT a.inserted_ids, a.constraint_name, a.exception_detail
+      INTO v_ids, v_constraint, v_detail
+    FROM attempt_rights_batch_insert(v_contract, v_history, v_asset, p_rights) a;
 
-  UPDATE rights_grant_candidate
-     SET status = 'approved', decided_by = p_verified_by, decided_at = now()
-   WHERE id = p_candidate_id;
+    IF v_constraint IS NOT NULL THEN
+      v_result := 'CONFLICTED';
 
-  RETURN v_new_id;
+      SELECT jsonb_build_object(
+               'constraint_name',  v_constraint,
+               'exception_detail', v_detail,
+               'conflicts', COALESCE(jsonb_agg(
+                 jsonb_build_object(
+                     'incoming', jsonb_build_object(
+                         'legal_right',       r.legal_right,
+                         'exploitation_mode', r.exploitation_mode,
+                         'territory',         r.territory,
+                         'period',            r.period::text,
+                         'exclusivity',       r.exclusivity),
+                     'existing_grant_id',    g.id,
+                     'existing_contract_id', g.contract_id,
+                     'overlap_period',       (g.period * r.period)::text,
+                     'legal_right_relation',
+                         CASE WHEN g.legal_right = r.legal_right THEN 'same'
+                              WHEN g.legal_right_span @> lr.span THEN 'existing_is_broader'
+                              WHEN lr.span @> g.legal_right_span THEN 'incoming_is_broader'
+                              ELSE 'overlap' END,
+                     'exploitation_mode_relation',
+                         CASE WHEN g.exploitation_mode = r.exploitation_mode THEN 'same'
+                              WHEN g.exploitation_mode_span @> em.span THEN 'existing_is_broader'
+                              WHEN em.span @> g.exploitation_mode_span THEN 'incoming_is_broader'
+                              ELSE 'overlap' END,
+                     'blocking_layer',
+                         CASE WHEN r.exclusivity <> 'non_exclusive' AND g.exclusivity <> 'non_exclusive'
+                              THEN 'no_exclusive_overlap' ELSE 'no_exclusivity_conflict' END
+                 )
+               ), '[]'::jsonb)
+             ) INTO v_report
+      FROM jsonb_to_recordset(p_rights) AS r(
+          content_asset_id bigint, territory char(2), legal_right text,
+          exploitation_mode text, period daterange, exclusivity exclusivity_kind,
+          evidence jsonb, conditions_raw jsonb, lineage_id bigint)
+      JOIN legal_right lr ON lr.code = r.legal_right
+      JOIN exploitation_mode em ON em.code = r.exploitation_mode
+      JOIN rights_grant g
+        ON  g.content_asset_id = COALESCE(r.content_asset_id, v_asset)
+        AND g.legal_right_span && lr.span
+        AND g.exploitation_mode_span && em.span
+        AND g.territory = r.territory
+        AND g.period && r.period
+        AND g.status = 'active'
+        AND g.contract_id <> v_contract
+        AND NOT (r.exclusivity = 'non_exclusive' AND g.exclusivity = 'non_exclusive');
+    ELSE
+      v_result := 'REGISTERED';
+      v_report := NULL;
+    END IF;
+
+    -- 서브트랜잭션 강제 롤백. 호출자에게 커밋 선택지를 주지 않는다.
+    RAISE EXCEPTION USING ERRCODE = 'MXP01', MESSAGE = 'PROBE_SENTINEL';
+
+  EXCEPTION WHEN SQLSTATE 'MXP01' THEN
+    NULL;  -- 여기 도달한 시점에 위 블록의 쓰기는 전부 되돌아갔다
+  END;
+
+  RETURN QUERY SELECT v_result, v_constraint, v_report;
 END;
 $$;
 
 -- ─────────────────────────────────────────────────────────────
--- 9. conflict_resolution 대상 검증 (D-27)
+-- 9. 등록 — 배치 저장 + 세대 전환 + lineage 승계 (D-30, §4.3)
 -- ─────────────────────────────────────────────────────────────
 --
--- 해소 대상은 "실제 충돌 사유"여야 한다. REVIEW_REQUIRED(값이 없다)나
--- WARNING(업무 리스크)에 WAIVER를 걸 수는 없다 — 포기시킬 기존 권리 자체가 없다.
--- 다른 테이블을 봐야 해서 CHECK로는 표현할 수 없다.
-CREATE OR REPLACE FUNCTION validate_resolution_target() RETURNS trigger
+-- register_candidate()를 대체한다. 화면의 `권리 등록` 버튼이 호출한다.
+-- 호출부(앱)가 바깥 BEGIN/COMMIT을 관리하고, 이 함수는 PL/pgSQL
+-- BEGIN/EXCEPTION 블록(= 내부 서브트랜잭션. SQL SAVEPOINT 문은 함수
+-- 안에서 직접 실행할 수 없으므로, D-28과 동일하게 PL/pgSQL의 예외 블록이
+-- 그 역할을 한다)만 관리한다.
+--
+-- 실패해도 이전 세대를 다시 active로 되돌리고(서브트랜잭션 롤백), 그
+-- 사실 자체는 새 contract_history 행(status='conflicted')으로 커밋해
+-- 남긴다 — "충돌 건은 처리 대상으로 커밋한다"는 D-28/D-30 예외 원칙이다.
+CREATE OR REPLACE FUNCTION save_rights_batch(
+    p_contract_id  bigint,           -- NULL이면 신규 계약
+    p_counterparty text,
+    p_ip_id        bigint,           -- NULL이면 신규 작품 (신규 계약일 때만 의미가 있다)
+    p_file_name    text,
+    p_file_path    text,
+    p_file_hash    text,
+    p_rights       jsonb,
+    p_mime_type    text DEFAULT 'application/pdf',
+    p_raw_text     text DEFAULT NULL,
+    p_chunks       jsonb DEFAULT NULL   -- 선택적 contract_chunk 배치 (04_vector.sql 의존)
+)
+RETURNS TABLE (
+    batch_result     text,           -- 'REGISTERED' · 'CONFLICTED'
+    out_contract_id  bigint,
+    out_history_id   bigint,
+    constraint_name  text,
+    conflict_report  jsonb
+)
 LANGUAGE plpgsql AS $$
 DECLARE
-  v_result_type result_kind;
-  v_grant_id    bigint;
+  v_contract   bigint;
+  v_ip         bigint;
+  v_asset      bigint;
+  v_version    int;
+  v_history    bigint;
+  v_rights_ln  jsonb;
+  v_ids        bigint[];
+  v_constraint text;
+  v_detail     text;
+  v_report     jsonb;
+  v_result     text;
 BEGIN
-  SELECT rc.result_type, r.conflicting_grant_id
-    INTO v_result_type, v_grant_id
-  FROM rights_evaluation_reason r
-  JOIN reason_code rc ON rc.code = r.reason_code
-  WHERE r.id = NEW.evaluation_reason_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION '판정 사유 %를 찾을 수 없다', NEW.evaluation_reason_id;
-  END IF;
-  IF v_result_type <> 'CONFLICT' THEN
-    RAISE EXCEPTION
-      '판정 사유 %는 CONFLICT가 아니라 %다 — 충돌 해소 대상이 될 수 없다',
-      NEW.evaluation_reason_id, v_result_type;
-  END IF;
-  IF NEW.resolution_type = 'waiver' AND v_grant_id IS NULL THEN
-    RAISE EXCEPTION
-      '판정 사유 %에 충돌 상대 rights_grant가 없어 WAIVER를 적용할 수 없다',
-      NEW.evaluation_reason_id;
+  -- ── 1. contract 확정 ─────────────────────────────────────────
+  IF p_contract_id IS NULL THEN
+    v_ip := p_ip_id;
+    IF v_ip IS NULL THEN
+      INSERT INTO ip (title) VALUES (p_counterparty || ' 관련 신규 작품') RETURNING id INTO v_ip;
+    END IF;
+    INSERT INTO contract (counterparty) VALUES (p_counterparty) RETURNING id INTO v_contract;
+  ELSE
+    v_contract := p_contract_id;
+    v_ip := p_ip_id;
   END IF;
 
-  RETURN NEW;
+  IF v_ip IS NOT NULL THEN
+    SELECT id INTO v_asset FROM content_asset
+     WHERE ip_id = v_ip AND scope_type = 'SERIES_ALL'
+     ORDER BY id LIMIT 1;
+  END IF;
+
+  SELECT COALESCE(MAX(version), 0) + 1 INTO v_version
+    FROM contract_history WHERE contract_id = v_contract;
+
+  -- ── 2~6. 서브트랜잭션(BEGIN/EXCEPTION) — "SAVEPOINT sp_batch" ───
+  -- 이 안에서 이전 세대를 종료하고 새 세대를 시도한다. 실패하면 이
+  -- 블록 전체(이전 세대 종료 + 새 contract_history 'registered' 행 +
+  -- 시도한 rights_grant INSERT)가 전부 원복된다 — 이전 세대는 자동으로
+  -- 다시 active가 된다.
+  BEGIN
+    -- 3. 이전 세대 종료 + lineage 승계용 자연키 스냅샷
+    WITH terminated AS (
+      UPDATE rights_grant
+         SET status = 'terminated', terminated_at = now(), terminated_reason = 'superseded'
+       WHERE contract_id = v_contract AND status = 'active'
+      RETURNING content_asset_id, territory, legal_right, exploitation_mode, lineage_id
+    ),
+    -- 자연키가 겹치는 이전 세대가 정확히 1건일 때만 lineage_id를 승계한다.
+    -- 2건 이상(모호)이면 매칭하지 않는다 — 새 lineage로 조용히 시작하는
+    -- 편이 잘못된 계보를 잇는 것보다 안전하다(§8 미결 대신 여기서 확정).
+    prev_keyed AS (
+      SELECT content_asset_id, territory, legal_right, exploitation_mode,
+             MIN(lineage_id) AS lineage_id, count(*) AS n
+      FROM terminated
+      GROUP BY content_asset_id, territory, legal_right, exploitation_mode
+    ),
+    -- 4. 새 배치 각 행에 순번을 매기고 자연키로 이전 세대와 매칭
+    incoming AS (
+      SELECT r.*, row_number() OVER () AS ord
+      FROM jsonb_to_recordset(p_rights) AS r(
+          content_asset_id bigint, territory char(2), legal_right text,
+          exploitation_mode text, period daterange, exclusivity exclusivity_kind,
+          evidence jsonb, conditions_raw jsonb)
+    )
+    SELECT jsonb_agg(
+             jsonb_build_object(
+               'content_asset_id',  COALESCE(i.content_asset_id, v_asset),
+               'territory',         i.territory,
+               'legal_right',       i.legal_right,
+               'exploitation_mode', i.exploitation_mode,
+               'period',            i.period,
+               'exclusivity',       i.exclusivity,
+               'evidence',          i.evidence,
+               'conditions_raw',    i.conditions_raw,
+               'lineage_id',        CASE WHEN pk.n = 1 THEN pk.lineage_id ELSE NULL END
+             ) ORDER BY i.ord
+           ) INTO v_rights_ln
+    FROM incoming i
+    LEFT JOIN prev_keyed pk
+      ON  pk.content_asset_id  = COALESCE(i.content_asset_id, v_asset)
+      AND pk.territory         = i.territory
+      AND pk.legal_right       = i.legal_right
+      AND pk.exploitation_mode = i.exploitation_mode;
+
+    -- 5. 이번 세대 contract_history — 우선 registered로 기록해둔다
+    INSERT INTO contract_history
+      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text)
+    VALUES
+      (v_contract, v_version, 'registered', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
+    RETURNING id INTO v_history;
+
+    -- 6. 배치 INSERT 시도 — 실제 EXCLUDE를 태워본다
+    SELECT a.inserted_ids, a.constraint_name, a.exception_detail
+      INTO v_ids, v_constraint, v_detail
+    FROM attempt_rights_batch_insert(v_contract, v_history, v_asset, v_rights_ln) a;
+
+    IF v_constraint IS NOT NULL THEN
+      -- 이 서브트랜잭션(3~6단계) 전체를 원복시키기 위한 sentinel.
+      -- probe_rights()와 다른 이유로 예외를 던진다 — 여기서는 "실패했으니
+      -- 이전 세대 종료를 되돌려야 한다"는 뜻이고, 그 사실 자체는 이
+      -- 블록 밖에서 새 contract_history 행으로 별도 커밋한다.
+      RAISE EXCEPTION USING ERRCODE = 'MXP01', MESSAGE = 'BATCH_CONFLICT_SENTINEL';
+    END IF;
+
+  EXCEPTION WHEN SQLSTATE 'MXP01' THEN
+    NULL;  -- 3~6단계 전부 원복 — 이전 세대는 자동으로 다시 active
+  END;
+
+  -- ── 7·8. 결과에 따라 분기 ─────────────────────────────────────
+  IF v_constraint IS NOT NULL THEN
+    -- 7. 실패 — 배치 전체 진단을 다시 계산해 conflict_report를 만들고,
+    -- 그 사실 자체는 새 contract_history 행(conflicted)으로 커밋한다.
+    SELECT jsonb_build_object(
+             'constraint_name',  v_constraint,
+             'exception_detail', v_detail,
+             'conflicts', COALESCE(jsonb_agg(
+               jsonb_build_object(
+                   'incoming', jsonb_build_object(
+                       'legal_right',       r.legal_right,
+                       'exploitation_mode', r.exploitation_mode,
+                       'territory',         r.territory,
+                       'period',            r.period::text,
+                       'exclusivity',       r.exclusivity),
+                   'existing_grant_id',    g.id,
+                   'existing_contract_id', g.contract_id,
+                   'overlap_period',       (g.period * r.period)::text,
+                   'legal_right_relation',
+                       CASE WHEN g.legal_right = r.legal_right THEN 'same'
+                            WHEN g.legal_right_span @> lr.span THEN 'existing_is_broader'
+                            WHEN lr.span @> g.legal_right_span THEN 'incoming_is_broader'
+                            ELSE 'overlap' END,
+                   'exploitation_mode_relation',
+                       CASE WHEN g.exploitation_mode = r.exploitation_mode THEN 'same'
+                            WHEN g.exploitation_mode_span @> em.span THEN 'existing_is_broader'
+                            WHEN em.span @> g.exploitation_mode_span THEN 'incoming_is_broader'
+                            ELSE 'overlap' END,
+                   'blocking_layer',
+                       CASE WHEN r.exclusivity <> 'non_exclusive' AND g.exclusivity <> 'non_exclusive'
+                            THEN 'no_exclusive_overlap' ELSE 'no_exclusivity_conflict' END
+               )
+             ), '[]'::jsonb)
+           ) INTO v_report
+    FROM jsonb_to_recordset(p_rights) AS r(
+        content_asset_id bigint, territory char(2), legal_right text,
+        exploitation_mode text, period daterange, exclusivity exclusivity_kind,
+        evidence jsonb, conditions_raw jsonb)
+    JOIN legal_right lr ON lr.code = r.legal_right
+    JOIN exploitation_mode em ON em.code = r.exploitation_mode
+    JOIN rights_grant g
+      ON  g.content_asset_id = COALESCE(r.content_asset_id, v_asset)
+      AND g.legal_right_span && lr.span
+      AND g.exploitation_mode_span && em.span
+      AND g.territory = r.territory
+      AND g.period && r.period
+      AND g.status = 'active'
+      AND g.contract_id <> v_contract
+      AND NOT (r.exclusivity = 'non_exclusive' AND g.exclusivity = 'non_exclusive');
+
+    INSERT INTO contract_history
+      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text, conflict_report)
+    VALUES
+      (v_contract, v_version, 'conflicted', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text, v_report)
+    RETURNING id INTO v_history;
+
+    v_result := 'CONFLICTED';
+  ELSE
+    -- 8. 성공 — contract를 이번 세대로 갱신한다.
+    UPDATE contract
+       SET current_history_id = v_history, status = 'active', updated_at = now()
+     WHERE id = v_contract;
+
+    v_result := 'REGISTERED';
+    v_report := NULL;
+  END IF;
+
+  -- contract_chunk는 성공/실패 무관하게 삽입한다 — 검색엔 유용하다
+  -- (04_vector.sql 의존. p_chunks가 NULL이면 아무 일도 하지 않는다).
+  IF p_chunks IS NOT NULL THEN
+    INSERT INTO contract_chunk (contract_id, contract_history_id, clause_no, chunk_text, lang, page, embedding)
+    SELECT v_contract, v_history, c.clause_no, c.chunk_text, c.lang, c.page, c.embedding
+    FROM jsonb_to_recordset(p_chunks) AS c(
+        clause_no text, chunk_text text, lang char(2), page int, embedding vector(1024));
+  END IF;
+
+  RETURN QUERY SELECT v_result, v_contract, v_history, v_constraint, v_report;
 END;
 $$;
 
-CREATE TRIGGER conflict_resolution_target_check
-  BEFORE INSERT OR UPDATE ON conflict_resolution
-  FOR EACH ROW EXECUTE FUNCTION validate_resolution_target();
-
 -- ─────────────────────────────────────────────────────────────
--- 10. WAIVER — 승인 시 기존 권리 정리 (D-24)
+-- 10. WAIVER/CANCELLED — 수동 종료 (D-30, §5)
 -- ─────────────────────────────────────────────────────────────
 --
--- 충돌을 무시하지 않는다. WAIVER는 "기존 권리자가 권리를 포기했다"는 근거이지
--- "겹쳐도 통과시켜라"가 아니다. conflict_resolution.status가 'approved'로
--- 바뀌는 순간(그리고 resolution_type='waiver'일 때만) 이 트리거가 자동으로
--- 사유 행의 conflicting_grant_id가 가리키는 기존 rights_grant를 TERMINATED로
--- UPDATE한다. 그 UPDATE는 record_rights_grant_history() 트리거를 그대로 타서
--- event_type='terminated' 감사 기록이 자동으로 남는다.
+-- conflict_resolution 테이블과 그 두 트리거(validate_resolution_target,
+-- apply_waiver_termination)를 되살리지 않는다. conflict_report가 이미
+-- existing_grant_id(=rights_grant.id, 안정적 PK)를 담고 있어 별도 안정
+-- 식별자를 새로 만들 필요가 없다.
 --
--- 그 다음 앱이 evaluate_candidate()를 재호출하고, 통과하면 register_candidate()로
--- 신규 rights_grant를 INSERT한다 — 이 INSERT는 다른 모든 INSERT와 동일하게
--- EXCLUDE를 통과해야 한다. 이 트리거는 EXCLUDE를 우회하지 않는다 — 우회 경로
--- 자체가 존재하지 않는다.
---
--- D-27 — 조회 경로가 conflict_result에서 rights_evaluation_reason으로 바뀌었다.
--- 사유별로 상대 grant가 다를 수 있으므로 정확히 그 사유 하나의 상대만 정리한다.
-CREATE OR REPLACE FUNCTION apply_waiver_termination() RETURNS trigger
+-- 워크플로: 배치 충돌 → 화면이 conflict_report.conflicts[].existing_grant_id
+-- 표시 → 사람이 포기 결정 → terminate_rights_grant(id, 'waiver', note)
+-- 호출(그 자체로 커밋) → 동일 배치를 save_rights_batch()로 재제출(특수
+-- "waiver 저장 경로" 없음, 일반 재시도와 동일). EXCLUDE 우회 경로는
+-- 여전히 없다. MUTUAL_AGREEMENT/MANUAL_OVERRIDE는 기존과 동일하게 미지원.
+CREATE OR REPLACE FUNCTION terminate_rights_grant(
+    p_grant_id bigint, p_reason terminated_reason_kind, p_note text DEFAULT NULL
+) RETURNS void
 LANGUAGE plpgsql AS $$
-DECLARE
-  v_grant_id bigint;
 BEGIN
-  SELECT r.conflicting_grant_id INTO v_grant_id
-  FROM rights_evaluation_reason r
-  WHERE r.id = NEW.evaluation_reason_id;
-
-  IF v_grant_id IS NULL THEN
-    RAISE EXCEPTION '판정 사유 %에 충돌 상대 rights_grant가 없다', NEW.evaluation_reason_id;
+  IF p_reason NOT IN ('waiver', 'cancelled') THEN
+    RAISE EXCEPTION '수동 종료는 waiver 또는 cancelled 사유만 허용한다 (받은 값: %)', p_reason;
   END IF;
 
-  PERFORM set_config('mindex.changed_by', COALESCE(NEW.approved_by, ''), true);
-  PERFORM set_config('mindex.change_reason', 'WAIVER: ' || NEW.reason, true);
-
-  -- 이미 terminated인 행에는 손대지 않는다(멱등) — 같은 WAIVER가 재확인 UPDATE로
-  -- 다시 이 트리거를 태워도 두 번째부터는 조용히 0행 UPDATE로 끝난다.
   UPDATE rights_grant
-     SET status = 'terminated'
-   WHERE id = v_grant_id AND status <> 'terminated';
+     SET status = 'terminated', terminated_at = now(),
+         terminated_reason = p_reason, termination_note = p_note
+   WHERE id = p_grant_id AND status = 'active';
 
-  UPDATE rights_evaluation_reason
-     SET status = 'waived'
-   WHERE id = NEW.evaluation_reason_id;
-
-  RETURN NEW;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'rights_grant %는 이미 종료됐거나 존재하지 않는다', p_grant_id;
+  END IF;
 END;
 $$;
 
-CREATE TRIGGER conflict_resolution_waiver
-  AFTER INSERT OR UPDATE ON conflict_resolution
-  FOR EACH ROW
-  WHEN (NEW.status = 'approved' AND NEW.resolution_type = 'waiver')
-  EXECUTE FUNCTION apply_waiver_termination();
-
 -- ─────────────────────────────────────────────────────────────
--- 11. contract 최종화 검증 (D-25)
+-- 11. contract 최종화 검증 (D-30, 대폭 축소)
 -- ─────────────────────────────────────────────────────────────
 --
--- contract.status='final'(계약 업무 확정)과 contract_document.status='final'
--- (여러 PDF 중 실제 체결본 표시)은 서로 다른 의미다 — 자동으로 동기화하지
--- 않는다. 이 트리거는 검증만 하고 다른 테이블의 상태를 바꾸지 않는다:
---   1. final_document_id가 같은 contract_id 소속인지
---   2. 그 문서가 파싱/검토 완료 단계(approved 또는 final)인지
---   3. 이 계약에 미해결(extracted/review) candidate가 안 남아 있는지
--- 충돌·EXCLUDE는 여기서 재검사하지 않는다 — rights_grant INSERT 시점에
--- 이미 통과했어야만 존재하는 것들이라 다시 볼 필요가 없다(이중 판정 방지,
--- D-19와 같은 원칙).
+-- candidate 상태 스캔(옛 3번째 체크)은 candidate 자체가 없어져 완전히
+-- 사라진다. "등록된 세대 존재 여부"는 contract 테이블의 plain
+-- CHECK(final_or_active_requires_history, 01_schema.sql)로 이미 커버된다.
+-- 남는 것은 "가리키는 current_history_id가 실제로 이 계약 소속이고
+-- registered 상태인가" — 다른 테이블 조인이 필요해 CHECK로 못 하므로
+-- 트리거로 남긴다.
+--
+-- final 상태 계약에 새 개정판이 올라오는 것 자체는 DB가 막지 않는다
+-- (확정 결정 — 앱 레이어 책임).
 CREATE OR REPLACE FUNCTION validate_contract_finalize() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
-  v_doc_status   document_status;
-  v_doc_contract bigint;
+  v_hist_contract bigint;
+  v_hist_status   contract_history_status;
 BEGIN
-  IF NEW.final_document_id IS NULL THEN
-    RAISE EXCEPTION '계약 %를 final로 전환하려면 final_document_id가 필요하다', NEW.id;
-  END IF;
-
-  SELECT status, contract_id INTO v_doc_status, v_doc_contract
-  FROM contract_document
-  WHERE id = NEW.final_document_id;
+  SELECT contract_id, status INTO v_hist_contract, v_hist_status
+  FROM contract_history WHERE id = NEW.current_history_id;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'final_document_id %는 존재하지 않는다', NEW.final_document_id;
+    RAISE EXCEPTION 'current_history_id %는 존재하지 않는다', NEW.current_history_id;
   END IF;
-  IF v_doc_contract <> NEW.id THEN
-    RAISE EXCEPTION 'final_document_id %는 이 계약(%) 소속이 아니다', NEW.final_document_id, NEW.id;
+  IF v_hist_contract <> NEW.id THEN
+    RAISE EXCEPTION 'current_history_id %는 이 계약(%) 소속이 아니다', NEW.current_history_id, NEW.id;
   END IF;
-  IF v_doc_status NOT IN ('approved', 'final') THEN
-    RAISE EXCEPTION '최종 문서(%)가 아직 파싱/검토 완료 상태가 아니다 (현재: %)', NEW.final_document_id, v_doc_status;
-  END IF;
-
-  IF EXISTS (
-      SELECT 1 FROM rights_grant_candidate
-      WHERE contract_id = NEW.id AND status IN ('extracted', 'review')
-  ) THEN
-    RAISE EXCEPTION '계약 %에 아직 결론나지 않은 권리 후보가 남아 있다', NEW.id;
+  IF v_hist_status <> 'registered' THEN
+    RAISE EXCEPTION 'current_history_id %는 registered 상태가 아니다 (현재: %)', NEW.current_history_id, v_hist_status;
   END IF;
 
   RETURN NEW;
@@ -785,164 +718,3 @@ CREATE TRIGGER contract_finalize_check
   FOR EACH ROW
   WHEN (NEW.status = 'final' AND OLD.status IS DISTINCT FROM 'final')
   EXECUTE FUNCTION validate_contract_finalize();
-
--- ─────────────────────────────────────────────────────────────
--- 12. 검증 probe — 실제로 INSERT하고 전부 되돌린다 (D-28)
--- ─────────────────────────────────────────────────────────────
---
--- 화면의 `검증` 버튼이 호출한다. 사용자가 아직 `권리 등록`을 누르지 않았으므로
--- 커밋되는 것이 하나도 없어야 한다.
---
--- 왜 읽기 전용 SELECT로 재구현하지 않는가:
---   1. EXCLUDE를 진짜로 검증한다. 같은 조건의 SELECT는 EXCLUDE의 재구현일 뿐이라
---      언젠가 갈라진다. 여기서는 rights_grant에 실제 INSERT를 시도한다.
---   2. RFP §6.3.2가 시연에서 제약명(no_exclusive_overlap) 노출을 요구한다(D-08).
---      진짜 위반이라야 diag의 CONSTRAINT_NAME을 받을 수 있다.
---   3. 판정 로직이 한 벌로 유지된다 — evaluate_candidate()를 그대로 부른다.
---
--- 롤백을 앱 규약에 맡기지 않는다. 예외 경로에서 ROLLBACK이 누락되거나 나중에
--- 누가 "이력이 남아야지" 하고 고치면 조용히 쌓인다. EXCEPTION 절이 여는
--- 서브트랜잭션 안에서 sentinel 예외를 던져 되돌리므로 **호출자는 커밋 여부를
--- 고를 수 없다.** PL/pgSQL 변수는 트랜잭션 대상이 아니라서 수집한 결과만 살아남는다.
---
--- 부모 행(ip·contract·contract_document)도 같은 서브트랜잭션에서 만든다.
--- 지어내는 껍데기가 아니라 업로드·추출 단계에서 앱이 이미 들고 있는 값이며
--- 커밋만 되지 않은 상태다. p_ip_id가 NULL이면 신규 작품이라 비교 대상이 없다.
---
--- 부작용: BIGSERIAL 시퀀스는 롤백해도 되돌아가지 않아 ID에 구멍이 생긴다.
--- bigint라 실무상 무해하다. check_exclusivity_conflict()가 잡는
--- pg_advisory_xact_lock은 최상위 트랜잭션이 끝날 때까지 유지되므로,
--- 호출자는 probe 직후 트랜잭션을 오래 열어두지 않는다.
-CREATE OR REPLACE FUNCTION probe_rights(
-    p_ip_id              bigint,            -- NULL이면 신규 작품
-    p_territory          char(2),
-    p_legal_right        text,
-    p_exploitation_mode  text,
-    p_period             daterange,
-    p_exclusivity        exclusivity_kind,
-    p_confidence         numeric  DEFAULT NULL,
-    p_evidence           jsonb    DEFAULT '[{"page_start":1,"source_quote":"(검증 단계 — 미저장)"}]'::jsonb,
-    p_review_reason_code text     DEFAULT NULL
-)
-RETURNS TABLE (
-    result_type          result_kind,
-    reason_code          text,
-    is_primary           boolean,
-    conflicting_grant_id bigint,
-    overlap_period       daterange,
-    detail               jsonb,
-    constraint_name      text     -- EXCLUDE/트리거가 실제로 잡았을 때의 제약명
-)
-LANGUAGE plpgsql AS $$
-DECLARE
-  v_ip         bigint;
-  v_contract   bigint;
-  v_document   bigint;
-  v_cand       bigint;
-  v_result     result_kind;
-  v_rows       jsonb;
-  v_constraint text;
-BEGIN
-  BEGIN  -- ← EXCEPTION 절이 서브트랜잭션을 연다. 이 블록의 쓰기는 전부 되돌아간다.
-
-    IF p_ip_id IS NULL THEN
-      INSERT INTO ip (title_ko) VALUES ('(검증)')
-      RETURNING id INTO v_ip;
-    ELSE
-      v_ip := p_ip_id;
-    END IF;
-
-    INSERT INTO contract (counterparty) VALUES ('(검증)')
-    RETURNING id INTO v_contract;
-
-    INSERT INTO contract_document
-      (contract_id, version, file_name, storage_key, file_hash)
-    VALUES (v_contract, 1, '(검증)', '(검증)', '(검증)')
-    RETURNING id INTO v_document;
-
-    INSERT INTO rights_grant_candidate (
-        contract_id, document_id, ip_id,
-        territory, legal_right, exploitation_mode, period, exclusivity,
-        confidence, review_reason_code
-    ) VALUES (
-        v_contract, v_document, v_ip,
-        p_territory, p_legal_right, p_exploitation_mode, p_period, p_exclusivity,
-        p_confidence, p_review_reason_code
-    ) RETURNING id INTO v_cand;
-
-    IF p_evidence IS NULL OR jsonb_typeof(p_evidence) <> 'array'
-       OR jsonb_array_length(p_evidence) = 0 THEN
-      RAISE EXCEPTION '검증할 candidate에는 evidence 배열이 한 건 이상 필요하다';
-    END IF;
-
-    INSERT INTO candidate_evidence
-      (candidate_id, page_start, page_end, source_clause, source_quote)
-    SELECT v_cand, e.page_start, e.page_end, e.source_clause, e.source_quote
-    FROM jsonb_to_recordset(p_evidence) AS e(
-      page_start int, page_end int, source_clause text, source_quote text
-    );
-
-    v_result := evaluate_candidate(v_cand);
-
-    SELECT jsonb_agg(
-             jsonb_build_object(
-               'reason_code',          r.reason_code,
-               'is_primary',           r.is_primary,
-               'conflicting_grant_id', r.conflicting_grant_id,
-               'overlap_period',       r.overlap_period::text,
-               'detail',               r.deterministic_detail
-             ) ORDER BY rc.severity DESC, r.id
-           ) INTO v_rows
-    FROM rights_evaluation e
-    JOIN rights_evaluation_reason r ON r.evaluation_id = e.id
-    JOIN reason_code rc             ON rc.code = r.reason_code
-    WHERE e.candidate_id = v_cand;
-
-    -- ── EXCLUDE 실검증 ────────────────────────────────────────
-    -- register_candidate()를 거치지 않고 직접 INSERT한다. 그 함수는 blocking
-    -- 사유가 있으면 INSERT 전에 예외를 던지므로, 정작 확인하려는 EXCLUDE가
-    -- 한 번도 실행되지 않는다. 여기서 보려는 것은 게이트가 아니라 제약조건이다.
-    --
-    -- EXCLUDE와 check_exclusivity_conflict()는 둘 다 SQLSTATE 23P01에
-    -- CONSTRAINT를 실어 보낸다(D-08). 한 핸들러로 양쪽을 받고 제약명으로 구분한다.
-    IF p_territory IS NOT NULL AND p_legal_right IS NOT NULL
-       AND p_exploitation_mode IS NOT NULL AND p_period IS NOT NULL
-       AND p_exclusivity IS NOT NULL THEN
-      BEGIN
-        INSERT INTO rights_grant (
-            contract_id, document_id, source_candidate_id, ip_id,
-            territory, legal_right, exploitation_mode, period, exclusivity, verified_by
-        ) VALUES (
-            v_contract, v_document, v_cand, v_ip,
-            p_territory, p_legal_right, p_exploitation_mode, p_period, p_exclusivity,
-            '(probe)'
-        );
-      EXCEPTION WHEN exclusion_violation THEN
-        GET STACKED DIAGNOSTICS v_constraint = CONSTRAINT_NAME;
-      END;
-    END IF;
-
-    -- 서브트랜잭션 강제 롤백. 호출자에게 커밋 선택지를 주지 않는다.
-    RAISE EXCEPTION USING ERRCODE = 'MXP01', MESSAGE = 'PROBE_SENTINEL';
-
-  EXCEPTION WHEN SQLSTATE 'MXP01' THEN
-    NULL;  -- 여기 도달한 시점에 위 블록의 쓰기는 전부 되돌아갔다
-  END;
-
-  IF v_rows IS NULL THEN
-    -- 사유가 하나도 없다 = NORMAL. 결과 한 줄은 돌려줘야 화면이 구분할 수 있다.
-    RETURN QUERY SELECT v_result, NULL::text, NULL::boolean, NULL::bigint,
-                        NULL::daterange, NULL::jsonb, v_constraint;
-  ELSE
-    RETURN QUERY
-    SELECT v_result,
-           x->>'reason_code',
-           (x->>'is_primary')::boolean,
-           (x->>'conflicting_grant_id')::bigint,
-           (x->>'overlap_period')::daterange,
-           x->'detail',
-           v_constraint
-    FROM jsonb_array_elements(v_rows) AS x;
-  END IF;
-END;
-$$;

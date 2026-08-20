@@ -1,56 +1,47 @@
-"""LOW_CONFIDENCE가 등록을 막지 않는다 (D-28).
+"""낮은 confidence는 DB로 들어오지 않는다 (D-30).
 
-`is_blocking=true`이던 시절에는 사람이 이미 검수한 후보가 영영 등록되지 못했다.
-register_candidate()가 review 상태를 거부하고, evaluate_candidate()는 이 사유를
-매번 다시 옮겨 review로 되돌리며, 해제 수단인 rights_evaluation_reason.status
-='resolved'는 세팅하는 코드가 없었다(O-09). 이 테스트가 그 회귀를 잡는다.
+D-28 시절에는 candidate.confidence < 0.85를 DB가 직접 분류해 LOW_CONFIDENCE
+사유로 review 큐에 올렸다(classify_candidate()). D-30에서 candidate 스테이징
+자체가 사라지면서 confidence는 DB 스키마 밖의 값이 됐다 — 신뢰도 필터링은
+전적으로 앱 레이어(P5) 책임이고, save_rights_batch()/validate_rights_batch()에
+넘어오는 시점에는 이미 사람이 확인했거나 임계치를 통과한 값이라는 전제다.
+
+이 파일은 그 경계를 명시하는 짧은 계약(contract) 테스트다 — DB에 confidence를
+저장할 컬럼도, 신뢰도를 이유로 등록을 막는 로직도 없다는 것만 확인한다.
 """
 
 from __future__ import annotations
 
+import json
 
-def test_low_confidence_still_flags_review(cur, make_candidate):
-    """분류 자체는 그대로다 — 화면이 '신뢰도 낮음'을 표시할 근거는 남는다."""
-    candidate_id = make_candidate(confidence=0.42)
+
+def test_rights_grant_has_no_confidence_column(cur):
     cur.execute(
-        "SELECT status, review_reason_code FROM rights_grant_candidate WHERE id = %s",
-        (candidate_id,),
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'rights_grant'"
     )
-    assert cur.fetchone() == ("review", "LOW_CONFIDENCE")
+    columns = {r[0] for r in cur.fetchall()}
+    assert "confidence" not in columns
 
 
-def test_low_confidence_is_not_blocking(cur):
-    cur.execute("SELECT is_blocking FROM reason_code WHERE code = 'LOW_CONFIDENCE'")
-    assert cur.fetchone()[0] is False
+def test_low_confidence_reason_code_is_pure_vocabulary(cur):
+    """LOW_CONFIDENCE 코드 자체는 앱 레이어 참고용으로 남지만, 이제 어떤 DB
+    함수도 이 코드를 직접 산출하지 않는다 — is_blocking 같은 차단 플래그가
+    없다(reason_code 테이블 자체에 그 컬럼이 없다)."""
+    cur.execute("SELECT is_decision_reason FROM reason_code WHERE code = 'LOW_CONFIDENCE'")
+    row = cur.fetchone()
+    assert row is not None, "코드는 어휘로 남아 있어야 한다"
 
 
-def test_low_confidence_candidate_can_be_registered(cur, make_candidate):
-    """재판정하면 검토 상태를 벗어나고 등록까지 간다."""
-    candidate_id = make_candidate(confidence=0.42)
-
-    cur.execute("SELECT evaluate_candidate(%s)", (candidate_id,))
-    cur.execute("SELECT status FROM rights_grant_candidate WHERE id = %s", (candidate_id,))
-    assert cur.fetchone()[0] == "extracted", "blocking 사유가 없으면 검토 큐에서 빠져야 한다"
-
-    cur.execute("SELECT register_candidate(%s, 'reviewer@test')", (candidate_id,))
-    grant_id = cur.fetchone()[0]
-    assert grant_id is not None
-
-    cur.execute("SELECT status FROM rights_grant WHERE id = %s", (grant_id,))
-    assert cur.fetchone()[0] == "approved"
-
-
-def test_low_confidence_reason_survives_in_evaluation(cur, make_candidate):
-    """등록을 막지는 않지만 판정 사유로는 남는다 — 왜 검토가 필요했는지의 이력."""
-    candidate_id = make_candidate(confidence=0.42)
-    cur.execute("SELECT evaluate_candidate(%s)", (candidate_id,))
+def test_batch_registration_does_not_require_confidence(cur, ctx, make_batch_row):
+    """save_rights_batch()는 confidence 파라미터 자체를 받지 않는다 — 배치가
+    등록되는 데 신뢰도 값이 관여할 자리가 구조적으로 없다."""
     cur.execute(
         """
-        SELECT r.reason_code
-        FROM rights_evaluation e
-        JOIN rights_evaluation_reason r ON r.evaluation_id = e.id
-        WHERE e.candidate_id = %s
+        SELECT batch_result FROM save_rights_batch(%s, %s, %s, %s, %s, %s, %s::jsonb)
         """,
-        (candidate_id,),
+        (
+            ctx["contract_id"], "테스트", ctx["ip_id"], "x.pdf", "s3://x", "sha:x",
+            json.dumps([make_batch_row(territory="KR")]),
+        ),
     )
-    assert "LOW_CONFIDENCE" in {row[0] for row in cur.fetchall()}
+    assert cur.fetchone()[0] == "REGISTERED"

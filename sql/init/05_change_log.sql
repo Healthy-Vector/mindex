@@ -26,6 +26,7 @@ CREATE INDEX change_log_pending
 
 -- 변경을 앱이 아니라 DB가 기록한다.
 -- 앱이 INSERT 문을 빠뜨려도 로그가 비지 않는다 — 원칙 P-4와 같은 이유다.
+-- 함수 본체는 D-30에서도 변경하지 않는다.
 CREATE OR REPLACE FUNCTION log_change() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -42,14 +43,13 @@ $$;
 -- 재색인이 필요한 테이블에만 건다. D-22 — rights_grant 트리거는 코드리뷰로
 -- 제거했다. change_log_worker.py의 실제 목적은 계약 원문 재청킹·재임베딩이고
 -- (docstring: "벡터를 재생성한다"), rights_grant는 벡터화 대상이 아니다.
--- 권리 데이터 자체의 감사 추적은 rights_grant_history(D-18)가 이미 더
--- 풍부하게 맡고 있으므로 이 큐에 중복해서 쌓을 이유가 없다.
 --
--- D-24 — 트리거를 contract가 아니라 contract_document에 건다. raw_text(재청킹
--- 대상)가 D-24에서 contract로부터 contract_document로 옮겨갔기 때문이다.
--- contract 자체(counterparty·status 등 메타데이터)가 바뀌어도 재임베딩할
--- 내용이 없으므로, contract 트리거를 그대로 뒀다면 목적에 안 맞는 로그만
--- 쌓였을 것이다.
-CREATE TRIGGER contract_document_change_log
-    AFTER INSERT OR UPDATE OR DELETE ON contract_document
+-- D-30 — 트리거를 contract_document가 아니라 contract_history에 건다.
+-- raw_text(재청킹 대상)가 contract_document를 흡수한 contract_history로
+-- 옮겨갔기 때문이다(§1.4). contract 자체(counterparty·status 등
+-- 메타데이터)가 바뀌어도 재임베딩할 내용이 없으므로, contract 트리거를
+-- 그대로 뒀다면 목적에 안 맞는 로그만 쌓였을 것이다 — 이 판단은 D-24
+-- 때부터 유지된다.
+CREATE TRIGGER contract_history_change_log
+    AFTER INSERT OR UPDATE OR DELETE ON contract_history
     FOR EACH ROW EXECUTE FUNCTION log_change();
