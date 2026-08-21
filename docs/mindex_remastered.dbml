@@ -1,5 +1,5 @@
 // Mindex remastered schema — PostgreSQL 16
-// SQL counterpart: sql/init/*.sql (2026-08-20, D-30)
+// SQL counterpart: sql/init/*.sql (2026-08-21, D-31)
 // Flow: PDF/OCR/AI extraction -> validate_rights_batch()
 //       -> user confirmation -> save_rights_batch() -> all-or-nothing
 
@@ -10,6 +10,8 @@ Project mindex {
   candidate/evaluation 계층 없이 계약서 권리 배치를 원자적으로 등록한다.
   판정축은 legal_right × exploitation_mode 두 계층을 유지한다(D-27).
   evidence JSONB는 각 필드의 페이지·조항·원문 인용을 보존한다.
+  draft 계약의 active grant도 충돌 슬롯을 점유한다. 확정 권리 조회는
+  confirmed_rights_grant view(contract.status signed)를 사용한다.
   team은 PIN 관리용 독립 개념이며 tenant가 아니다.
   '''
 }
@@ -29,15 +31,18 @@ Enum exclusivity_kind {
 
 Enum contract_status {
   draft
-  active
-  final
-  rejected
-  terminated
+  signed
+  cancelled
 }
 
 Enum contract_history_status {
-  registered
+  applied
   conflicted
+}
+
+Enum contract_document_kind {
+  draft
+  final
 }
 
 Enum rights_grant_status {
@@ -166,6 +171,7 @@ Table contract_history {
   id BIGSERIAL [pk]
   contract_id BIGINT [not null]
   version INT [not null]
+  document_kind contract_document_kind [not null, default: 'draft']
   status contract_history_status [not null]
   file_name TEXT [not null]
   file_path TEXT [not null]
@@ -175,7 +181,7 @@ Table contract_history {
   conflict_report JSONB
   uploaded_at TIMESTAMPTZ [not null, default: `now()`]
   Indexes { (contract_id, version) [unique] }
-  Note: 'PDF 세대. registered면 배치 전체가 grant로 등록되고 conflicted면 grant 0행과 conflict_report가 남는다.'
+  Note: 'version은 업로드 순번, document_kind는 초안/최종본, status는 DB 적용 결과다.'
 }
 Table rights_grant {
   id BIGSERIAL [pk]
@@ -197,7 +203,7 @@ Table rights_grant {
   terminated_reason terminated_reason_kind
   termination_note TEXT
   created_at TIMESTAMPTZ [not null, default: `now()`]
-  Note: 'active 권리는 content_asset × territory × 두 taxonomy span × period로 충돌 판정한다. 다른 contract끼리만 비교한다.'
+  Note: 'active는 계약 확정 여부가 아니라 충돌 슬롯 점유 상태다. draft 계약의 active grant도 다른 contract를 차단한다.'
 }
 Table contract_chunk {
   id BIGSERIAL [pk]

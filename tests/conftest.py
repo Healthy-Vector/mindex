@@ -54,7 +54,7 @@ def ctx(cur):
     cur.execute(
         "INSERT INTO contract_history "
         "  (contract_id, version, status, file_name, file_path, file_hash) "
-        "VALUES (%s, 1, 'registered', 'test.pdf', 's3://test/1.pdf', 'sha256:test') "
+        "VALUES (%s, 1, 'applied', 'test.pdf', 's3://test/1.pdf', 'sha256:test') "
         "RETURNING id",
         (contract_id,),
     )

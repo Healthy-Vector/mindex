@@ -44,4 +44,4 @@ def test_batch_registration_does_not_require_confidence(cur, ctx, make_batch_row
             json.dumps([make_batch_row(territory="KR")]),
         ),
     )
-    assert cur.fetchone()[0] == "REGISTERED"
+    assert cur.fetchone()[0] == "APPLIED"

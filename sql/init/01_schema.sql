@@ -35,15 +35,14 @@ CREATE TYPE result_kind AS ENUM ('NORMAL', 'CONFLICT', 'REVIEW_REQUIRED', 'WARNI
 -- 판정에서는 'exclusive'와 동일하게 취급한다 (둘 다 제3자 배타).
 CREATE TYPE exclusivity_kind AS ENUM ('exclusive', 'sole', 'non_exclusive');
 
--- D-30 — 계약 업무 건(case) 상태. review/approved를 없앤다 — candidate
--- 스테이징이 없어지면서 "부분 검토중" 상태가 구조적으로 존재할 수 없다.
--- active는 "등록된 세대(contract_history.status='registered')가 최소 1개
--- 있다"는 뜻이고, final은 계약 자체를 확정했다는 업무적 결정이다.
-CREATE TYPE contract_status AS ENUM ('draft', 'active', 'final', 'rejected', 'terminated');
+-- D-31 — 계약 업무 상태는 협의 중(draft), 서명 완료(signed), 종결(cancelled)
+-- 세 단계다. draft도 권리를 예약할 수 있으며 그 여부는 rights_grant.active로
+-- 표현한다. 취소·해지·협의 결렬은 모두 cancelled로 수렴한다.
+CREATE TYPE contract_status AS ENUM ('draft', 'signed', 'cancelled');
 
--- D-30 — 계약서 한 세대(버전)의 판정 결과. all-or-nothing이므로 세대 전체가
--- 등록되거나(registered) 충돌로 커밋되거나(conflicted) 둘 중 하나다.
-CREATE TYPE contract_history_status AS ENUM ('registered', 'conflicted');
+-- D-31 — 업로드 문서의 성격과 DB 적용 결과는 서로 다른 축이다.
+CREATE TYPE contract_document_kind AS ENUM ('draft', 'final');
+CREATE TYPE contract_history_status AS ENUM ('applied', 'conflicted');
 
 -- D-30 — rights_grant는 이제 2단계 상태 모델이다. candidate 승인이라는
 -- 중간 단계가 없다 — 배치가 통과하면 곧바로 active다.
@@ -247,22 +246,23 @@ CREATE TABLE contract (
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
 
-    -- active/final인데 등록된 세대가 없는 행은 존재할 수 없다. 이 CHECK는
+    -- signed인데 등록된 세대가 없는 행은 존재할 수 없다. 이 CHECK는
     -- contract 자기 컬럼만 보므로 plain CHECK로 충분하다. current_history_id가
     -- 가리키는 세대 자체의 상태·소속 검증은 02_conflict_rules.sql의
-    -- validate_contract_finalize() 트리거가 한다(다른 테이블 참조가 필요해서).
-    CONSTRAINT final_or_active_requires_history
-        CHECK (status NOT IN ('active','final') OR current_history_id IS NOT NULL)
+    -- validate_contract_signing() 트리거가 한다(다른 테이블 참조가 필요해서).
+    CONSTRAINT signed_requires_history
+        CHECK (status <> 'signed' OR current_history_id IS NOT NULL)
 );
 
 -- D-30 — contract_document + contract_version을 흡수해 대체한다(§1.4).
 -- "PDF 한 건 = 판정 한 건"이므로 버전(세대) 하나가 곧 하나의 all-or-nothing
--- 판정 단위다. registered면 그 세대의 rights_grant가 실제로 존재하고,
+-- 판정 단위다. applied면 그 세대의 rights_grant가 실제로 존재하고,
 -- conflicted면 존재하지 않으며 conflict_report에 왜 막혔는지가 남는다.
 CREATE TABLE contract_history (
     id               bigserial PRIMARY KEY,
     contract_id      bigint NOT NULL REFERENCES contract(id) ON DELETE CASCADE,
     version          int NOT NULL,
+    document_kind    contract_document_kind NOT NULL DEFAULT 'draft',
     status           contract_history_status NOT NULL,
 
     file_name        text NOT NULL,
@@ -282,10 +282,11 @@ CREATE TABLE contract_history (
 
 CREATE INDEX idx_contract_history_hash     ON contract_history (file_hash);
 CREATE INDEX idx_contract_history_contract ON contract_history (contract_id);
+CREATE INDEX idx_contract_history_kind     ON contract_history (document_kind);
 
 -- contract.current_history_id FK. contract_history가 방금 완성됐으므로
 -- 이제 붙일 수 있다. ON DELETE SET NULL — 세대가 지워지면 링크만 풀리고,
--- 그 결과 final_or_active_requires_history CHECK가 active/final 행에 대해
+-- 그 결과 signed_requires_history CHECK가 signed 행에 대해
 -- 이 UPDATE 자체를 거부한다(같은 트랜잭션의 SET NULL이 CHECK를 다시 태운다).
 ALTER TABLE contract
     ADD FOREIGN KEY (current_history_id)
@@ -293,7 +294,8 @@ ALTER TABLE contract
     ON DELETE SET NULL;
 
 -- ─────────────────────────────────────────────────────────────
--- 권리 레코드 — 승인된 데이터의 Single Source of Truth (DAR-001, D-30)
+-- 권리 레코드 — 현재 점유 중이거나 종료된 권리의 Single Source of Truth
+-- (DAR-001, D-30, D-31)
 -- ─────────────────────────────────────────────────────────────
 --
 -- D-30 — candidate 스테이징을 거치지 않는다. save_rights_batch()가 계약서
@@ -394,3 +396,14 @@ EXCLUDE USING gist (
     period                  WITH &&
 )
 WHERE (exclusivity <> 'non_exclusive' AND status = 'active');
+
+-- D-31 — rights_grant.status='active'는 계약 확정 여부가 아니라 충돌 판정의
+-- 현재 점유 여부다. 확정된 권리만 필요한 조회는 contract.status를 함께 봐야
+-- 하므로 공용 view로 고정한다. draft 계약의 active grant는 예약을 차지하지만
+-- 이 view에는 나타나지 않는다.
+CREATE VIEW confirmed_rights_grant AS
+SELECT g.*
+FROM rights_grant g
+JOIN contract c ON c.id = g.contract_id
+WHERE g.status = 'active'
+  AND c.status = 'signed';

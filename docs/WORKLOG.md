@@ -2,6 +2,26 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-21 — D-31 계약 상태·업로드 문서 상태·권리 점유 상태 분리
+
+- `contract.status`를 `draft | signed | cancelled`로 단순화했다. cancelled는 종결
+  상태이며, 전환 시 해당 계약의 active grant를 `terminated/cancelled`로 종료한다.
+- `contract_history.version`은 업로드 순번 정수로 유지하고, 초안/최종본은
+  `document_kind(draft | final)`, DB 적용 결과는 `status(applied | conflicted)`로 분리했다.
+- `save_rights_batch()`는 `p_document_kind`를 받아 draft/applied면 contract를 draft로
+  유지하면서 active grant로 권리를 선점하고, final/applied면 contract를 signed로
+  전환한다. conflicted 업로드는 기존 all-or-nothing 규칙대로 신규 grant 0건과
+  `conflict_report`를 남긴다.
+- `rights_grant.status`는 실제 권리 점유 상태인 `active | terminated`를 유지한다.
+  `conflicted`는 `contract_history.status`와 `conflict_report`가 담당한다.
+- 확정 계약의 현재 권리는 `confirmed_rights_grant` view로 분리했다.
+
+### 검증
+
+- Python `compileall`, pytest 66개 테스트 수집, `git diff --check`를 통과했다.
+- Docker 엔진/PostgreSQL이 실행되지 않아 DB-backed pytest는 연결 단계에서 실행하지
+  못했다. DB 기동 후 전체 테스트 재실행이 필요하다.
+
 ## 2026-08-21 — 현행 설명서가 SQL 동작과 맞도록 정리
 
 - `mindex DB 설명서.md`와 `contract-registration-flow.md`의 evidence 인용 키를 실제 DB CHECK가 검사하는 `quote`로 통일했다.

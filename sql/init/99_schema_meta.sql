@@ -98,4 +98,12 @@ INSERT INTO schema_meta (version, note) VALUES
      'name_ko/name_en을 country_label/territory_group_label로 정규화. reason_code에서 '
      'is_blocking/is_review_trigger 컬럼 삭제(워크플로우 구동을 멈추고 순수 어휘로 전환), '
      'right_mapping 삭제로 AMBIGUOUS_CLAUSE/CROSS_BORDER_MUSIC_CLEARANCE는 '
-     'implemented=false로 되돌림');
+     'implemented=false 상태로 유지'),
+    ('2026-08-21.1',
+     'D-31 contract.status를 draft/signed/cancelled 3단계로 단순화하고 계약 상태와 '
+     '권리 점유 상태를 분리. contract_history에 document_kind(draft/final)를 추가하고 '
+     'status는 applied/conflicted로 정리. version은 업로드 순번 정수로 유지. draft도 '
+     'rights_grant active로 충돌 슬롯을 선점하며 save_rights_batch의 p_document_kind로 '
+     '초안/최종본 저장을 지원. final/applied만 contract를 signed로 전환. contract '
+     'cancelled 전환 시 active grant를 terminated/cancelled로 종료. signed 계약 권리 '
+     '전용 confirmed_rights_grant view 추가');

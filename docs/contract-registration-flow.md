@@ -20,7 +20,7 @@
 → validate_rights_batch()
 → 정상: save_rights_batch()
 → 충돌: 조건 수정 또는 기존 grant 종료 후 전체 재제출
-→ 필요 시 contract final 전환
+→ 서명 완료 시 contract signed 전환
 ```
 
 ## 1. 대상과 PDF 준비
@@ -58,20 +58,25 @@ PDF 바이너리는 object storage에 임시 업로드한다. 등록 전에는 `
 
 ## 3. 검증
 
-`validate_rights_batch()`에 계약 메타데이터, PDF 메타데이터, 권리 배열을 전달한다. 함수는 `attempt_rights_batch_insert()`를 통해 실제 `rights_grant` INSERT 경로와 EXCLUDE/trigger를 실행하지만 서브트랜잭션을 되돌린다.
+`validate_rights_batch()`에 계약 메타데이터, PDF 메타데이터, 권리 배열과 선택적인
+`p_document_kind`를 전달한다. 함수는 `attempt_rights_batch_insert()`를 통해 실제
+`rights_grant` INSERT 경로와 EXCLUDE/trigger를 실행하지만 서브트랜잭션을 되돌린다.
 
 반환 결과에는 등록 가능 여부와 충돌 보고서가 포함된다. EXCLUDE가 발생하면 실제 `constraint_name`, 기존 grant ID, 겹친 기간을 보고서에서 확인할 수 있다. 검증 호출은 업무 행을 남기지 않지만 sequence 번호 간격은 생길 수 있다.
 
 ## 4. 저장
 
-`save_rights_batch()`는 다음을 한 트랜잭션에서 수행한다.
+`save_rights_batch()`는 다음을 한 트랜잭션에서 수행한다. 마지막 선택 인자인
+`p_document_kind`는 `draft | final`이며 기본값은 `final`이다.
 
 ```text
 contract 생성 또는 기존 contract ID 사용
 → 다음 version 계산
 → contract_history 생성
 → 권리 배열을 한 INSERT 문장으로 rights_grant에 투입
-→ 성공 시 registered + current_history_id 갱신
+→ 성공 시 applied + current_history_id 갱신
+→ document_kind='draft'면 contract draft 유지, grant는 active로 권리 선점
+→ document_kind='final'이면 contract signed 전환
 → 실패 시 grant 전체 롤백 + conflicted history와 conflict_report 저장
 ```
 
@@ -89,11 +94,20 @@ contract 생성 또는 기존 contract ID 사용
 
 WAIVER는 EXCLUDE 우회가 아니다. 기존 active grant가 사라진 뒤 동일 제약을 다시 통과하는 절차다.
 
+계약을 `cancelled`로 전환하면 DB trigger가 해당 계약의 active
+grant를 `terminated_reason='cancelled'`로 종료해 예약을 해제한다. 상태를 다시 draft로
+돌려도 종료된 grant는 부활하지 않으며 새 세대로 다시 저장해야 한다.
+
 ## 6. 계약 상태
 
-등록 성공 후 `contract.status`는 `active`, `current_history_id`는 최신 registered 세대를 가리킨다. `final` 전환 시 DB trigger는 current history가 같은 계약 소속이고 `registered`인지 검사한다.
+저장 성공 후 `current_history_id`는 최신 applied 세대를 가리킨다. 계약 상태는
+`document_kind='draft'`이면 draft, `final`이면 signed가 된다. signed 전환 시 DB trigger는
+current history가 같은 계약 소속이고 `final/applied`인지 검사한다.
 
-`final` 계약에 새 PDF를 등록할 수 있는지 여부는 앱 정책이다. DB는 개정 자체를 금지하지 않는다. `contract_version`은 없으므로 counterparty·amount 같은 계약 메타데이터 수정 감사이력이 필요하면 별도 모델을 설계해야 한다.
+원본 `rights_grant` 조회는 draft 계약의 예약도 포함한다. 확정된 계약의 현재 권리만
+조회할 때는 `confirmed_rights_grant` view를 사용한다.
+
+`signed` 계약에 새 PDF를 등록할 수 있는지 여부는 앱 정책이다. DB는 개정 자체를 금지하지 않는다. `contract_version`은 없으므로 counterparty·amount 같은 계약 메타데이터 수정 감사이력이 필요하면 별도 모델을 설계해야 한다.
 
 ## 7. 검색과 변경 로그
 

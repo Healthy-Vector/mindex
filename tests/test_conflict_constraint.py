@@ -81,7 +81,7 @@ def test_hierarchy_overlap(conn, cur, ctx, make_grant, existing, incoming, block
     other_contract_id = cur.fetchone()[0]
     cur.execute(
         "INSERT INTO contract_history (contract_id, version, status, file_name, file_path, file_hash) "
-        "VALUES (%s, 1, 'registered', 'x.pdf', 's3://x', 'sha:x')",
+        "VALUES (%s, 1, 'applied', 'x.pdf', 's3://x', 'sha:x')",
         (other_contract_id,),
     )
 
@@ -106,7 +106,7 @@ def _other_contract(cur):
     contract_id = cur.fetchone()[0]
     cur.execute(
         "INSERT INTO contract_history (contract_id, version, status, file_name, file_path, file_hash) "
-        "VALUES (%s, 1, 'registered', 'x.pdf', 's3://x', 'sha:x')",
+        "VALUES (%s, 1, 'applied', 'x.pdf', 's3://x', 'sha:x')",
         (contract_id,),
     )
     return contract_id

@@ -12,7 +12,7 @@
 --   8. validate_rights_batch()            — 검증: 배치 전체를 INSERT 후 강제 롤백 (D-28 계승, D-30)
 --   9. save_rights_batch()                — 등록: 배치 저장 + 세대 전환 + lineage 승계 (D-30)
 --  10. terminate_rights_grant()           — WAIVER/CANCELLED 수동 종료 (D-30)
---  11. validate_contract_finalize()       — contract.status='final' 전환 검증 (D-30, 축소)
+--  11. validate_contract_signing()        — contract.status='signed' 전환 검증 (D-31)
 --
 -- log_change()와 change_log 트리거는 05_change_log.sql이 그대로 담당한다
 -- (함수 본체 무변경, 트리거 바인딩만 contract_document → contract_history로 재부착).
@@ -293,7 +293,7 @@ $$;
 -- probe_rights()/evaluate_candidate()를 대체한다. D-28의 sentinel-rollback
 -- 서브트랜잭션 패턴(SQLSTATE 'MXP01')을 그대로 계승하되, 단일 candidate가
 -- 아니라 배치 전체에 적용한다. right_mapping이 삭제됐으므로 advisory 단계는
--- 없다 — 이 함수는 이제 REGISTERED/CONFLICTED 둘 중 하나만 판정한다.
+-- 없다 — 이 함수는 이제 APPLIED/CONFLICTED 둘 중 하나만 판정한다.
 --
 -- 부모 행(ip·contract·contract_history)도 같은 서브트랜잭션에서 만든다.
 -- 지어내는 껍데기가 아니라 업로드·추출 단계에서 앱이 이미 들고 있는 값이며
@@ -307,10 +307,11 @@ CREATE OR REPLACE FUNCTION validate_rights_batch(
     p_file_hash    text,
     p_rights       jsonb,
     p_mime_type    text DEFAULT 'application/pdf',
-    p_raw_text     text DEFAULT NULL
+    p_raw_text     text DEFAULT NULL,
+    p_document_kind contract_document_kind DEFAULT 'draft'
 )
 RETURNS TABLE (
-    batch_result     text,           -- 'REGISTERED' · 'CONFLICTED'
+    batch_result     text,           -- 'APPLIED' · 'CONFLICTED'
     constraint_name  text,
     conflict_report  jsonb
 )
@@ -349,9 +350,11 @@ BEGIN
     END IF;
 
     INSERT INTO contract_history
-      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text)
+      (contract_id, version, document_kind, status,
+       file_name, file_path, file_hash, mime_type, raw_text)
     VALUES
-      (v_contract, v_version, 'registered', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
+      (v_contract, v_version, p_document_kind, 'applied',
+       p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
     RETURNING id INTO v_history;
 
     SELECT a.inserted_ids, a.constraint_name, a.exception_detail
@@ -407,7 +410,7 @@ BEGIN
         AND g.contract_id <> v_contract
         AND NOT (r.exclusivity = 'non_exclusive' AND g.exclusivity = 'non_exclusive');
     ELSE
-      v_result := 'REGISTERED';
+      v_result := 'APPLIED';
       v_report := NULL;
     END IF;
 
@@ -445,10 +448,11 @@ CREATE OR REPLACE FUNCTION save_rights_batch(
     p_rights       jsonb,
     p_mime_type    text DEFAULT 'application/pdf',
     p_raw_text     text DEFAULT NULL,
-    p_chunks       jsonb DEFAULT NULL   -- 선택적 contract_chunk 배치 (04_vector.sql 의존)
+    p_chunks       jsonb DEFAULT NULL,  -- 선택적 contract_chunk 배치 (04_vector.sql 의존)
+    p_document_kind contract_document_kind DEFAULT 'final'
 )
 RETURNS TABLE (
-    batch_result     text,           -- 'REGISTERED' · 'CONFLICTED'
+    batch_result     text,           -- 'APPLIED' · 'CONFLICTED'
     out_contract_id  bigint,
     out_history_id   bigint,
     constraint_name  text,
@@ -468,6 +472,10 @@ DECLARE
   v_report     jsonb;
   v_result     text;
 BEGIN
+  IF p_document_kind IS NULL THEN
+    RAISE EXCEPTION 'save_rights_batch의 document_kind는 NULL일 수 없다';
+  END IF;
+
   -- ── 1. contract 확정 ─────────────────────────────────────────
   IF p_contract_id IS NULL THEN
     v_ip := p_ip_id;
@@ -491,7 +499,7 @@ BEGIN
 
   -- ── 2~6. 서브트랜잭션(BEGIN/EXCEPTION) — "SAVEPOINT sp_batch" ───
   -- 이 안에서 이전 세대를 종료하고 새 세대를 시도한다. 실패하면 이
-  -- 블록 전체(이전 세대 종료 + 새 contract_history 'registered' 행 +
+  -- 블록 전체(이전 세대 종료 + 새 contract_history 'applied' 행 +
   -- 시도한 rights_grant INSERT)가 전부 원복된다 — 이전 세대는 자동으로
   -- 다시 active가 된다.
   BEGIN
@@ -539,11 +547,13 @@ BEGIN
       AND pk.legal_right       = i.legal_right
       AND pk.exploitation_mode = i.exploitation_mode;
 
-    -- 5. 이번 세대 contract_history — 우선 registered로 기록해둔다
+    -- 5. 이번 세대 contract_history — 우선 applied로 기록해둔다
     INSERT INTO contract_history
-      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text)
+      (contract_id, version, document_kind, status,
+       file_name, file_path, file_hash, mime_type, raw_text)
     VALUES
-      (v_contract, v_version, 'registered', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
+      (v_contract, v_version, p_document_kind, 'applied',
+       p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text)
     RETURNING id INTO v_history;
 
     -- 6. 배치 INSERT 시도 — 실제 EXCLUDE를 태워본다
@@ -614,19 +624,28 @@ BEGIN
       AND NOT (r.exclusivity = 'non_exclusive' AND g.exclusivity = 'non_exclusive');
 
     INSERT INTO contract_history
-      (contract_id, version, status, file_name, file_path, file_hash, mime_type, raw_text, conflict_report)
+      (contract_id, version, document_kind, status,
+       file_name, file_path, file_hash, mime_type, raw_text, conflict_report)
     VALUES
-      (v_contract, v_version, 'conflicted', p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text, v_report)
+      (v_contract, v_version, p_document_kind, 'conflicted',
+       p_file_name, p_file_path, p_file_hash, p_mime_type, p_raw_text, v_report)
     RETURNING id INTO v_history;
 
     v_result := 'CONFLICTED';
   ELSE
-    -- 8. 성공 — contract를 이번 세대로 갱신한다.
+    -- 8. 성공 — contract를 이번 세대로 갱신한다. draft 저장도 rights_grant는
+    -- active라 즉시 예약 효력을 가진다. 문서 종류가 final이면 contract는
+    -- signed, draft면 draft가 된다.
     UPDATE contract
-       SET current_history_id = v_history, status = 'active', updated_at = now()
+       SET current_history_id = v_history,
+           status = CASE p_document_kind
+                      WHEN 'final' THEN 'signed'::contract_status
+                      ELSE 'draft'::contract_status
+                    END,
+           updated_at = now()
      WHERE id = v_contract;
 
-    v_result := 'REGISTERED';
+    v_result := 'APPLIED';
     v_report := NULL;
   END IF;
 
@@ -678,25 +697,25 @@ END;
 $$;
 
 -- ─────────────────────────────────────────────────────────────
--- 11. contract 최종화 검증 (D-30, 대폭 축소)
+-- 11. contract 서명 완료 검증 (D-31)
 -- ─────────────────────────────────────────────────────────────
 --
 -- candidate 상태 스캔(옛 3번째 체크)은 candidate 자체가 없어져 완전히
 -- 사라진다. "등록된 세대 존재 여부"는 contract 테이블의 plain
--- CHECK(final_or_active_requires_history, 01_schema.sql)로 이미 커버된다.
+-- CHECK(signed_requires_history, 01_schema.sql)로 이미 커버된다.
 -- 남는 것은 "가리키는 current_history_id가 실제로 이 계약 소속이고
--- registered 상태인가" — 다른 테이블 조인이 필요해 CHECK로 못 하므로
+-- final/applied 상태인가" — 다른 테이블 조인이 필요해 CHECK로 못 하므로
 -- 트리거로 남긴다.
 --
--- final 상태 계약에 새 개정판이 올라오는 것 자체는 DB가 막지 않는다
--- (확정 결정 — 앱 레이어 책임).
-CREATE OR REPLACE FUNCTION validate_contract_finalize() RETURNS trigger
+CREATE OR REPLACE FUNCTION validate_contract_signing() RETURNS trigger
 LANGUAGE plpgsql AS $$
 DECLARE
   v_hist_contract bigint;
   v_hist_status   contract_history_status;
+  v_document_kind contract_document_kind;
 BEGIN
-  SELECT contract_id, status INTO v_hist_contract, v_hist_status
+  SELECT contract_id, status, document_kind
+    INTO v_hist_contract, v_hist_status, v_document_kind
   FROM contract_history WHERE id = NEW.current_history_id;
 
   IF NOT FOUND THEN
@@ -705,16 +724,69 @@ BEGIN
   IF v_hist_contract <> NEW.id THEN
     RAISE EXCEPTION 'current_history_id %는 이 계약(%) 소속이 아니다', NEW.current_history_id, NEW.id;
   END IF;
-  IF v_hist_status <> 'registered' THEN
-    RAISE EXCEPTION 'current_history_id %는 registered 상태가 아니다 (현재: %)', NEW.current_history_id, v_hist_status;
+  IF v_hist_status <> 'applied' THEN
+    RAISE EXCEPTION 'current_history_id %는 applied 상태가 아니다 (현재: %)', NEW.current_history_id, v_hist_status;
+  END IF;
+  IF v_document_kind <> 'final' THEN
+    RAISE EXCEPTION 'current_history_id %는 final 문서가 아니다 (현재: %)', NEW.current_history_id, v_document_kind;
   END IF;
 
   RETURN NEW;
 END;
 $$;
 
-CREATE TRIGGER contract_finalize_check
+CREATE TRIGGER contract_signing_check
   BEFORE UPDATE ON contract
   FOR EACH ROW
-  WHEN (NEW.status = 'final' AND OLD.status IS DISTINCT FROM 'final')
-  EXECUTE FUNCTION validate_contract_finalize();
+  WHEN (
+    NEW.status = 'signed'
+    AND (
+      OLD.status IS DISTINCT FROM 'signed'
+      OR NEW.current_history_id IS DISTINCT FROM OLD.current_history_id
+    )
+  )
+  EXECUTE FUNCTION validate_contract_signing();
+
+-- ─────────────────────────────────────────────────────────────
+-- 12. 계약 취소 시 권리 예약 해제 (D-31)
+-- ─────────────────────────────────────────────────────────────
+-- rights_grant.active는 서명 여부와 무관한 "충돌 슬롯 점유"다. contract가
+-- cancelled가 되면 그 점유를 cancelled로 종료해야 다른 계약이
+-- 같은 권리를 등록할 수 있다. cancelled 계약은 종결 상태라 되돌릴 수 없으며,
+-- 다시 협의하려면 새 contract 업무 건으로 시작해야 한다.
+CREATE OR REPLACE FUNCTION prevent_cancelled_contract_reopen() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'cancelled 계약 %는 다른 상태로 되돌릴 수 없다', OLD.id;
+END;
+$$;
+
+CREATE TRIGGER contract_cancelled_is_terminal
+  BEFORE UPDATE OF status ON contract
+  FOR EACH ROW
+  WHEN (OLD.status = 'cancelled' AND NEW.status IS DISTINCT FROM 'cancelled')
+  EXECUTE FUNCTION prevent_cancelled_contract_reopen();
+
+CREATE OR REPLACE FUNCTION release_contract_rights() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE rights_grant
+     SET status = 'terminated',
+         terminated_at = now(),
+         terminated_reason = 'cancelled',
+         termination_note = 'contract status changed to ' || NEW.status::text
+   WHERE contract_id = NEW.id
+     AND status = 'active';
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER contract_release_rights
+  AFTER UPDATE OF status ON contract
+  FOR EACH ROW
+  WHEN (
+    NEW.status = 'cancelled'
+    AND OLD.status IS DISTINCT FROM NEW.status
+  )
+  EXECUTE FUNCTION release_contract_rights();

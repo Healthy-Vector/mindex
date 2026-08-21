@@ -49,7 +49,8 @@ candidate, evaluation, 개별 승인 계층은 없다. PDF 한 건의 권리 배
 | `team` | PIN 기반 팀 관리용 독립 테이블 |
 | `contract` | 하나의 계약 업무 건 |
 | `contract_history` | PDF 한 건, 계약 세대, all-or-nothing 판정 결과 |
-| `rights_grant` | 확정 권리의 Single Source of Truth |
+| `rights_grant` | 현재 충돌 슬롯을 점유하거나 종료된 권리의 Single Source of Truth |
+| `confirmed_rights_grant` | draft 예약을 제외한 확정 계약의 현재 권리 view |
 
 `team`은 tenant가 아니며 다른 테이블에 `team_id`가 없다. 회사 경계는 온프레미스 설치 인스턴스와 DB가 담당한다.
 
@@ -63,12 +64,17 @@ candidate, evaluation, 개별 승인 계층은 없다. PDF 한 건의 권리 배
 
 ## 3. 계약과 PDF 세대
 
-`contract`는 counterparty, signed date, amount 같은 업무 메타데이터를 가진다. 일반적인 상태 흐름은 `draft → active → final`이며 거절·종료 상태도 있다. DB는 상태 전이 순서 자체를 강제하지 않지만, `active`와 `final`에는 registered 세대를 가리키는 `current_history_id`가 필요하다.
+`contract`는 counterparty, signed date, amount 같은 업무 메타데이터를 가진다. 상태는
+`draft | signed | cancelled`다. signed에는 applied 세대를 가리키는
+`current_history_id`가 필요하다. 취소·해지·협의 결렬은 모두 cancelled로 처리한다.
+cancelled는 종결 상태이며 draft나 signed로 되돌릴 수 없다.
 
 `contract_history`는 과거의 `contract_document`를 흡수한다.
 
-- `version`: 계약 안에서 증가하는 PDF 세대
-- `status='registered'`: 모든 추출 권리가 grant로 등록됨
+- `version`: 계약 안에서 업로드 순서대로 증가하는 정수. 화면에서는 `v1`, `v2`로 표시
+- `document_kind='draft'`: 협의 중 초안본
+- `document_kind='final'`: 최종본 업로드 버튼으로 지정된 문서
+- `status='applied'`: 모든 추출 권리가 grant로 등록됨
 - `status='conflicted'`: 권리는 0행이고 `conflict_report`가 존재
 - `file_path`: object-storage key
 - `raw_text`: OCR/파싱 원문
@@ -142,7 +148,9 @@ PDF 전체 권리 배열을 실제 INSERT 경로로 검증한 뒤 서브트랜�
 
 계약과 새 `contract_history` 세대를 만들고 전체 권리를 한 문장으로 INSERT한다.
 
-- 성공: history는 `registered`, 모든 grant는 `active`, contract는 최신 세대를 가리킨다.
+- 성공: history는 `applied`, 모든 grant는 `active`, contract는 최신 세대를 가리킨다.
+  `p_document_kind='draft'`면 contract는 draft로 유지되어 권리를 선점하고,
+  기본값 `final`이면 contract를 signed로 전환한다.
 - 실패: grant 전체가 롤백되고 history는 `conflicted`, `conflict_report`가 저장된다.
 
 부분 성공은 없다.
@@ -151,11 +159,19 @@ PDF 전체 권리 배열을 실제 INSERT 경로로 검증한 뒤 서브트랜�
 
 active grant를 `terminated`로 바꾼다. WAIVER도 이 함수를 통해 충돌 원인을 제거한 뒤 신규 배치를 다시 제출한다.
 
+contract가 `cancelled`로 전환되면 해당 계약의 active grant는 자동으로
+`terminated/cancelled`가 되어 예약이 해제된다.
+
+### `confirmed_rights_grant`
+
+확정 계약의 현재 권리만 반환하는 view다. `rights_grant.status='active'`이면서
+`contract.status='signed'`인 행만 포함하므로 draft 계약의 예약은 제외된다.
+
 ## 8. 개정판과 lineage
 
 새 세대 저장 시 `(content_asset_id, territory, legal_right, exploitation_mode)`가 이전 active grant 하나와 일치하면 `lineage_id`를 승계한다. 없거나 모호하면 조용히 새 lineage를 시작한다. 새 배치가 성공하면 이전 등록 세대의 active grant는 `terminated/superseded`로 전환된다.
 
-`status='final'` 계약의 개정 허용 여부는 앱 정책이고 DB는 이를 금지하지 않는다.
+`status='signed'` 계약의 개정 허용 여부는 앱 정책이고 DB는 이를 금지하지 않는다.
 
 ## 9. 지역 범위의 현재 한계
 
@@ -163,4 +179,4 @@ active grant를 `terminated`로 바꾼다. WAIVER도 이 함수를 통해 충돌
 
 ## 10. 검색과 운영
 
-`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 행의 INSERT/UPDATE/DELETE trigger는 `change_log`를 생성한다. 이를 소비해 원문을 다시 청킹·임베딩할 worker 골격은 있으나, 실제 재처리 함수는 아직 구현되지 않았다. `schema_meta`의 현재 D-30 버전 태그는 `2026-08-20.1`이다.
+`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 행의 INSERT/UPDATE/DELETE trigger는 `change_log`를 생성한다. 이를 소비해 원문을 다시 청킹·임베딩할 worker 골격은 있으나, 실제 재처리 함수는 아직 구현되지 않았다. `schema_meta`의 현재 D-31 버전 태그는 `2026-08-21.1`이다.

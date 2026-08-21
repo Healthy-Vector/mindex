@@ -18,13 +18,18 @@ import pytest
 
 
 def save(cur, *, contract_id=None, counterparty="배치 상대방", ip_id, rights,
-         file_name="batch.pdf", file_path="s3://batch/1.pdf", file_hash="sha256:batch"):
+         file_name="batch.pdf", file_path="s3://batch/1.pdf", file_hash="sha256:batch",
+         document_kind="final"):
     cur.execute(
         """
         SELECT batch_result, out_contract_id, out_history_id, constraint_name, conflict_report
-        FROM save_rights_batch(%s, %s, %s, %s, %s, %s, %s::jsonb)
+        FROM save_rights_batch(
+          %s, %s, %s, %s, %s, %s, %s::jsonb,
+          p_document_kind => %s::contract_document_kind
+        )
         """,
-        (contract_id, counterparty, ip_id, file_name, file_path, file_hash, json.dumps(rights)),
+        (contract_id, counterparty, ip_id, file_name, file_path, file_hash,
+         json.dumps(rights), document_kind),
     )
     return cur.fetchone()
 
@@ -49,18 +54,18 @@ def histories_of(cur, contract_id):
 # ─────────────────────────────────────────────────────────────
 # save_rights_batch() — 성공 경로
 # ─────────────────────────────────────────────────────────────
-def test_save_registers_batch_and_activates_contract(cur, ctx, make_batch_row):
+def test_save_registers_batch_and_signs_contract(cur, ctx, make_batch_row):
     result, _out_contract, out_history, constraint, report = save(
         cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"],
         rights=[make_batch_row(territory="KR")],
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
     assert constraint is None
     assert report is None
 
     cur.execute("SELECT status, current_history_id FROM contract WHERE id = %s", (ctx["contract_id"],))
     status, current_history_id = cur.fetchone()
-    assert status == "active"
+    assert status == "signed"
     assert current_history_id == out_history
 
     rows = grants_of(cur, ctx["contract_id"])
@@ -73,7 +78,7 @@ def test_save_creates_new_contract_and_ip_when_omitted(cur, make_batch_row):
     result, out_contract, _out_history, _constraint, _report = save(
         cur, contract_id=None, ip_id=None, rights=[make_batch_row(territory="KR")],
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
     cur.execute("SELECT count(*) FROM contract WHERE id = %s", (out_contract,))
     assert cur.fetchone()[0] == 1
 
@@ -86,8 +91,119 @@ def test_save_batch_of_multiple_rights_all_succeed_together(cur, ctx, make_batch
             make_batch_row(territory="JP", exploitation_mode="SVOD"),
         ],
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
     assert len(grants_of(cur, ctx["contract_id"])) == 2
+
+
+def test_draft_contract_reserves_rights_without_becoming_confirmed(cur, ctx, make_batch_row):
+    """contract는 draft로 남지만 active grant가 다른 계약의 등록을 선점한다."""
+    result, contract_id, history_id, constraint, _report = save(
+        cur,
+        contract_id=None,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        document_kind="draft",
+    )
+    assert result == "APPLIED"
+    assert constraint is None
+
+    cur.execute(
+        "SELECT status, current_history_id FROM contract WHERE id = %s", (contract_id,)
+    )
+    assert cur.fetchone() == ("draft", history_id)
+    assert grants_of(cur, contract_id)[0][1] == "active"
+
+    cur.execute(
+        "SELECT count(*) FROM confirmed_rights_grant WHERE contract_id = %s", (contract_id,)
+    )
+    assert cur.fetchone()[0] == 0
+
+    cur.execute("INSERT INTO contract (counterparty) VALUES ('후속 상대') RETURNING id")
+    other_contract_id = cur.fetchone()[0]
+    conflict = save(
+        cur,
+        contract_id=other_contract_id,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+    )
+    assert conflict[0] == "CONFLICTED"
+
+
+def test_promoting_draft_exposes_existing_grants_as_confirmed(cur, ctx, make_batch_row):
+    result, contract_id, _history_id, _constraint, _report = save(
+        cur,
+        contract_id=None,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        document_kind="draft",
+    )
+    assert result == "APPLIED"
+
+    result, *_ = save(
+        cur,
+        contract_id=contract_id,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        document_kind="final",
+    )
+    assert result == "APPLIED"
+
+    cur.execute("SELECT status FROM contract WHERE id = %s", (contract_id,))
+    assert cur.fetchone()[0] == "signed"
+    cur.execute(
+        "SELECT count(*) FROM confirmed_rights_grant WHERE contract_id = %s", (contract_id,)
+    )
+    assert cur.fetchone()[0] == 1
+
+    cur.execute(
+        "SELECT version, document_kind, status FROM contract_history "
+        "WHERE contract_id = %s ORDER BY version",
+        (contract_id,),
+    )
+    assert cur.fetchall() == [(1, "draft", "applied"), (2, "final", "applied")]
+
+
+@pytest.mark.parametrize("document_kind", ["draft", "final"])
+def test_closing_contract_releases_reserved_rights(
+    cur, ctx, make_batch_row, document_kind
+):
+    _result, contract_id, _history_id, _constraint, _report = save(
+        cur,
+        contract_id=None,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        document_kind=document_kind,
+    )
+
+    cur.execute(
+        "UPDATE contract SET status = 'cancelled' WHERE id = %s",
+        (contract_id,),
+    )
+    cur.execute(
+        "SELECT status, terminated_reason FROM rights_grant WHERE contract_id = %s",
+        (contract_id,),
+    )
+    assert cur.fetchone() == ("terminated", "cancelled")
+
+    cur.execute("INSERT INTO contract (counterparty) VALUES ('예약 승계 상대') RETURNING id")
+    other_contract_id = cur.fetchone()[0]
+    retry = save(
+        cur,
+        contract_id=other_contract_id,
+        ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+    )
+    assert retry[0] == "APPLIED"
+
+
+def test_cancelled_contract_is_terminal(conn, cur):
+    cur.execute(
+        "INSERT INTO contract (counterparty, status) VALUES ('종결 상대', 'cancelled') RETURNING id"
+    )
+    contract_id = cur.fetchone()[0]
+    with pytest.raises(psycopg2.errors.RaiseException):
+        cur.execute("UPDATE contract SET status = 'draft' WHERE id = %s", (contract_id,))
+    conn.rollback()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -164,12 +280,12 @@ def test_new_generation_supersedes_previous_and_inherits_lineage(cur, ctx, make_
 
     r1 = save(cur, contract_id=contract_id, ip_id=ctx["ip_id"],
               rights=[make_batch_row(territory="KR", period="[2027-01-01,2028-01-01)")])
-    assert r1[0] == "REGISTERED"
+    assert r1[0] == "APPLIED"
     first_grant_id = grants_of(cur, contract_id)[0][0]
 
     r2 = save(cur, contract_id=contract_id, ip_id=ctx["ip_id"],
               rights=[make_batch_row(territory="KR", period="[2027-01-01,2029-01-01)")])
-    assert r2[0] == "REGISTERED"
+    assert r2[0] == "APPLIED"
 
     rows = grants_of(cur, contract_id)
     assert len(rows) == 2
@@ -184,7 +300,7 @@ def test_new_generation_supersedes_previous_and_inherits_lineage(cur, ctx, make_
     assert cur.fetchone()[0] == "superseded"
 
     hist = histories_of(cur, contract_id)
-    assert [h[2] for h in hist] == ["registered", "registered"]
+    assert [h[2] for h in hist] == ["applied", "applied"]
 
 
 def test_new_generation_with_no_natural_key_match_starts_new_lineage(cur, ctx, make_batch_row):
@@ -240,7 +356,7 @@ def test_waiver_then_resave_succeeds(cur, ctx, make_grant, make_batch_row):
 
     result2, *_ = save(cur, contract_id=new_contract_id, ip_id=ctx["ip_id"],
                         rights=[make_batch_row(territory="KR")])
-    assert result2 == "REGISTERED"
+    assert result2 == "APPLIED"
 
 
 def test_terminate_rejects_non_waiver_reason(conn, cur, make_grant):
@@ -290,16 +406,18 @@ def test_ip_alias_unique_constraint(conn, cur, ctx):
 
 
 # ─────────────────────────────────────────────────────────────
-# contract 최종화 검증 (D-30, §4.4)
+# contract 서명 완료 검증 (D-31)
 # ─────────────────────────────────────────────────────────────
-def test_finalize_succeeds_with_registered_history(cur, ctx, make_batch_row):
-    save(cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"], rights=[make_batch_row(territory="KR")])
-    cur.execute("UPDATE contract SET status = 'final' WHERE id = %s", (ctx["contract_id"],))
-    cur.execute("SELECT status FROM contract WHERE id = %s", (ctx["contract_id"],))
-    assert cur.fetchone()[0] == "final"
+def test_signing_rejects_applied_draft_history(conn, cur, ctx, make_batch_row):
+    save(cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"],
+         rights=[make_batch_row(territory="KR")], document_kind="draft")
+    with pytest.raises(psycopg2.errors.RaiseException) as excinfo:
+        cur.execute("UPDATE contract SET status = 'signed' WHERE id = %s", (ctx["contract_id"],))
+    assert "final 문서가 아니다" in str(excinfo.value)
+    conn.rollback()
 
 
-def test_finalize_rejects_history_from_other_contract(conn, cur, ctx, make_batch_row):
+def test_signing_rejects_history_from_other_contract(conn, cur, ctx, make_batch_row):
     save(cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"], rights=[make_batch_row(territory="KR")])
     cur.execute("SELECT current_history_id FROM contract WHERE id = %s", (ctx["contract_id"],))
     other_history_id = cur.fetchone()[0]
@@ -309,12 +427,12 @@ def test_finalize_rejects_history_from_other_contract(conn, cur, ctx, make_batch
     cur.execute("UPDATE contract SET current_history_id = %s WHERE id = %s", (other_history_id, victim_id))
 
     with pytest.raises(psycopg2.errors.RaiseException) as excinfo:
-        cur.execute("UPDATE contract SET status = 'final' WHERE id = %s", (victim_id,))
+        cur.execute("UPDATE contract SET status = 'signed' WHERE id = %s", (victim_id,))
     assert "이 계약" in str(excinfo.value)
     conn.rollback()
 
 
-def test_finalize_rejects_conflicted_history(conn, cur, ctx, make_grant, make_batch_row):
+def test_signing_rejects_conflicted_history(conn, cur, ctx, make_grant, make_batch_row):
     make_grant(territory="KR")
     cur.execute("INSERT INTO contract (counterparty) VALUES ('충돌 계약') RETURNING id")
     conflicted_contract_id = cur.fetchone()[0]
@@ -330,8 +448,8 @@ def test_finalize_rejects_conflicted_history(conn, cur, ctx, make_grant, make_ba
         (conflicted_history_id, conflicted_contract_id),
     )
     with pytest.raises(psycopg2.errors.RaiseException) as excinfo:
-        cur.execute("UPDATE contract SET status = 'final' WHERE id = %s", (conflicted_contract_id,))
-    assert "registered 상태가 아니다" in str(excinfo.value)
+        cur.execute("UPDATE contract SET status = 'signed' WHERE id = %s", (conflicted_contract_id,))
+    assert "applied 상태가 아니다" in str(excinfo.value)
     conn.rollback()
 
 

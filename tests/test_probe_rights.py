@@ -1,7 +1,7 @@
 """validate_rights_batch() — 검증 (D-28 계승, D-30).
 
 probe_rights()/evaluate_candidate()를 대체한다. 핵심 계약 세 가지를 확인한다.
-  1. 배치가 충돌 없으면 REGISTERED, 있으면 CONFLICTED를 돌려준다
+  1. 배치가 충돌 없으면 APPLIED, 있으면 CONFLICTED를 돌려준다
   2. EXCLUDE가 실제로 터져 제약명을 받아온다 (D-08, RFP §6.3.2)
   3. 호출 후 DB에 아무것도 남지 않는다 — 호출자가 커밋해도 마찬가지다
 """
@@ -39,11 +39,11 @@ def counts(cur):
 
 # ── 1. 판정 결과 ────────────────────────────────────────────────
 
-def test_registered_when_no_existing_grant(cur, ctx, make_batch_row):
+def test_applied_when_no_existing_grant(cur, ctx, make_batch_row):
     result, constraint, report = validate(
         cur, ip_id=ctx["ip_id"], rights=[make_batch_row(territory="KR")]
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
     assert constraint is None
     assert report is None
 
@@ -53,13 +53,13 @@ def test_new_ip_validates_clean(cur, make_batch_row):
     result, _constraint, _report = validate(
         cur, ip_id=None, rights=[make_batch_row(territory="KR")]
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
 
 
 def test_empty_batch_validates_clean(cur, ctx):
-    """빈 배치는 비교할 행이 없어 자명하게 REGISTERED다 (현재 계약 동작)."""
+    """빈 배치는 비교할 행이 없어 자명하게 APPLIED다 (현재 계약 동작)."""
     result, _constraint, _report = validate(cur, ip_id=ctx["ip_id"], rights=[])
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
 
 
 # ── 2. 충돌 판정과 EXCLUDE 실검증 ──────────────────────────────
@@ -108,7 +108,7 @@ def test_sibling_window_passes(cur, ctx, make_grant, make_batch_row):
         cur, ip_id=ctx["ip_id"],
         rights=[make_batch_row(territory="KR", exploitation_mode="TVOD")],
     )
-    assert result == "REGISTERED"
+    assert result == "APPLIED"
     assert constraint is None
 
 

@@ -58,14 +58,35 @@ candidate evidence 1:N 구조는 D-30에서 `rights_grant.evidence JSONB`로 대
 ### D-30 — 계약서 단위 all-or-nothing과 권리 계보
 
 - `contract`는 계약 업무 건이고 `contract_history`는 PDF 한 건에 대응하는 세대이자 판정 기록이다.
-- `registered` 세대는 추출 권리가 모두 `rights_grant`로 등록된다.
+- `applied` 세대는 추출 권리가 모두 `rights_grant`로 등록된다.
 - 하나라도 충돌하면 해당 세대는 `conflicted`로 저장되고 `conflict_report`를 남기며 grant는 0행이다.
 - `rights_grant`는 `active | terminated` 2단계 상태다.
 - `content_asset`이 실제 판정 대상이다. 시리즈·시즌·에피소드·에디션을 표현하지만 상하위 asset 간 포함 충돌은 현재 판정하지 않고 ID 완전 일치만 비교한다.
 - 최초 등록의 `lineage_id`는 자기 ID다. 개정판은 `(content_asset_id, territory, legal_right, exploitation_mode)` 자연키로 이전 active grant를 매칭해 계보를 승계한다. 매칭이 없거나 모호하면 새 lineage를 시작한다.
 - 개정판이 성공하면 이전 등록 세대의 active grant를 `terminated/superseded`로 전환한다.
-- `status='final'` 계약에 새 PDF를 허용할지는 애플리케이션 정책이며 DB가 막지 않는다.
+- 계약 업무 상태는 `draft | signed | cancelled` 세 단계다.
 - `ip_alias`, `content_asset`, `team`, i18n label 테이블을 신설했다.
+
+### D-31 — 계약 초안도 active grant로 권리를 예약한다
+
+계약서의 업무 상태는 `contract.status`, 권리의 충돌 슬롯 점유 상태는
+`rights_grant.status`가 담당한다. 따라서 초안 저장은 `contract.status='draft'`와
+`rights_grant.status='active'`의 조합이며, 별도의 grant draft 상태를 만들지 않는다.
+
+`contract_history.version`은 업로드 순번 정수이며 화면에서 v1, v2로 표현한다. 초안과
+최종본 구분은 `document_kind(draft | final)`, DB 반영 결과는
+`status(applied | conflicted)`로 분리한다.
+
+`save_rights_batch(..., p_document_kind => 'draft')`는 applied history와 active grant를
+저장하면서 contract를 draft로 유지한다. 다른 계약은 이 grant와 충돌한다. final 문서가
+applied되면 contract를 `signed`로 전환하며 grant 상태는 바꾸지 않는다. 계약이
+`cancelled`로 바뀌면 active grant는 `terminated/cancelled`로 종료된다.
+확정 권리 조회는 `confirmed_rights_grant` view를 사용하며 contract가 `signed`인 active
+grant만 반환한다.
+
+취소·해지·협의 결렬은 모두 `cancelled`로 수렴한다. 이 셋을 구분해야 하면 contract
+status를 늘리지 않고 별도 cancellation reason으로 모델링한다. cancelled는 종결
+상태이므로 draft나 signed로 되돌릴 수 없다.
 
 ## 미결
 
