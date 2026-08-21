@@ -1,0 +1,17 @@
+Project pdf_cache {
+  database_type: 'PostgreSQL'
+  Note: '''
+    프론트 표시용 PDF 캐시 DB.
+    K-RIGHTS 메인 DB(mindex_remastered.dbml)와는 물리적으로 분리된 별도 인스턴스이며
+    FK/참조 컬럼 없이 완전히 독립적으로 운영된다.
+  '''
+}
+
+Table pdf_cache {
+  id         BIGSERIAL [pk]
+  file_path  TEXT [not null, note: '로컬 파일시스템 경로']
+  raw_text   TEXT [note: 'PDF에서 파싱된 원문 텍스트']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Note: '프론트 표시용 PDF 캐시. 메인 K-RIGHTS DB와 별개 인스턴스, FK/참조 없음.'
+}
