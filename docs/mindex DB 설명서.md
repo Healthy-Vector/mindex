@@ -63,7 +63,7 @@ candidate, evaluation, 개별 승인 계층은 없다. PDF 한 건의 권리 배
 
 ## 3. 계약과 PDF 세대
 
-`contract`는 counterparty, signed date, amount 같은 업무 메타데이터를 가진다. 상태는 `draft → active → final`이며 거절·종료 상태도 있다. `active`와 `final`은 registered 세대를 가리키는 `current_history_id`가 필요하다.
+`contract`는 counterparty, signed date, amount 같은 업무 메타데이터를 가진다. 일반적인 상태 흐름은 `draft → active → final`이며 거절·종료 상태도 있다. DB는 상태 전이 순서 자체를 강제하지 않지만, `active`와 `final`에는 registered 세대를 가리키는 `current_history_id`가 필요하다.
 
 `contract_history`는 과거의 `contract_document`를 흡수한다.
 
@@ -130,7 +130,7 @@ period
 exclusivity
 ```
 
-각 값은 페이지와 조항을 선택적으로 가질 수 있지만 `source_quote`는 비어 있을 수 없다. 구조와 인용 필수 조건은 `is_valid_evidence()`와 CHECK가 강제한다.
+각 값은 페이지와 조항을 선택적으로 가질 수 있지만 `quote`는 비어 있을 수 없다. 구조와 인용 필수 조건은 `is_valid_evidence()`와 CHECK가 강제한다.
 
 ## 7. 검증과 등록 함수
 
@@ -163,4 +163,4 @@ active grant를 `terminated`로 바꾼다. WAIVER도 이 함수를 통해 충돌
 
 ## 10. 검색과 운영
 
-`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 변경 trigger는 `change_log`를 생성하고 worker가 원문을 다시 청킹·임베딩한다. `schema_meta`의 현재 D-30 버전 태그는 `2026-08-20.1`이다.
+`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 행의 INSERT/UPDATE/DELETE trigger는 `change_log`를 생성한다. 이를 소비해 원문을 다시 청킹·임베딩할 worker 골격은 있으나, 실제 재처리 함수는 아직 구현되지 않았다. `schema_meta`의 현재 D-30 버전 태그는 `2026-08-20.1`이다.

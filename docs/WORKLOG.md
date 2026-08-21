@@ -2,6 +2,12 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-21 — 현행 설명서가 SQL 동작과 맞도록 정리
+
+- `mindex DB 설명서.md`와 `contract-registration-flow.md`의 evidence 인용 키를 실제 DB CHECK가 검사하는 `quote`로 통일했다.
+- 기존 contract 명시적 잠금이 없고 `MAX(version) + 1`을 사용하는 현재 구현과, 기본 content asset이 신규 IP INSERT trigger로만 생성되는 범위를 문서에 반영했다.
+- `change_log` 생성은 구현됐지만 재청킹·재임베딩 worker의 실제 처리 함수는 미구현임을 명시했다.
+
 ## 2026-08-20 (3) — D-30 문서 동기화
 
 ### 한 일

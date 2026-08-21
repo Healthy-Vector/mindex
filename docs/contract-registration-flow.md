@@ -25,7 +25,7 @@
 
 ## 1. 대상과 PDF 준비
 
-`ip`는 관리 작품, `content_asset`은 실제 권리 판정 대상이다. 기존 asset이 없으면 `ensure_default_content_asset()`가 IP의 `SERIES_ALL` 기본 asset을 만들 수 있다.
+`ip`는 관리 작품, `content_asset`은 실제 권리 판정 대상이다. 신규 IP가 생성되면 `ip_default_content_asset` trigger가 `ensure_default_content_asset()`를 실행해 `SERIES_ALL` 기본 asset을 만든다. 이미 존재하는 IP에 기본 asset이 없을 때 이를 자동 복구하는 함수는 현재 없다.
 
 PDF 바이너리는 object storage에 임시 업로드한다. 등록 전에는 `contract_history`가 없으므로 고아 객체 정리는 storage TTL 정책이 담당해야 한다.
 
@@ -44,17 +44,17 @@ PDF 바이너리는 object storage에 임시 업로드한다. 등록 전에는 `
     "exclusivity": "exclusive",
     "conditions_raw": {"holdback": "30 days"},
     "evidence": {
-      "legal_right": {"page": 8, "clause": "제8조", "source_quote": "전송할 권리"},
-      "exploitation_mode": {"page": 8, "clause": "제8조", "source_quote": "구독형 VOD"},
-      "territory": {"page": 9, "source_quote": "일본 지역"},
-      "period": {"page": 10, "source_quote": "2026년부터 2년간"},
-      "exclusivity": {"page": 8, "source_quote": "독점적으로"}
+      "legal_right": {"page": 8, "clause": "제8조", "quote": "전송할 권리"},
+      "exploitation_mode": {"page": 8, "clause": "제8조", "quote": "구독형 VOD"},
+      "territory": {"page": 9, "quote": "일본 지역"},
+      "period": {"page": 10, "quote": "2026년부터 2년간"},
+      "exclusivity": {"page": 8, "quote": "독점적으로"}
     }
   }
 ]
 ```
 
-`evidence`에는 다섯 필수 키가 모두 있어야 하며 각 항목의 `source_quote`는 빈 문자열일 수 없다. `conditions_raw`는 아직 판정축으로 정형화하지 않은 원문 조건 보존용이다.
+`evidence`에는 다섯 필수 키가 모두 있어야 하며 각 항목의 `quote`는 빈 문자열일 수 없다. `conditions_raw`는 아직 판정축으로 정형화하지 않은 원문 조건 보존용이다.
 
 ## 3. 검증
 
@@ -67,13 +67,15 @@ PDF 바이너리는 object storage에 임시 업로드한다. 등록 전에는 `
 `save_rights_batch()`는 다음을 한 트랜잭션에서 수행한다.
 
 ```text
-contract 생성 또는 기존 contract 잠금
+contract 생성 또는 기존 contract ID 사용
 → 다음 version 계산
 → contract_history 생성
 → 권리 배열을 한 INSERT 문장으로 rights_grant에 투입
 → 성공 시 registered + current_history_id 갱신
 → 실패 시 grant 전체 롤백 + conflicted history와 conflict_report 저장
 ```
+
+현재 `save_rights_batch()`는 기존 contract를 명시적으로 잠그지 않고 `MAX(version) + 1`로 다음 version을 계산한다. 같은 계약에 대한 동시 등록을 직렬화해야 한다면 애플리케이션에서 막거나 DB 잠금 로직을 추가해야 한다.
 
 성공한 첫 세대에서 `lineage_id`는 각 grant의 자기 ID로 시작한다. 기존 계약의 새 세대는 자연키가 일치하는 이전 권리의 lineage를 승계하고, 이전 세대의 active grant를 `terminated_reason='superseded'`로 종료한다.
 
@@ -95,4 +97,4 @@ WAIVER는 EXCLUDE 우회가 아니다. 기존 active grant가 사라진 뒤 동�
 
 ## 7. 검색과 변경 로그
 
-`contract_chunk`는 `contract_history_id`에 연결되어 세대별 조항과 임베딩을 분리한다. `contract_history.raw_text`의 INSERT/UPDATE/DELETE는 `change_log`를 만들고 worker가 재청킹·재임베딩한다.
+`contract_chunk`는 `contract_history_id`에 연결되어 세대별 조항과 임베딩을 분리한다. `contract_history` 행의 INSERT/UPDATE/DELETE는 `change_log`를 만든다. 이를 소비해 재청킹·재임베딩할 worker 골격은 있으나 실제 재처리 함수는 아직 구현되지 않았다.
