@@ -1,0 +1,94 @@
+status: REVIEWED
+version: 0.2
+phase: C
+principles:
+  - legal_right is separate from exploitation_mode
+  - project canonical values are comparison keys, not declarations that different statutes are identical
+  - jurisdiction-specific raw terms must not be collapsed without a reviewed mapping
+  - derivative-work creation and the original author's rights in exploitation of a derivative work remain distinct
+
+canonical_rights:
+  REPRODUCTION:
+    definition: Right to reproduce or make copies of the protected subject matter.
+  DISTRIBUTION:
+    definition: Right to distribute copies or specified embodiments.
+  PUBLIC_TRANSMISSION:
+    definition: Jurisdiction-mapped umbrella right for public transmission or communication to the public.
+  BROADCASTING:
+    definition: Right covering scheduled or simultaneous broadcasting where recognized by the governing taxonomy.
+  INTERACTIVE_TRANSMISSION:
+    definition: Right covering user-requested or automatically accessible public transmission.
+  DIGITAL_AUDIO_TRANSMISSION:
+    definition: Korean-law-specific digital audio transmission right; not an audiovisual exploitation mode.
+  PERFORMANCE:
+    definition: Right to perform or publicly present a work where recognized.
+  EXHIBITION:
+    definition: Right to publicly exhibit specified works where recognized.
+  RENTAL:
+    definition: Right to commercially rent specified copies where recognized.
+  DERIVATIVE_WORK_CREATION:
+    definition: Right to translate, adapt, remake or otherwise create a derivative work.
+  ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION:
+    definition: Original author's rights in the exploitation of a derivative work; not the same as permission to create it.
+
+jurisdictions:
+  KR:
+    status: REVIEWED
+    source_basis: [KR_EXCLUSIVE_LICENSE_2018, KR_NONEXCLUSIVE_LICENSE_2018, KR_PARTIAL_ASSIGNMENT_2018, KR_FULL_ASSIGNMENT_2018, KR_BROADCAST_PROGRAM_RIGHTS_STANDARD]
+    mappings:
+      - {raw_term: 복제권, canonical_right: REPRODUCTION}
+      - {raw_term: 배포권, canonical_right: DISTRIBUTION}
+      - {raw_term: 공중송신권, canonical_right: PUBLIC_TRANSMISSION}
+      - {raw_term: 방송권, canonical_right: BROADCASTING}
+      - {raw_term: 전송권, canonical_right: INTERACTIVE_TRANSMISSION}
+      - {raw_term: 디지털음성송신권, canonical_right: DIGITAL_AUDIO_TRANSMISSION}
+      - {raw_term: 공연권, canonical_right: PERFORMANCE}
+      - {raw_term: 전시권, canonical_right: EXHIBITION}
+      - {raw_term: 대여권, canonical_right: RENTAL}
+      - {raw_term: 2차적저작물작성권, canonical_right: DERIVATIVE_WORK_CREATION}
+      - {raw_term: 2차적저작물 이용에 관한 원저작자의 권리, canonical_right: ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION}
+    reviewed_relations:
+      - {parent: PUBLIC_TRANSMISSION, child: BROADCASTING}
+      - {parent: PUBLIC_TRANSMISSION, child: INTERACTIVE_TRANSMISSION}
+      - {parent: PUBLIC_TRANSMISSION, child: DIGITAL_AUDIO_TRANSMISSION}
+  JP:
+    status: REVIEWED
+    source_basis: [JP_BUNKA_COPYRIGHT_TEXT_2026, JP_EGOV_COPYRIGHT_ACT]
+    mappings:
+      - {raw_term: 複製権, canonical_right: REPRODUCTION}
+      - {raw_term: 譲渡権, canonical_right: DISTRIBUTION}
+      - {raw_term: 公衆送信権, canonical_right: PUBLIC_TRANSMISSION}
+      - {raw_term: 放送権, canonical_right: BROADCASTING}
+      - {raw_term: 自動公衆送信権, canonical_right: INTERACTIVE_TRANSMISSION}
+      - {raw_term: 上演権, canonical_right: PERFORMANCE}
+      - {raw_term: 演奏権, canonical_right: PERFORMANCE}
+      - {raw_term: 展示権, canonical_right: EXHIBITION}
+      - {raw_term: 貸与権, canonical_right: RENTAL}
+      - {raw_term: 翻案権, canonical_right: DERIVATIVE_WORK_CREATION}
+      - {raw_term: 二次的著作物の利用に関する原著作者の権利, canonical_right: ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION}
+    reviewed_relations:
+      - {parent: PUBLIC_TRANSMISSION, child: BROADCASTING}
+      - {parent: PUBLIC_TRANSMISSION, child: INTERACTIVE_TRANSMISSION}
+    mapping_notes:
+      - 送信可能化 is retained as evidence language for automatic public transmission and is not silently converted into a standalone project right.
+  GENERIC:
+    status: REVIEWED
+    source_basis: [SCENARIO_REPORT_ORIGINAL, PROJECT_HANDOFF]
+    mappings:
+      - {raw_term: reproduction right, canonical_right: REPRODUCTION}
+      - {raw_term: distribution right, canonical_right: DISTRIBUTION}
+      - {raw_term: public transmission right, canonical_right: PUBLIC_TRANSMISSION}
+      - {raw_term: broadcasting right, canonical_right: BROADCASTING}
+      - {raw_term: interactive transmission right, canonical_right: INTERACTIVE_TRANSMISSION}
+      - {raw_term: performance right, canonical_right: PERFORMANCE}
+      - {raw_term: exhibition right, canonical_right: EXHIBITION}
+      - {raw_term: rental right, canonical_right: RENTAL}
+      - {raw_term: derivative work right, canonical_right: DERIVATIVE_WORK_CREATION}
+      - {raw_term: original author's rights in exploitation of derivative works, canonical_right: ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION}
+    mapping_notes:
+      - English contract wording is normalized only when the operative clause supports the mapped scope.
+
+comparison_policy:
+  exact_match: Canonical legal-right identifiers match.
+  parent_child_match: Allowed only through a jurisdiction's reviewed_relations and the scenario rule being evaluated.
+  unresolved: Preserve the raw term and set the field status to UNRESOLVED when evidence is insufficient.

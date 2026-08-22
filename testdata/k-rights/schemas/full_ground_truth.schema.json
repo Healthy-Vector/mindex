@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://k-rights.local/schemas/full-ground-truth-0.3.json",
+  "title": "K-RIGHTS Phase G Full Ground Truth",
+  "$comment": "REVIEWED Phase G authoring schema; export projections may omit authoring provenance fields",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "version", "phase", "schema_ref", "field_status_semantics", "summary", "contracts", "rights_grants", "scenarios", "findings", "evidence_requirements"],
+  "properties": {
+    "status": {"const": "REVIEWED"},
+    "version": {"const": "0.3"},
+    "phase": {"const": "G"},
+    "schema_ref": {"type": "string"},
+    "field_status_semantics": {"type": "string"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scenario_count", "contract_count", "rights_grant_count", "finding_count", "evidence_requirement_count", "expected_results"],
+      "properties": {
+        "scenario_count": {"const": 72}, "contract_count": {"const": 86},
+        "rights_grant_count": {"type": "integer", "minimum": 86},
+        "finding_count": {"type": "integer", "minimum": 45},
+        "evidence_requirement_count": {"type": "integer", "minimum": 72},
+        "expected_results": {
+          "type": "object", "additionalProperties": false,
+          "required": ["NORMAL", "CONFLICT", "REVIEW_REQUIRED", "WARNING"],
+          "properties": {"NORMAL": {"const": 27}, "CONFLICT": {"const": 35}, "REVIEW_REQUIRED": {"const": 7}, "WARNING": {"const": 3}}
+        }
+      }
+    },
+    "contracts": {"type": "array", "minItems": 86, "maxItems": 86, "items": {"$ref": "#/$defs/contract"}},
+    "rights_grants": {"type": "array", "items": {"$ref": "#/$defs/rightsGrant"}},
+    "scenarios": {"type": "array", "minItems": 72, "maxItems": 72, "items": {"$ref": "#/$defs/scenario"}},
+    "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "evidence_requirements": {"type": "array", "items": {"$ref": "#/$defs/evidenceRequirement"}}
+  },
+  "$defs": {
+    "scenarioId": {"type": "string", "pattern": "^(?:(?:KO|EN|JP)-[A-Z][0-9]{2}|RB-(?:KO|EN|JP)[0-9]{2})$"},
+    "fieldStatus": {"enum": ["PRESENT_EXPLICIT", "PRESENT_DERIVED", "UNRESOLVED", "ABSENT", "EXTERNAL_REFERENCE"]},
+    "valueOrigin": {"enum": ["SCENARIO_BASELINE", "PHASE_F_PROPOSAL", "PHASE_G_PROPOSAL"]},
+    "paymentValue": {
+      "type": "object", "additionalProperties": false, "required": ["amount", "currency"],
+      "properties": {"amount": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"}, "currency": {"enum": ["KRW", "USD", "JPY"]}}
+    },
+    "contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract_id", "status", "language", "agreement_type", "payment_projection", "rights_grant_ids"],
+      "properties": {
+        "contract_id": {"type": "string", "pattern": "^CTR-(KO|EN|JP)-[0-9]{4}$"}, "status": {"const": "REVIEWED"},
+        "language": {"enum": ["KO", "EN", "JP"]},
+        "agreement_type": {"enum": ["DIRECT_LICENSE", "SUBLICENSE", "ASSIGNMENT", "AMENDMENT", "UNRESOLVED"]},
+        "payment_projection": {
+          "type": "object", "additionalProperties": false, "required": ["status", "values"],
+          "properties": {"status": {"enum": ["NOT_YET_PROJECTED", "PROJECTED"]}, "values": {"type": "array", "items": {"$ref": "#/$defs/paymentValue"}}}
+        },
+        "rights_grant_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^GRT-(KO|EN|JP)-[0-9]{4}-[0-9]{2}$"}}
+      }
+    },
+    "contentScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field_status", "value_origin", "content_ids", "related_asset_ids", "relationship_type", "scope_type", "included_scope_values", "excluded_scope_values"],
+      "properties": {
+        "field_status": {"$ref": "#/$defs/fieldStatus"}, "value_origin": {"$ref": "#/$defs/valueOrigin"},
+        "content_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^C[0-9]{3}$"}},
+        "related_asset_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^MUS[0-9]{3}$"}},
+        "relationship_type": {"type": ["string", "null"]},
+        "scope_type": {"enum": ["WORK", "SEASON", "EPISODE", "EDIT", "DERIVATIVE", "RELATED_ASSET", "UNRESOLVED"]},
+        "included_scope_values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "excluded_scope_values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "listScope": {
+      "type": "object", "additionalProperties": false, "required": ["field_status", "value_origin", "values"],
+      "properties": {"field_status": {"$ref": "#/$defs/fieldStatus"}, "value_origin": {"$ref": "#/$defs/valueOrigin"}, "values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}
+    },
+    "territoryScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field_status", "value_origin", "values", "excluded_values", "defined_values"],
+      "properties": {
+        "field_status": {"$ref": "#/$defs/fieldStatus"}, "value_origin": {"$ref": "#/$defs/valueOrigin"},
+        "values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "excluded_values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "defined_values": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "periodScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field_status", "value_origin", "start", "end", "expression"],
+      "properties": {
+        "field_status": {"$ref": "#/$defs/fieldStatus"}, "value_origin": {"$ref": "#/$defs/valueOrigin"},
+        "start": {"type": ["string", "null"], "format": "date"}, "end": {"type": ["string", "null"], "format": "date"},
+        "expression": {"type": ["string", "null"]}
+      }
+    },
+    "exclusiveScope": {
+      "type": "object", "additionalProperties": false, "required": ["field_status", "value_origin", "value"],
+      "properties": {"field_status": {"$ref": "#/$defs/fieldStatus"}, "value_origin": {"$ref": "#/$defs/valueOrigin"}, "value": {"enum": ["EXCLUSIVE", "NON_EXCLUSIVE", null]}}
+    },
+    "authorityConstraints": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field_status", "may_sublicense", "allowed_recipient_types", "target_recipient_type"],
+      "properties": {
+        "field_status": {"$ref": "#/$defs/fieldStatus"}, "may_sublicense": {"type": ["boolean", "null"]},
+        "allowed_recipient_types": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "target_recipient_type": {"type": ["string", "null"]}
+      }
+    },
+    "scopeModifier": {
+      "type": "object", "additionalProperties": false,
+      "required": ["modifier_type", "dimension", "field_status", "values"],
+      "properties": {
+        "modifier_type": {"enum": ["RESERVED_RIGHTS", "CARVE_OUT", "HOLDBACK", "DEFINITION", "CONSENT_REQUIRED", "CONSENT_STATUS", "IDENTITY_EVIDENCE", "PREFERENTIAL_NEGOTIATION", "THIRD_PARTY_CLEARANCE"]},
+        "dimension": {"enum": ["CONTENT", "LEGAL_RIGHT", "EXPLOITATION_MODE", "TERRITORY", "PERIOD", "AUTHORITY", "RELATED_ASSET"]},
+        "field_status": {"$ref": "#/$defs/fieldStatus"}, "values": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "rightsGrant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "content", "legal_right", "exploitation_mode", "territory", "license_period", "exclusivity", "authority_constraints", "scope_modifiers", "evidence_requirement_ids", "grant_id", "contract_id"],
+      "properties": {
+        "status": {"const": "REVIEWED"}, "content": {"$ref": "#/$defs/contentScope"}, "legal_right": {"$ref": "#/$defs/listScope"},
+        "exploitation_mode": {"$ref": "#/$defs/listScope"}, "territory": {"$ref": "#/$defs/territoryScope"},
+        "license_period": {"$ref": "#/$defs/periodScope"}, "exclusivity": {"$ref": "#/$defs/exclusiveScope"},
+        "authority_constraints": {"$ref": "#/$defs/authorityConstraints"}, "scope_modifiers": {"type": "array", "items": {"$ref": "#/$defs/scopeModifier"}},
+        "evidence_requirement_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "grant_id": {"type": "string", "pattern": "^GRT-(KO|EN|JP)-[0-9]{4}-[0-9]{2}$"}, "contract_id": {"type": "string", "pattern": "^CTR-(KO|EN|JP)-[0-9]{4}$"}
+      }
+    },
+    "contractLink": {
+      "type": "object", "additionalProperties": false, "required": ["contract_id", "scenario_role"],
+      "properties": {"contract_id": {"type": "string"}, "scenario_role": {"enum": ["TARGET", "EXISTING", "UPSTREAM"]}}
+    },
+    "comparison": {
+      "type": "object", "additionalProperties": false,
+      "required": ["target_grant_id", "compared_grant_id", "outcome", "reason_codes", "dimension_relations", "comparison_id"],
+      "properties": {
+        "target_grant_id": {"type": "string"}, "compared_grant_id": {"type": "string"},
+        "outcome": {"enum": ["NO_CONFLICT", "CONFLICT", "REVIEW_REQUIRED"]},
+        "reason_codes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "dimension_relations": {"type": "object", "minProperties": 1, "additionalProperties": {"enum": ["OVERLAP", "DISJOINT", "MATCH", "EXCEEDED", "CONFLICT", "COMPATIBLE", "UNRESOLVED"]}},
+        "comparison_id": {"type": "string"}
+      }
+    },
+    "scenario": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scenario_id", "status", "dataset_role", "expected_result", "rules", "reason_codes", "scope_expectation", "contract_links", "rights_grant_ids", "comparisons", "finding_ids", "evidence_requirement_ids"],
+      "properties": {
+        "scenario_id": {"$ref": "#/$defs/scenarioId"}, "status": {"const": "REVIEWED"}, "dataset_role": {"enum": ["MASTER", "ROBUSTNESS"]},
+        "expected_result": {"enum": ["NORMAL", "CONFLICT", "REVIEW_REQUIRED", "WARNING"]},
+        "rules": {"type": "array", "items": {"pattern": "^R[1-9]$"}}, "reason_codes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "scope_expectation": {"type": "string"}, "contract_links": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/contractLink"}},
+        "rights_grant_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "comparisons": {"type": "array", "items": {"$ref": "#/$defs/comparison"}}, "finding_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "evidence_requirement_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "findingScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["content_ids", "related_asset_ids", "scope_type", "included_scope_values", "excluded_scope_values", "legal_rights", "exploitation_modes", "territories", "period_start", "period_end"],
+      "properties": {
+        "content_ids": {"type": "array", "items": {"type": "string"}}, "related_asset_ids": {"type": "array", "items": {"type": "string"}},
+        "scope_type": {"type": "string"}, "included_scope_values": {"type": "array", "items": {"type": "string"}}, "excluded_scope_values": {"type": "array", "items": {"type": "string"}},
+        "legal_rights": {"type": "array", "items": {"type": "string"}}, "exploitation_modes": {"type": "array", "items": {"type": "string"}},
+        "territories": {"type": "array", "items": {"type": "string"}}, "period_start": {"type": ["string", "null"], "format": "date"}, "period_end": {"type": ["string", "null"], "format": "date"}
+      }
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["finding_id", "scenario_id", "status", "finding_type", "reason_codes", "target_grant_ids", "compared_grant_ids", "affected_scope", "evidence_requirement_ids"],
+      "properties": {
+        "finding_id": {"type": "string"}, "scenario_id": {"$ref": "#/$defs/scenarioId"}, "status": {"const": "REVIEWED"},
+        "finding_type": {"enum": ["CONFLICT", "REVIEW_REQUIRED", "WARNING"]}, "reason_codes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "target_grant_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "compared_grant_ids": {"type": "array", "items": {"type": "string"}},
+        "affected_scope": {"$ref": "#/$defs/findingScope"}, "evidence_requirement_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      }
+    },
+    "evidenceRequirement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_requirement_id", "scenario_id", "contract_id", "status", "required_label_ids", "proves", "planned_location", "span"],
+      "properties": {
+        "evidence_requirement_id": {"type": "string"}, "scenario_id": {"$ref": "#/$defs/scenarioId"}, "contract_id": {"type": "string"}, "status": {"const": "PLANNED"},
+        "required_label_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}, "proves": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "planned_location": {"enum": ["BODY", "SCHEDULE", "BODY_AND_SCHEDULE", "MULTI_CLAUSE"]}, "span": {"type": "null"}
+      }
+    }
+  }
+}

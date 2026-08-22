@@ -1,0 +1,312 @@
+{
+  "schema_version": "k-rights.contract-extraction.v0.1",
+  "request_context": {
+    "source_document_ref": "opaque-ref-supplied-by-caller"
+  },
+  "document": {
+    "language": "KO"
+  },
+  "contract": {
+    "contract_title": {
+      "field_status": "PRESENT_EXPLICIT",
+      "value": "『겨울의 신호』 영상 및 OST 이용허락계약서",
+      "raw_expression": "『겨울의 신호』 영상 및 OST 이용허락계약서"
+    },
+    "agreement_type": {
+      "field_status": "PRESENT_DERIVED",
+      "value": "DIRECT_LICENSE",
+      "raw_expression": "갑은 을에게 아래 이용권한을 직접 허락한다"
+    },
+    "agreement_date": {
+      "field_status": "PRESENT_EXPLICIT",
+      "value": "2027-03-01",
+      "raw_expression": "2027년 3월 1일"
+    },
+    "parties": [
+      {
+        "role": "GRANTOR",
+        "name": "해솔미디어 주식회사",
+        "field_status": "PRESENT_EXPLICIT",
+        "raw_expression": "갑: 해솔미디어 주식회사"
+      },
+      {
+        "role": "GRANTEE",
+        "name": "온웨이브 플랫폼 주식회사",
+        "field_status": "PRESENT_EXPLICIT",
+        "raw_expression": "을: 온웨이브 플랫폼 주식회사"
+      }
+    ],
+    "rights_grants": [
+      {
+        "grant_ref": "grant-1",
+        "content": {
+          "field_status": "PRESENT_EXPLICIT",
+          "subjects": [
+            {
+              "subject_type": "CONTENT",
+              "title": "겨울의 신호",
+              "scope_type": "SERIES",
+              "relationship_type": null
+            }
+          ],
+          "raw_expression": "드라마 시리즈 『겨울의 신호』 전편"
+        },
+        "legal_right": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "INTERACTIVE_TRANSMISSION"
+          ],
+          "raw_expression": "전송권"
+        },
+        "exploitation_mode": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "SVOD",
+            "AVOD"
+          ],
+          "raw_expression": "구독형 및 광고 기반 주문형 영상 서비스"
+        },
+        "territory": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "ASIA"
+          ],
+          "excluded_values": [
+            "KR"
+          ],
+          "definitions": [
+            {
+              "term": "ASIA",
+              "members": [
+                "KR",
+                "JP",
+                "SG"
+              ]
+            }
+          ],
+          "raw_expression": "아시아란 대한민국, 일본 및 싱가포르를 의미하되 대한민국은 제외한다"
+        },
+        "license_period": {
+          "field_status": "PRESENT_EXPLICIT",
+          "start": "2027-07-01",
+          "end": "2029-06-30",
+          "raw_expression": "2027년 7월 1일부터 2029년 6월 30일까지"
+        },
+        "exclusivity": {
+          "field_status": "PRESENT_EXPLICIT",
+          "value": "EXCLUSIVE",
+          "raw_expression": "독점적으로 이용할 수 있다"
+        },
+        "authority_constraints": {
+          "field_status": "PRESENT_EXPLICIT",
+          "may_sublicense": true,
+          "allowed_recipient_types": [
+            "AFFILIATE"
+          ],
+          "target_recipient_type": null,
+          "raw_expression": "을은 계열회사에 한하여 재허락할 수 있다"
+        },
+        "scope_modifiers": [
+          {
+            "modifier_type": "DEFINITION",
+            "dimension": "TERRITORY",
+            "field_status": "PRESENT_EXPLICIT",
+            "values": [
+              "ASIA=KR,JP,SG"
+            ],
+            "raw_expression": "아시아란 대한민국, 일본 및 싱가포르를 의미한다"
+          },
+          {
+            "modifier_type": "CARVE_OUT",
+            "dimension": "TERRITORY",
+            "field_status": "PRESENT_EXPLICIT",
+            "values": [
+              "KR"
+            ],
+            "raw_expression": "대한민국은 제외한다"
+          }
+        ]
+      },
+      {
+        "grant_ref": "grant-2",
+        "content": {
+          "field_status": "PRESENT_EXPLICIT",
+          "subjects": [
+            {
+              "subject_type": "RELATED_ASSET",
+              "title": "겨울의 신호 OST",
+              "scope_type": "OST_MASTER",
+              "relationship_type": "OST_OF"
+            }
+          ],
+          "raw_expression": "『겨울의 신호』 오리지널 사운드트랙 음원 마스터"
+        },
+        "legal_right": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "INTERACTIVE_TRANSMISSION"
+          ],
+          "raw_expression": "자동공중송신에 관한 권리"
+        },
+        "exploitation_mode": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "MUSIC_STREAMING"
+          ],
+          "raw_expression": "음원 스트리밍 서비스"
+        },
+        "territory": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": [
+            "JP",
+            "SG"
+          ],
+          "excluded_values": [],
+          "definitions": [],
+          "raw_expression": "일본 및 싱가포르"
+        },
+        "license_period": {
+          "field_status": "PRESENT_EXPLICIT",
+          "start": "2027-07-01",
+          "end": "2028-06-30",
+          "raw_expression": "2027년 7월 1일부터 2028년 6월 30일까지"
+        },
+        "exclusivity": {
+          "field_status": "PRESENT_EXPLICIT",
+          "value": "NON_EXCLUSIVE",
+          "raw_expression": "비독점적으로"
+        },
+        "authority_constraints": {
+          "field_status": "ABSENT",
+          "may_sublicense": null,
+          "allowed_recipient_types": [],
+          "target_recipient_type": null,
+          "raw_expression": null
+        },
+        "scope_modifiers": []
+      }
+    ],
+    "payments": [
+      {
+        "payment_ref": "payment-1",
+        "amount": "250000.00",
+        "currency": "USD"
+      },
+      {
+        "payment_ref": "payment-2",
+        "amount": "50000.00",
+        "currency": "USD"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_ref": "evidence-1",
+        "labels": [
+          "CONTENT",
+          "LICENSE_GRANT"
+        ],
+        "targets": [
+          {
+            "target_type": "RIGHTS_GRANT_FIELD",
+            "target_ref": "grant-1",
+            "field": "content"
+          }
+        ],
+        "text": "갑은 을에게 드라마 시리즈 『겨울의 신호』 전편의 이용권한을 허락한다.",
+        "section": "제3조 이용허락",
+        "page_start": 2,
+        "page_end": 2,
+        "start_char": null,
+        "end_char": null
+      },
+      {
+        "evidence_ref": "evidence-2",
+        "labels": [
+          "EXPLOITATION_MODE",
+          "TERRITORY"
+        ],
+        "targets": [
+          {
+            "target_type": "RIGHTS_GRANT_FIELD",
+            "target_ref": "grant-1",
+            "field": "exploitation_mode"
+          },
+          {
+            "target_type": "RIGHTS_GRANT_FIELD",
+            "target_ref": "grant-1",
+            "field": "territory"
+          }
+        ],
+        "text": "구독형 및 광고 기반 주문형 영상 서비스로서, 아시아란 대한민국, 일본 및 싱가포르를 의미하되 대한민국은 제외한다.",
+        "section": "별지 1 권리범위",
+        "page_start": 7,
+        "page_end": 7,
+        "start_char": null,
+        "end_char": null
+      },
+      {
+        "evidence_ref": "evidence-3",
+        "labels": [
+          "RELATED_ASSET",
+          "EXPLOITATION_MODE"
+        ],
+        "targets": [
+          {
+            "target_type": "RIGHTS_GRANT_FIELD",
+            "target_ref": "grant-2",
+            "field": "content"
+          },
+          {
+            "target_type": "RIGHTS_GRANT_FIELD",
+            "target_ref": "grant-2",
+            "field": "exploitation_mode"
+          }
+        ],
+        "text": "『겨울의 신호』 오리지널 사운드트랙 음원 마스터를 음원 스트리밍 서비스에 이용할 수 있다.",
+        "section": "별지 2 OST 이용범위",
+        "page_start": 9,
+        "page_end": 9,
+        "start_char": null,
+        "end_char": null
+      },
+      {
+        "evidence_ref": "evidence-4",
+        "labels": [
+          "PAYMENT"
+        ],
+        "targets": [
+          {
+            "target_type": "PAYMENT",
+            "target_ref": "payment-1",
+            "field": "amount_currency"
+          }
+        ],
+        "text": "영상 이용대가는 미화 250,000달러로 한다.",
+        "section": "제8조 이용대가",
+        "page_start": 5,
+        "page_end": 5,
+        "start_char": null,
+        "end_char": null
+      },
+      {
+        "evidence_ref": "evidence-5",
+        "labels": [
+          "PAYMENT"
+        ],
+        "targets": [
+          {
+            "target_type": "PAYMENT",
+            "target_ref": "payment-2",
+            "field": "amount_currency"
+          }
+        ],
+        "text": "OST 이용대가는 미화 50,000달러로 한다.",
+        "section": "제8조 이용대가",
+        "page_start": 5,
+        "page_end": 5,
+        "start_char": null,
+        "end_char": null
+      }
+    ]
+  }
+}

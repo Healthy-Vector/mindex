@@ -1,0 +1,375 @@
+{
+  "request_id": "caller-request-id",
+  "source_document_ref": "caller-owned-opaque-reference",
+  "payload": {
+    "schema_version": "k-rights.db-contract-projection.v0.1",
+    "document_language": "KO",
+    "contract": {
+      "title": "『겨울의 신호』 영상 및 OST 이용허락계약서",
+      "agreement_type": "DIRECT_LICENSE",
+      "agreement_date": "2027-03-01",
+      "parties": [
+        {
+          "role": "GRANTOR",
+          "name": "해솔미디어 주식회사"
+        },
+        {
+          "role": "GRANTEE",
+          "name": "온웨이브 플랫폼 주식회사"
+        }
+      ],
+      "rights_grants": [
+        {
+          "subjects": [
+            {
+              "subject_type": "CONTENT",
+              "title": "겨울의 신호",
+              "scope_type": "SERIES",
+              "relationship_type": null
+            }
+          ],
+          "legal_rights": [
+            "INTERACTIVE_TRANSMISSION"
+          ],
+          "exploitation_modes": [
+            "SVOD",
+            "AVOD"
+          ],
+          "territory_scopes": [
+            {
+              "term": "ASIA",
+              "members": [
+                "JP"
+              ]
+            }
+          ],
+          "license_period": {
+            "start": "2027-07-01",
+            "end": "2029-06-30"
+          },
+          "exclusivity": "EXCLUSIVE",
+          "authority": {
+            "may_sublicense": true,
+            "allowed_recipient_types": [
+              "AFFILIATE"
+            ],
+            "target_recipient_type": "AFFILIATE"
+          }
+        },
+        {
+          "subjects": [
+            {
+              "subject_type": "RELATED_ASSET",
+              "title": "겨울의 신호 OST",
+              "scope_type": "OST_MASTER",
+              "relationship_type": "OST_OF"
+            }
+          ],
+          "legal_rights": [
+            "INTERACTIVE_TRANSMISSION"
+          ],
+          "exploitation_modes": [
+            "MUSIC_STREAMING"
+          ],
+          "territory_scopes": [
+            {
+              "term": "JP",
+              "members": [
+                "JP"
+              ]
+            }
+          ],
+          "license_period": {
+            "start": "2027-07-01",
+            "end": "2028-06-30"
+          },
+          "exclusivity": "NON_EXCLUSIVE",
+          "authority": null
+        }
+      ],
+      "payment": {
+        "amount": "300000.00",
+        "currency": "USD"
+      },
+      "evidence": {
+        "title": [
+          {
+            "page": 1,
+            "clause": "표지",
+            "quote": "『겨울의 신호』 영상 및 OST 이용허락계약서"
+          }
+        ],
+        "agreement_type": [
+          {
+            "page": 1,
+            "clause": "계약 전문",
+            "quote": "본 영상 및 OST 이용허락계약을 다음과 같이 체결한다."
+          }
+        ],
+        "agreement_date": [
+          {
+            "page": 12,
+            "clause": "서명란",
+            "quote": "2027년 3월 1일"
+          }
+        ],
+        "parties": [
+          {
+            "role": [
+              {
+                "page": 1,
+                "clause": "계약 전문",
+                "quote": "허락자 해솔미디어 주식회사(이하 '갑')"
+              }
+            ],
+            "name": [
+              {
+                "page": 1,
+                "clause": "계약 전문",
+                "quote": "해솔미디어 주식회사"
+              }
+            ]
+          },
+          {
+            "role": [
+              {
+                "page": 1,
+                "clause": "계약 전문",
+                "quote": "이용자 온웨이브 플랫폼 주식회사(이하 '을')"
+              }
+            ],
+            "name": [
+              {
+                "page": 1,
+                "clause": "계약 전문",
+                "quote": "온웨이브 플랫폼 주식회사"
+              }
+            ]
+          }
+        ],
+        "rights_grants": [
+          {
+            "subjects": [
+              {
+                "subject_type": [
+                  {
+                    "page": 2,
+                    "clause": "제3조 이용허락",
+                    "quote": "갑은 을에게 드라마 시리즈 『겨울의 신호』 전편의 이용권한을 허락한다."
+                  }
+                ],
+                "title": [
+                  {
+                    "page": 2,
+                    "clause": "제3조 이용허락",
+                    "quote": "드라마 시리즈 『겨울의 신호』"
+                  }
+                ],
+                "scope_type": [
+                  {
+                    "page": 2,
+                    "clause": "제3조 이용허락",
+                    "quote": "드라마 시리즈 『겨울의 신호』 전편"
+                  }
+                ]
+              }
+            ],
+            "legal_rights": [
+              {
+                "page": 2,
+                "clause": "제3조 이용허락",
+                "quote": "갑은 을에게 『겨울의 신호』에 관한 전송권을 허락한다."
+              }
+            ],
+            "exploitation_modes": [
+              {
+                "page": 7,
+                "clause": "별지 1 권리범위",
+                "quote": "구독형 및 광고 기반 주문형 영상 서비스로 이용할 수 있다."
+              }
+            ],
+            "territory_scopes": [
+              {
+                "term": [
+                  {
+                    "page": 3,
+                    "clause": "제4조",
+                    "quote": "허락 지역은 아시아로 한다."
+                  }
+                ],
+                "members": [
+                  {
+                    "page": 7,
+                    "clause": "별지 1 권리범위",
+                    "quote": "아시아란 대한민국 및 일본을 의미한다."
+                  },
+                  {
+                    "page": 7,
+                    "clause": "별지 1 권리범위",
+                    "quote": "다만 대한민국은 제외한다."
+                  }
+                ]
+              }
+            ],
+            "license_period": {
+              "start": [
+                {
+                  "page": 4,
+                  "clause": "제5조 이용기간",
+                  "quote": "이용기간은 2027년 7월 1일부터 2029년 6월 30일까지로 한다."
+                }
+              ],
+              "end": [
+                {
+                  "page": 4,
+                  "clause": "제5조 이용기간",
+                  "quote": "이용기간은 2027년 7월 1일부터 2029년 6월 30일까지로 한다."
+                }
+              ]
+            },
+            "exclusivity": [
+              {
+                "page": 4,
+                "clause": "제6조 독점성",
+                "quote": "본 조의 이용허락은 독점적으로 부여한다."
+              }
+            ],
+            "authority": {
+              "may_sublicense": [
+                {
+                  "page": 6,
+                  "clause": "제9조 재허락",
+                  "quote": "을은 갑의 추가 동의 없이 관계회사에 재허락할 수 있다."
+                }
+              ],
+              "allowed_recipient_types": [
+                {
+                  "page": 6,
+                  "clause": "제9조 재허락",
+                  "quote": "재허락을 받을 수 있는 자는 을의 관계회사로 한정한다."
+                }
+              ],
+              "target_recipient_type": [
+                {
+                  "page": 6,
+                  "clause": "제9조 재허락",
+                  "quote": "본 계약의 재허락 상대방은 을의 관계회사이다."
+                }
+              ]
+            }
+          },
+          {
+            "subjects": [
+              {
+                "subject_type": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "본편과 관련된 별도 음원 자산을 이용대상으로 한다."
+                  }
+                ],
+                "title": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "『겨울의 신호』 오리지널 사운드트랙"
+                  }
+                ],
+                "scope_type": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "오리지널 사운드트랙 음원 마스터"
+                  }
+                ],
+                "relationship_type": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "『겨울의 신호』 본편에 부수하는 오리지널 사운드트랙"
+                  }
+                ]
+              }
+            ],
+            "legal_rights": [
+              {
+                "page": 9,
+                "clause": "별지 2 OST 이용범위",
+                "quote": "해당 음원 마스터를 공중의 요청에 따라 전송할 수 있다."
+              }
+            ],
+            "exploitation_modes": [
+              {
+                "page": 9,
+                "clause": "별지 2 OST 이용범위",
+                "quote": "해당 음원 마스터를 음원 스트리밍 서비스에 이용할 수 있다."
+              }
+            ],
+            "territory_scopes": [
+              {
+                "term": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "OST 이용지역은 일본으로 한다."
+                  }
+                ],
+                "members": [
+                  {
+                    "page": 9,
+                    "clause": "별지 2 OST 이용범위",
+                    "quote": "OST 이용지역은 일본으로 한다."
+                  }
+                ]
+              }
+            ],
+            "license_period": {
+              "start": [
+                {
+                  "page": 9,
+                  "clause": "별지 2 OST 이용범위",
+                  "quote": "OST 이용기간은 2027년 7월 1일부터 2028년 6월 30일까지로 한다."
+                }
+              ],
+              "end": [
+                {
+                  "page": 9,
+                  "clause": "별지 2 OST 이용범위",
+                  "quote": "OST 이용기간은 2027년 7월 1일부터 2028년 6월 30일까지로 한다."
+                }
+              ]
+            },
+            "exclusivity": [
+              {
+                "page": 9,
+                "clause": "별지 2 OST 이용범위",
+                "quote": "OST 이용허락은 비독점으로 한다."
+              }
+            ]
+          }
+        ],
+        "payment": {
+          "amount": [
+            {
+              "page": 5,
+              "clause": "제8조 이용대가",
+              "quote": "영상 이용대가는 미화 250,000달러로 한다."
+            },
+            {
+              "page": 5,
+              "clause": "제8조 이용대가",
+              "quote": "OST 이용대가는 미화 50,000달러로 한다."
+            }
+          ],
+          "currency": [
+            {
+              "page": 5,
+              "clause": "제8조 이용대가",
+              "quote": "영상 및 OST 이용대가의 지급통화는 미화(USD)로 한다."
+            }
+          ]
+        }
+      }
+    }
+  }
+}

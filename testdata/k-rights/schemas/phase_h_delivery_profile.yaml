@@ -1,0 +1,106 @@
+status: REVIEWED
+version: 0.1
+phase: H
+
+id_policy:
+  dataset_ids_are_stable: true
+  dataset_contract_id_pattern: '^CTR-(KO|EN|JP)-[0-9]{4}$'
+  database_id_role: runtime_surrogate
+  database_id_must_not_replace_dataset_id: true
+  db_payload_excludes: [dataset_contract_id]
+  mapping_storage: LOCAL_SIDECAR_ONLY
+  sidecar_mapping_fields: [dataset_contract_id, db_contract_id, imported_at, source_file_sha256]
+  rule: The delivery payload sent to the service database contains no dataset_contract_id; a local sidecar may map DB IDs back to dataset files for evaluation.
+
+document_variation:
+  template_families: [T1, T2, T3, T4, T5, T6]
+  opaque_variant_id_required: false
+  contract_generation_fields:
+    - template_type
+    - clause_order_profile
+    - document_evidence_layout
+    - source_style_profile
+    - target_pages
+    - schedule_usage
+  validation_rule: Validate the declared structural fields against the actual outline/body rather than validating an opaque variant identifier.
+  extraction_exclusions:
+    - template_type
+    - clause_order_profile
+    - document_evidence_layout
+    - source_style_profile
+    - target_pages
+    - schedule_usage
+
+canonical_text:
+  source_format: MARKDOWN
+  encoding: UTF-8
+  line_endings: LF
+  front_matter_included_in_offsets: false
+  offset_unit: Unicode code point
+  start_offset: inclusive
+  end_offset: exclusive
+  exact_match_rule: evidence.text must equal canonical_body[evidence.start_char:evidence.end_char]
+
+actual_evidence:
+  assignment_unit: CONTRACT
+  evidence_id_pattern: '^EVS-(KO|EN|JP)-[0-9]{4}-[0-9]{3}$'
+  required_fields:
+    - evidence_id
+    - contract_id
+    - label_id
+    - grant_ids
+    - source_file
+    - section_id
+    - text
+    - start_char
+    - end_char
+  post_render_optional_fields: [pdf_file, page_start, page_end]
+  requirement_mapping:
+    required_fields: [evidence_requirement_id, evidence_ids]
+    rule: One contract-level evidence span may satisfy multiple Scenario-level evidence requirements.
+
+extraction_projection:
+  assignment_unit: CONTRACT
+  minimum_fields:
+    - contract_id
+    - language
+    - agreement_type
+    - rights_grants
+    - evidence
+    - payments
+  rights_grant_fields:
+    - grant_id
+    - content
+    - legal_right
+    - exploitation_mode
+    - territory
+    - license_period
+    - exclusivity
+    - authority_constraints
+    - scope_modifiers
+  payment_fields: [amount, currency]
+  excluded_authoring_fields: [status, value_origin, evidence_requirement_ids]
+
+decision_projection:
+  assignment_unit: SCENARIO
+  minimum_fields:
+    - scenario_id
+    - target_contract_id
+    - compared_contract_ids
+    - expected_result
+    - findings
+  finding_fields:
+    - finding_id
+    - finding_type
+    - reason_codes
+    - target_grant_ids
+    - compared_grant_ids
+    - affected_scope
+    - evidence_ids
+  excluded_authoring_fields: [status, value_origin, dataset_role, scope_expectation]
+
+schema_timing:
+  current_state: DEFERRED_PENDING_PILOT_REVIEW
+  before_body_generation: Freeze these minimum fields and canonical span convention.
+  after_pilot_review: Draft and test extraction/decision JSON Schemas on the reviewed Pilot contracts.
+  after_phase_h: Finalize schemas and generate the team delivery package from the authoring GT.
