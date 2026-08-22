@@ -30,6 +30,8 @@ python scripts/build_retrieval_bundle.py <폴더>/*.parse.json -o <폴더>  # �
 
 **Task2 담당자는 `*.retrieval.json`만 보면 된다.** `*.parse.json`은 중간 산출물이다.
 
+> 두 파일의 전체 구조와 필드 설명은 [samples/README.md](samples/README.md) 에 따로 정리해 두었다.
+
 ### 샘플 구성 — 10건
 
 86건 전부가 아니라 **언어 × 템플릿 × 계약유형이 골고루 덮이도록 10건만** 골랐다.
