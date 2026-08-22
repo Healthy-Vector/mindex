@@ -16,11 +16,14 @@ import hashlib
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import pdfplumber
 
-SCHEMA_VERSION = "mindex.ocr-parse.v0.1"
+SCHEMA_VERSION = "mindex.ocr-parse.v0.4"
+EMBEDDING_MODEL = "intfloat/multilingual-e5-large"
+EMBEDDING_DIM = 1024
 
 # 페이지 경로 판정 임계값.
 #
@@ -65,6 +68,31 @@ NOISE_PATTERNS = [
 ]
 
 
+def normalize_text(text: str) -> str:
+    """추출 텍스트를 NFC로 정규화한다.
+
+    일본어 PDF가 정규 한자 대신 CJK 호환한자(U+F900~U+FAFF)를 내보낸다.
+    실측: JP 28건 전부에서 4,865자 출현. 예) 利(U+5229)가 U+F9DD 로 나온다.
+    이대로 두면 정규식·LLM 추출·임베딩·Evidence 문자열 대조가 모두 어긋난다.
+    정답지인 canonical Markdown은 정규형(호환한자 0자)이므로 NFC 를 적용해야 일치한다.
+
+    NFC 를 쓰는 이유: 이 범위의 호환한자는 canonical decomposition 을 가지므로
+    NFC 로 정규화되고, 실측상 446페이지 전부 길이가 보존되어 offset 이 안전하다.
+    NFKC 는 전각/반각·합자까지 바꿔 길이가 달라질 수 있어 쓰지 않는다.
+
+    이어서 SOFT HYPHEN(U+00AD)을 처리한다. 영문 PDF가 눈에 보이는 하이픈 자리에
+    이 문자를 쓴다. 예) 날짜 "2026-01-01" 이 실제로는 U+00AD 를 낀 형태로 나온다.
+    실측 샘플 10건에서 119자 중 117자가 문장 내부(실제 하이픈), 2자가 줄끝
+    하이프네이션이었다. 그래서 줄끝이면 지우고, 그 밖에는 일반 하이픈으로 바꾼다.
+    """
+    text = unicodedata.normalize("NFC", text)
+    # 줄끝 하이프네이션: 소프트하이픈만 지우고 줄바꿈은 남긴다
+    text = text.replace("\u00ad\n", "\n")
+    # 나머지는 눈에 보이는 하이픈이므로 일반 하이픈으로 치환
+    text = text.replace("\u00ad", "-")
+    return text
+
+
 def sha256_of(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -75,7 +103,7 @@ def sha256_of(path: Path) -> str:
 
 def page_signals(page) -> dict:
     """텍스트 레이어를 쓸지 OCR로 갈지 판정할 신호."""
-    text = page.extract_text() or ""
+    text = normalize_text(page.extract_text() or "")
     area = (page.width or 1) * (page.height or 1)
     image_area = sum(
         max(0.0, i.get("x1", 0) - i.get("x0", 0)) * max(0.0, i.get("bottom", 0) - i.get("top", 0))
@@ -130,9 +158,9 @@ def extract_pages(pdf_path: Path) -> list[dict]:
     with pdfplumber.open(pdf_path) as pdf:
         for idx, page in enumerate(pdf.pages, start=1):
             sig = page_signals(page)
-            text = page.extract_text() or ""
+            text = normalize_text(page.extract_text() or "")
             tables = [
-                [[(c or "").strip() for c in row] for row in tbl]
+                [[normalize_text(c or "").strip() for c in row] for row in tbl]
                 for tbl in (page.extract_tables() or [])
             ]
             pages.append(
@@ -241,7 +269,9 @@ def segment_clauses(pages: list[dict], lang: str) -> tuple[str, list[dict]]:
     return full_text, clauses
 
 
-def build_chunks(clauses: list[dict], lang: str, max_chars: int, overlap: int) -> list[dict]:
+def build_chunks(
+    clauses: list[dict], lang: str, max_chars: int, overlap: int, doc_hash: str
+) -> list[dict]:
     """조항 × 페이지 단위로 청크를 만든다.
 
     contract_chunk.page 가 단일 INT 이므로 한 청크는 한 페이지에만 속해야 한다.
@@ -255,17 +285,35 @@ def build_chunks(clauses: list[dict], lang: str, max_chars: int, overlap: int) -
             while start < len(body):
                 piece = body[start : start + max_chars]
                 if piece.strip():
+                    idx = len(chunks)
+                    cs = part["char_start"] + start
                     chunks.append(
                         {
-                            "chunk_index": len(chunks),
+                            # 파일 간 유일하고 내용에 대해 결정론적인 id.
+                            # Task2가 추출값의 출처를 되짚고, 같은 청크가 여러 field에
+                            # 걸릴 때 중복을 제거하는 조인 키다.
+                            "chunk_id": f"{doc_hash[:12]}-{idx:04d}",
+                            "chunk_index": idx,
                             "clause_no": clause["clause_no"],
                             "clause_title": clause["title"],
+                            "clause_kind": clause["kind"],
                             "page": part["page"],
                             "lang": lang,
                             "chunk_text": piece,
-                            "char_start": part["char_start"] + start,
-                            "char_end": part["char_start"] + start + len(piece),
+                            "location": {
+                                "page": part["page"],
+                                "clause_no": clause["clause_no"],
+                                "clause_kind": clause["kind"],
+                                "char_start": cs,
+                                "char_end": cs + len(piece),
+                                "clause_page_span": [clause["page_start"], clause["page_end"]],
+                            },
+                            "char_start": cs,
+                            "char_end": cs + len(piece),
                             "clause_page_span": [clause["page_start"], clause["page_end"]],
+                            # Worker가 contract_chunk.embedding 에 적재할 벡터.
+                            # --embed 없이는 null 이다. 형식만 고정해 둔다.
+                            "embedding": None,
                         }
                     )
                 if start + max_chars >= len(body):
@@ -274,11 +322,35 @@ def build_chunks(clauses: list[dict], lang: str, max_chars: int, overlap: int) -
     return chunks
 
 
-def build_payload(pdf_path: Path, max_chars: int, overlap: int) -> dict:
+def attach_embeddings(chunks: list[dict]) -> None:
+    """--embed 일 때만 호출. sentence-transformers 가 있어야 한다.
+
+    모델은 프로세스당 1회만 로딩한다(Task2 담당자 요청).
+    """
+    from sentence_transformers import SentenceTransformer
+
+    global _MODEL
+    if _MODEL is None:
+        _MODEL = SentenceTransformer(EMBEDDING_MODEL)
+    # e5 계열은 "passage: " 접두어를 요구한다.
+    vecs = _MODEL.encode(
+        [f"passage: {c['chunk_text']}" for c in chunks], normalize_embeddings=True
+    )
+    for chunk, vec in zip(chunks, vecs, strict=True):
+        chunk["embedding"] = [round(float(x), 6) for x in vec]
+
+
+_MODEL = None
+
+
+def build_payload(pdf_path: Path, max_chars: int, overlap: int, embed: bool = False) -> dict:
     pages = extract_pages(pdf_path)
     lang = detect_language([ln for pg in pages for ln in pg["text"].split("\n")])
     full_text, clauses = segment_clauses(pages, lang)
-    chunks = build_chunks(clauses, lang, max_chars, overlap)
+    doc_hash = sha256_of(pdf_path)
+    chunks = build_chunks(clauses, lang, max_chars, overlap, doc_hash)
+    if embed:
+        attach_embeddings(chunks)
 
     routes: dict[str, int] = {}
     for pg in pages:
@@ -288,11 +360,15 @@ def build_payload(pdf_path: Path, max_chars: int, overlap: int) -> dict:
         "schema_version": SCHEMA_VERSION,
         "document": {
             "file_name": pdf_path.name,
-            "file_hash": sha256_of(pdf_path),
+            "file_hash": doc_hash,
             "mime_type": "application/pdf",
             "page_count": len(pages),
             "language": lang,
             "text_source_summary": routes,
+            "text_normalization": "NFC",
+            "embedding_model": EMBEDDING_MODEL,
+            "embedding_dim": EMBEDDING_DIM,
+            "embedded": bool(chunks and chunks[0].get("embedding") is not None),
         },
         "pages": [
             {
@@ -316,6 +392,8 @@ def main() -> int:
     ap.add_argument("-o", "--out", type=Path, required=True)
     ap.add_argument("--max-chars", type=int, default=1200, help="청크 최대 길이")
     ap.add_argument("--overlap", type=int, default=150, help="청크 겹침 길이")
+    ap.add_argument("--embed", action="store_true",
+                    help="실제 임베딩까지 계산 (sentence-transformers 필요, 모델 약 2.2GB)")
     args = ap.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
@@ -323,7 +401,7 @@ def main() -> int:
         if not pdf.exists():
             print(f"건너뜀 (없음): {pdf}", file=sys.stderr)
             continue
-        payload = build_payload(pdf, args.max_chars, args.overlap)
+        payload = build_payload(pdf, args.max_chars, args.overlap, args.embed)
         dest = args.out / f"{pdf.stem}.parse.json"
         dest.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         doc = payload["document"]

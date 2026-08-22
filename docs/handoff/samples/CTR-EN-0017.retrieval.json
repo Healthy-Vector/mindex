@@ -1,0 +1,786 @@
+{
+  "schema_version": "mindex.retrieval-bundle.v0.1",
+  "document": {
+    "file_name": "CTR-EN-0017.pdf",
+    "file_hash": "59f50b49fff5e4f62074772234a01b6fb76cac1b5986ca821594733314a5c7ab",
+    "mime_type": "application/pdf",
+    "page_count": 5,
+    "language": "en",
+    "text_source_summary": {
+      "TEXT_LAYER": 5
+    },
+    "embedding_model": "intfloat/multilingual-e5-large",
+    "embedding_dim": 1024,
+    "embedded": false
+  },
+  "retrieval": {
+    "scorer": "lexical-v0",
+    "top_k": 5,
+    "min_score": 0.15,
+    "field_count": 6,
+    "chunk_total": 22,
+    "chunk_referenced": 12
+  },
+  "fields": {
+    "territory": [
+      {
+        "chunk_id": "59f50b49fff5-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is\nlimited to “The Name Remembered by Rain”. It is not automatically merged with any unlisted\naudiovisual work or related asset.\nLicensor grants Licensee the non-exclusive interactive transmission and making-available right in “The\nName Remembered by Rain” solely for exploitation by subscription video-on-demand (SVOD). Every\nright and mode not expressly granted is reserved to Licensor.\nFor “The Name Remembered by Rain” exploited by subscription video-on-demand (SVOD), the\nTerritory is the United States and the License Period is from 2027-01-01 through 2029-12-31, inclusive.\nExclusivity applies only to the combined right, mode, territory and period stated here.\nThis grant is a sublicense to a content platform operator. Licensor represents that it holds sublicensing\nauthority for that recipient and the precise grant scope stated above.",
+        "page": 2,
+        "clause": "Article 3",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1852,
+          "char_end": 2825,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.6667,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역",
+          "+대한민국"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0008",
+        "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant",
+        "page": 2,
+        "clause": "Article 8",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 8",
+          "clause_kind": "ARTICLE",
+          "char_start": 4567,
+          "char_end": 4715,
+          "clause_page_span": [
+            2,
+            3
+          ]
+        },
+        "score": 0.4174,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0015",
+        "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may\nassign this Agreement or a material obligation without prior written consent; use of a technical vendor\nis not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their\ncompliance with the territory, period, mode and security conditions.",
+        "page": 4,
+        "clause": "Article 14",
+        "location": {
+          "page": 4,
+          "clause_no": "Article 14",
+          "clause_kind": "ARTICLE",
+          "char_start": 7235,
+          "char_end": 7695,
+          "clause_page_span": [
+            4,
+            4
+          ]
+        },
+        "score": 0.4174,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0000",
+        "text": "“The Name Remembered by Rain” Content\nSublicence Agreement\nDocument Reference Agreement Date Status\nEN-2026-004-003 2026-08-27 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Lantern Rights Pte. Ltd. StreamArc Media Inc.\nAuthorised Representative Ethan Lim Maya Collins\nRegistered Office 8 Marina View, #21-04, Singapore 155 Sunset Media Drive, Los Angeles,\n018960 California 90028, USA\nRegistration No. SG-900104 CA-900103\nRecitals\nThis Agreement is made on 2026-08-27 between Lantern Rights Pte. Ltd. (“Licensor”) and StreamArc\nMedia Inc. (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to\nexploit those rights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may\nconstitute legally distinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 964,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.2624,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      }
+    ],
+    "rights_type": [
+      {
+        "chunk_id": "59f50b49fff5-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is\nlimited to “The Name Remembered by Rain”. It is not automatically merged with any unlisted\naudiovisual work or related asset.\nLicensor grants Licensee the non-exclusive interactive transmission and making-available right in “The\nName Remembered by Rain” solely for exploitation by subscription video-on-demand (SVOD). Every\nright and mode not expressly granted is reserved to Licensor.\nFor “The Name Remembered by Rain” exploited by subscription video-on-demand (SVOD), the\nTerritory is the United States and the License Period is from 2027-01-01 through 2029-12-31, inclusive.\nExclusivity applies only to the combined right, mode, territory and period stated here.\nThis grant is a sublicense to a content platform operator. Licensor represents that it holds sublicensing\nauthority for that recipient and the precise grant scope stated above.",
+        "page": 2,
+        "clause": "Article 3",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1852,
+          "char_end": 2825,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.8241,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+SVOD",
+          "+이용방식"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0004",
+        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not\nedit, re-purpose or supply the Licensed Subject Matter to a third party. Unstated remake, sequel,\nformat, merchandising, theatrical, broadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On\nlearning of exploitation outside the grant, Licensee shall promptly stop that use and notify Licensor.",
+        "page": 2,
+        "clause": "Article 4",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 4",
+          "clause_kind": "ARTICLE",
+          "char_start": 2826,
+          "char_end": 3352,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.5449,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+이용방식",
+          "+방송"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0001",
+        "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and\nscope in this Agreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear\ntelevision, music-streaming or other exploitation mode stated for a grant. This definition does not\nenlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same\nas the term of this Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed\nfor delivery.",
+        "page": 1,
+        "clause": "Article 1",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 1",
+          "clause_kind": "ARTICLE",
+          "char_start": 965,
+          "char_end": 1616,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.5416,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+SVOD",
+          "+이용방식"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0013",
+        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and\noutstanding accounting obligations have ended. The agreement term neither replaces nor\nautomatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is\neffective only by a separate written agreement.",
+        "page": 3,
+        "clause": "Article 12",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 12",
+          "clause_kind": "ARTICLE",
+          "char_start": 6324,
+          "char_end": 6752,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.3392,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+이용방식"
+        ]
+      }
+    ],
+    "period": [
+      {
+        "chunk_id": "59f50b49fff5-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is\nlimited to “The Name Remembered by Rain”. It is not automatically merged with any unlisted\naudiovisual work or related asset.\nLicensor grants Licensee the non-exclusive interactive transmission and making-available right in “The\nName Remembered by Rain” solely for exploitation by subscription video-on-demand (SVOD). Every\nright and mode not expressly granted is reserved to Licensor.\nFor “The Name Remembered by Rain” exploited by subscription video-on-demand (SVOD), the\nTerritory is the United States and the License Period is from 2027-01-01 through 2029-12-31, inclusive.\nExclusivity applies only to the combined right, mode, territory and period stated here.\nThis grant is a sublicense to a content platform operator. Licensor represents that it holds sublicensing\nauthority for that recipient and the precise grant scope stated above.",
+        "page": 2,
+        "clause": "Article 3",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1852,
+          "char_end": 2825,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.9085,
+        "matched_field": "period",
+        "match_reasons": [
+          "+이용기간",
+          "+\\d{1,2}\\s+\\w+\\s+\\d{4}",
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}",
+          "+부터.{0,25}까지"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0013",
+        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and\noutstanding accounting obligations have ended. The agreement term neither replaces nor\nautomatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is\neffective only by a separate written agreement.",
+        "page": 3,
+        "clause": "Article 12",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 12",
+          "clause_kind": "ARTICLE",
+          "char_start": 6324,
+          "char_end": 6752,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.4716,
+        "matched_field": "period",
+        "match_reasons": [
+          "+이용기간",
+          "-계약기간은"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0020",
+        "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after\nreviewing all of its terms.\nLicensor\nParties: Lantern Rights Pte. Ltd.\nAuthorised Representative: Ethan Lim\nRegistered Office: 8 Marina View, #21-04, Singapore 018960\nSignature: (signature)\nAgreement Date: 2026-08-27\nLicensee",
+        "page": 4,
+        "clause": "Article 19",
+        "location": {
+          "page": 4,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 8952,
+          "char_end": 9296,
+          "clause_page_span": [
+            4,
+            5
+          ]
+        },
+        "score": 0.3392,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0021",
+        "text": "Parties: StreamArc Media Inc.\nAuthorised Representative: Maya Collins\nRegistered Office: 155 Sunset Media Drive, Los Angeles, California 90028, USA\nSignature: (signature)\nAgreement Date: 2026-08-27",
+        "page": 5,
+        "clause": "Article 19",
+        "location": {
+          "page": 5,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 9297,
+          "char_end": 9494,
+          "clause_page_span": [
+            4,
+            5
+          ]
+        },
+        "score": 0.3392,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0000",
+        "text": "“The Name Remembered by Rain” Content\nSublicence Agreement\nDocument Reference Agreement Date Status\nEN-2026-004-003 2026-08-27 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Lantern Rights Pte. Ltd. StreamArc Media Inc.\nAuthorised Representative Ethan Lim Maya Collins\nRegistered Office 8 Marina View, #21-04, Singapore 155 Sunset Media Drive, Los Angeles,\n018960 California 90028, USA\nRegistration No. SG-900104 CA-900103\nRecitals\nThis Agreement is made on 2026-08-27 between Lantern Rights Pte. Ltd. (“Licensor”) and StreamArc\nMedia Inc. (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to\nexploit those rights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may\nconstitute legally distinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 964,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.322,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{1,2}\\s+\\w+\\s+\\d{4}",
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
+        ]
+      }
+    ],
+    "exclusivity": [
+      {
+        "chunk_id": "59f50b49fff5-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is\nlimited to “The Name Remembered by Rain”. It is not automatically merged with any unlisted\naudiovisual work or related asset.\nLicensor grants Licensee the non-exclusive interactive transmission and making-available right in “The\nName Remembered by Rain” solely for exploitation by subscription video-on-demand (SVOD). Every\nright and mode not expressly granted is reserved to Licensor.\nFor “The Name Remembered by Rain” exploited by subscription video-on-demand (SVOD), the\nTerritory is the United States and the License Period is from 2027-01-01 through 2029-12-31, inclusive.\nExclusivity applies only to the combined right, mode, territory and period stated here.\nThis grant is a sublicense to a content platform operator. Licensor represents that it holds sublicensing\nauthority for that recipient and the precise grant scope stated above.",
+        "page": 2,
+        "clause": "Article 3",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1852,
+          "char_end": 2825,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.689,
+        "matched_field": "exclusivity",
+        "match_reasons": [
+          "+독점성은",
+          "+독점"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0000",
+        "text": "“The Name Remembered by Rain” Content\nSublicence Agreement\nDocument Reference Agreement Date Status\nEN-2026-004-003 2026-08-27 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Lantern Rights Pte. Ltd. StreamArc Media Inc.\nAuthorised Representative Ethan Lim Maya Collins\nRegistered Office 8 Marina View, #21-04, Singapore 155 Sunset Media Drive, Los Angeles,\n018960 California 90028, USA\nRegistration No. SG-900104 CA-900103\nRecitals\nThis Agreement is made on 2026-08-27 between Lantern Rights Pte. Ltd. (“Licensor”) and StreamArc\nMedia Inc. (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to\nexploit those rights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may\nconstitute legally distinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 964,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.2624,
+        "matched_field": "exclusivity",
+        "match_reasons": [
+          "+독점성은"
+        ]
+      }
+    ],
+    "payment": [
+      {
+        "chunk_id": "59f50b49fff5-0007",
+        "text": "Article 7 (Consideration and Payment)\nTotal consideration is 904,000.00 USD, payable in USD. Licensee shall pay it as follows: 50%\n(452,000.00 USD, within 15 business days after signing); 50% (452,000.00 USD, within 15 business\ndays after acceptance). The stated amounts exclude applicable indirect taxes.",
+        "page": 2,
+        "clause": "Article 7",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 7",
+          "clause_kind": "ARTICLE",
+          "char_start": 4261,
+          "char_end": 4566,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.9408,
+        "matched_field": "payment",
+        "match_reasons": [
+          "+계약대가",
+          "+[\\d,]{4,}(?:\\.\\d{2})?\\s*(?:KRW",
+          "+지급한다",
+          "+영업일 이내"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0005",
+        "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available\nsubtitle or script materials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of\nmaterial defects. Failure to give timely technical notice does not waive a latent chain-of-title claim.",
+        "page": 2,
+        "clause": "Article 5",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 5",
+          "clause_kind": "ARTICLE",
+          "char_start": 3353,
+          "char_end": 3779,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.2689,
+        "matched_field": "payment",
+        "match_reasons": [
+          "+영업일 이내"
+        ]
+      }
+    ],
+    "parties": [
+      {
+        "chunk_id": "59f50b49fff5-0000",
+        "text": "“The Name Remembered by Rain” Content\nSublicence Agreement\nDocument Reference Agreement Date Status\nEN-2026-004-003 2026-08-27 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Lantern Rights Pte. Ltd. StreamArc Media Inc.\nAuthorised Representative Ethan Lim Maya Collins\nRegistered Office 8 Marina View, #21-04, Singapore 155 Sunset Media Drive, Los Angeles,\n018960 California 90028, USA\nRegistration No. SG-900104 CA-900103\nRecitals\nThis Agreement is made on 2026-08-27 between Lantern Rights Pte. Ltd. (“Licensor”) and StreamArc\nMedia Inc. (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to\nexploit those rights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may\nconstitute legally distinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 964,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 1.0,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자",
+          "+대표자",
+          "+주식회사"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0020",
+        "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after\nreviewing all of its terms.\nLicensor\nParties: Lantern Rights Pte. Ltd.\nAuthorised Representative: Ethan Lim\nRegistered Office: 8 Marina View, #21-04, Singapore 018960\nSignature: (signature)\nAgreement Date: 2026-08-27\nLicensee",
+        "page": 4,
+        "clause": "Article 19",
+        "location": {
+          "page": 4,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 8952,
+          "char_end": 9296,
+          "clause_page_span": [
+            4,
+            5
+          ]
+        },
+        "score": 0.7697,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자",
+          "+대표자"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0010",
+        "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this\nAgreement, and that its signatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark,\nlikeness and third-party materials expressly allocated to Licensee for separate clearance.",
+        "page": 3,
+        "clause": "Article 9",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 9",
+          "clause_kind": "ARTICLE",
+          "char_start": 4969,
+          "char_end": 5364,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.6293,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0004",
+        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not\nedit, re-purpose or supply the Licensed Subject Matter to a third party. Unstated remake, sequel,\nformat, merchandising, theatrical, broadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On\nlearning of exploitation outside the grant, Licensee shall promptly stop that use and notify Licensor.",
+        "page": 2,
+        "clause": "Article 4",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 4",
+          "clause_kind": "ARTICLE",
+          "char_start": 2826,
+          "char_end": 3352,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.613,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
+        ]
+      },
+      {
+        "chunk_id": "59f50b49fff5-0021",
+        "text": "Parties: StreamArc Media Inc.\nAuthorised Representative: Maya Collins\nRegistered Office: 155 Sunset Media Drive, Los Angeles, California 90028, USA\nSignature: (signature)\nAgreement Date: 2026-08-27",
+        "page": 5,
+        "clause": "Article 19",
+        "location": {
+          "page": 5,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 9297,
+          "char_end": 9494,
+          "clause_page_span": [
+            4,
+            5
+          ]
+        },
+        "score": 0.4917,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+대표자",
+          "+주식회사"
+        ]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "chunk_id": "59f50b49fff5-0000",
+      "text": "“The Name Remembered by Rain” Content\nSublicence Agreement\nDocument Reference Agreement Date Status\nEN-2026-004-003 2026-08-27 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Lantern Rights Pte. Ltd. StreamArc Media Inc.\nAuthorised Representative Ethan Lim Maya Collins\nRegistered Office 8 Marina View, #21-04, Singapore 155 Sunset Media Drive, Los Angeles,\n018960 California 90028, USA\nRegistration No. SG-900104 CA-900103\nRecitals\nThis Agreement is made on 2026-08-27 between Lantern Rights Pte. Ltd. (“Licensor”) and StreamArc\nMedia Inc. (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to\nexploit those rights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may\nconstitute legally distinct subject matter. No right is granted by implication.",
+      "page": 1,
+      "clause": "__FRONT_MATTER__",
+      "clause_kind": "FRONT_MATTER",
+      "lang": "en",
+      "location": {
+        "page": 1,
+        "clause_no": "__FRONT_MATTER__",
+        "clause_kind": "FRONT_MATTER",
+        "char_start": 0,
+        "char_end": 964,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0001",
+      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and\nscope in this Agreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear\ntelevision, music-streaming or other exploitation mode stated for a grant. This definition does not\nenlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same\nas the term of this Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed\nfor delivery.",
+      "page": 1,
+      "clause": "Article 1",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 1",
+        "clause_kind": "ARTICLE",
+        "char_start": 965,
+        "char_end": 1616,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0003",
+      "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is\nlimited to “The Name Remembered by Rain”. It is not automatically merged with any unlisted\naudiovisual work or related asset.\nLicensor grants Licensee the non-exclusive interactive transmission and making-available right in “The\nName Remembered by Rain” solely for exploitation by subscription video-on-demand (SVOD). Every\nright and mode not expressly granted is reserved to Licensor.\nFor “The Name Remembered by Rain” exploited by subscription video-on-demand (SVOD), the\nTerritory is the United States and the License Period is from 2027-01-01 through 2029-12-31, inclusive.\nExclusivity applies only to the combined right, mode, territory and period stated here.\nThis grant is a sublicense to a content platform operator. Licensor represents that it holds sublicensing\nauthority for that recipient and the precise grant scope stated above.",
+      "page": 2,
+      "clause": "Article 3",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 3",
+        "clause_kind": "ARTICLE",
+        "char_start": 1852,
+        "char_end": 2825,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0004",
+      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not\nedit, re-purpose or supply the Licensed Subject Matter to a third party. Unstated remake, sequel,\nformat, merchandising, theatrical, broadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On\nlearning of exploitation outside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "page": 2,
+      "clause": "Article 4",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 4",
+        "clause_kind": "ARTICLE",
+        "char_start": 2826,
+        "char_end": 3352,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0005",
+      "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available\nsubtitle or script materials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of\nmaterial defects. Failure to give timely technical notice does not waive a latent chain-of-title claim.",
+      "page": 2,
+      "clause": "Article 5",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 5",
+        "clause_kind": "ARTICLE",
+        "char_start": 3353,
+        "char_end": 3779,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0007",
+      "text": "Article 7 (Consideration and Payment)\nTotal consideration is 904,000.00 USD, payable in USD. Licensee shall pay it as follows: 50%\n(452,000.00 USD, within 15 business days after signing); 50% (452,000.00 USD, within 15 business\ndays after acceptance). The stated amounts exclude applicable indirect taxes.",
+      "page": 2,
+      "clause": "Article 7",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 7",
+        "clause_kind": "ARTICLE",
+        "char_start": 4261,
+        "char_end": 4566,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0008",
+      "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant",
+      "page": 2,
+      "clause": "Article 8",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 8",
+        "clause_kind": "ARTICLE",
+        "char_start": 4567,
+        "char_end": 4715,
+        "clause_page_span": [
+          2,
+          3
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0010",
+      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this\nAgreement, and that its signatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark,\nlikeness and third-party materials expressly allocated to Licensee for separate clearance.",
+      "page": 3,
+      "clause": "Article 9",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 9",
+        "clause_kind": "ARTICLE",
+        "char_start": 4969,
+        "char_end": 5364,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0013",
+      "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and\noutstanding accounting obligations have ended. The agreement term neither replaces nor\nautomatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is\neffective only by a separate written agreement.",
+      "page": 3,
+      "clause": "Article 12",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 12",
+        "clause_kind": "ARTICLE",
+        "char_start": 6324,
+        "char_end": 6752,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0015",
+      "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may\nassign this Agreement or a material obligation without prior written consent; use of a technical vendor\nis not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their\ncompliance with the territory, period, mode and security conditions.",
+      "page": 4,
+      "clause": "Article 14",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 4,
+        "clause_no": "Article 14",
+        "clause_kind": "ARTICLE",
+        "char_start": 7235,
+        "char_end": 7695,
+        "clause_page_span": [
+          4,
+          4
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0020",
+      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after\nreviewing all of its terms.\nLicensor\nParties: Lantern Rights Pte. Ltd.\nAuthorised Representative: Ethan Lim\nRegistered Office: 8 Marina View, #21-04, Singapore 018960\nSignature: (signature)\nAgreement Date: 2026-08-27\nLicensee",
+      "page": 4,
+      "clause": "Article 19",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 4,
+        "clause_no": "Article 19",
+        "clause_kind": "ARTICLE",
+        "char_start": 8952,
+        "char_end": 9296,
+        "clause_page_span": [
+          4,
+          5
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "59f50b49fff5-0021",
+      "text": "Parties: StreamArc Media Inc.\nAuthorised Representative: Maya Collins\nRegistered Office: 155 Sunset Media Drive, Los Angeles, California 90028, USA\nSignature: (signature)\nAgreement Date: 2026-08-27",
+      "page": 5,
+      "clause": "Article 19",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 5,
+        "clause_no": "Article 19",
+        "clause_kind": "ARTICLE",
+        "char_start": 9297,
+        "char_end": 9494,
+        "clause_page_span": [
+          4,
+          5
+        ]
+      },
+      "embedding": null
+    }
+  ]
+}

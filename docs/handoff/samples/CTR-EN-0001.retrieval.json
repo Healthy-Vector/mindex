@@ -1,0 +1,738 @@
+{
+  "schema_version": "mindex.retrieval-bundle.v0.1",
+  "document": {
+    "file_name": "CTR-EN-0001.pdf",
+    "file_hash": "69359c9d84144ec73bab5982ca014ccea8a74695e484ba246fd4bc34c4e5d42f",
+    "mime_type": "application/pdf",
+    "page_count": 3,
+    "language": "en",
+    "text_source_summary": {
+      "TEXT_LAYER": 3
+    },
+    "embedding_model": "intfloat/multilingual-e5-large",
+    "embedding_dim": 1024,
+    "embedded": false
+  },
+  "retrieval": {
+    "scorer": "lexical-v0",
+    "top_k": 5,
+    "min_score": 0.15,
+    "field_count": 6,
+    "chunk_total": 21,
+    "chunk_referenced": 11
+  },
+  "fields": {
+    "territory": [
+      {
+        "chunk_id": "69359c9d8414-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is limited to “Signal of\nWinter”. It is not automatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive interactive transmission and making-available right in “Signal of Winter” solely for\nexploitation by subscription video-on-demand (SVOD). Every right and mode not expressly granted is reserved to Licensor.\nFor “Signal of Winter” exploited by subscription video-on-demand (SVOD), the Territory is the United States and the License\nPeriod is from 2026-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and\nperiod stated here.",
+        "page": 1,
+        "clause": "Article 3",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1868,
+          "char_end": 2627,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.6667,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역",
+          "+대한민국"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0008",
+        "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for three\nyears after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to examine\nrelevant records on reasonable notice, during business hours and subject to confidentiality.",
+        "page": 2,
+        "clause": "Article 8",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 8",
+          "clause_kind": "ARTICLE",
+          "char_start": 4210,
+          "char_end": 4611,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.4174,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0015",
+        "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with the\nterritory, period, mode and security conditions.",
+        "page": 3,
+        "clause": "Article 14",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 14",
+          "clause_kind": "ARTICLE",
+          "char_start": 6878,
+          "char_end": 7338,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.4174,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0000",
+        "text": "“Signal of Winter” Audiovisual Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2025-001-002 2025-10-11 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2025-10-11 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution LLC\n(“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those rights\nonly within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute legally\ndistinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 980,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.2624,
+        "matched_field": "territory",
+        "match_reasons": [
+          "+이용지역"
+        ]
+      }
+    ],
+    "rights_type": [
+      {
+        "chunk_id": "69359c9d8414-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is limited to “Signal of\nWinter”. It is not automatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive interactive transmission and making-available right in “Signal of Winter” solely for\nexploitation by subscription video-on-demand (SVOD). Every right and mode not expressly granted is reserved to Licensor.\nFor “Signal of Winter” exploited by subscription video-on-demand (SVOD), the Territory is the United States and the License\nPeriod is from 2026-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and\nperiod stated here.",
+        "page": 1,
+        "clause": "Article 3",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1868,
+          "char_end": 2627,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.8241,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+SVOD",
+          "+이용방식"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0004",
+        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose or\nsupply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical, broadcast\nand stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+        "page": 2,
+        "clause": "Article 4",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 4",
+          "clause_kind": "ARTICLE",
+          "char_start": 2628,
+          "char_end": 3154,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.5449,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+이용방식",
+          "+방송"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0001",
+        "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this Agreement\nor an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television, music\nstreaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of this\nAgreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
+        "page": 1,
+        "clause": "Article 1",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 1",
+          "clause_kind": "ARTICLE",
+          "char_start": 981,
+          "char_end": 1632,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.5416,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+SVOD",
+          "+이용방식"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0012",
+        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding accounting\nobligations have ended. The agreement term neither replaces nor automatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a",
+        "page": 2,
+        "clause": "Article 12",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 12",
+          "clause_kind": "ARTICLE",
+          "char_start": 5967,
+          "char_end": 6367,
+          "clause_page_span": [
+            2,
+            3
+          ]
+        },
+        "score": 0.3392,
+        "matched_field": "rights_type",
+        "match_reasons": [
+          "+이용방식"
+        ]
+      }
+    ],
+    "period": [
+      {
+        "chunk_id": "69359c9d8414-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is limited to “Signal of\nWinter”. It is not automatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive interactive transmission and making-available right in “Signal of Winter” solely for\nexploitation by subscription video-on-demand (SVOD). Every right and mode not expressly granted is reserved to Licensor.\nFor “Signal of Winter” exploited by subscription video-on-demand (SVOD), the Territory is the United States and the License\nPeriod is from 2026-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and\nperiod stated here.",
+        "page": 1,
+        "clause": "Article 3",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1868,
+          "char_end": 2627,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.7851,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{1,2}\\s+\\w+\\s+\\d{4}",
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}",
+          "+부터.{0,25}까지"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0012",
+        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding accounting\nobligations have ended. The agreement term neither replaces nor automatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a",
+        "page": 2,
+        "clause": "Article 12",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 12",
+          "clause_kind": "ARTICLE",
+          "char_start": 5967,
+          "char_end": 6367,
+          "clause_page_span": [
+            2,
+            3
+          ]
+        },
+        "score": 0.4716,
+        "matched_field": "period",
+        "match_reasons": [
+          "+이용기간",
+          "-계약기간은"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0020",
+        "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its terms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2025-10-11\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2025-10-11",
+        "page": 3,
+        "clause": "Article 19",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 8595,
+          "char_end": 9149,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.449,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0001",
+        "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this Agreement\nor an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television, music\nstreaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of this\nAgreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
+        "page": 1,
+        "clause": "Article 1",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 1",
+          "clause_kind": "ARTICLE",
+          "char_start": 981,
+          "char_end": 1632,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.4174,
+        "matched_field": "period",
+        "match_reasons": [
+          "+이용기간"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0000",
+        "text": "“Signal of Winter” Audiovisual Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2025-001-002 2025-10-11 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2025-10-11 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution LLC\n(“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those rights\nonly within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute legally\ndistinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 980,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.27,
+        "matched_field": "period",
+        "match_reasons": [
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
+        ]
+      }
+    ],
+    "exclusivity": [
+      {
+        "chunk_id": "69359c9d8414-0003",
+        "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is limited to “Signal of\nWinter”. It is not automatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive interactive transmission and making-available right in “Signal of Winter” solely for\nexploitation by subscription video-on-demand (SVOD). Every right and mode not expressly granted is reserved to Licensor.\nFor “Signal of Winter” exploited by subscription video-on-demand (SVOD), the Territory is the United States and the License\nPeriod is from 2026-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and\nperiod stated here.",
+        "page": 1,
+        "clause": "Article 3",
+        "location": {
+          "page": 1,
+          "clause_no": "Article 3",
+          "clause_kind": "ARTICLE",
+          "char_start": 1868,
+          "char_end": 2627,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.689,
+        "matched_field": "exclusivity",
+        "match_reasons": [
+          "+독점성은",
+          "+독점"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0000",
+        "text": "“Signal of Winter” Audiovisual Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2025-001-002 2025-10-11 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2025-10-11 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution LLC\n(“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those rights\nonly within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute legally\ndistinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 980,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 0.2624,
+        "matched_field": "exclusivity",
+        "match_reasons": [
+          "+독점성은"
+        ]
+      }
+    ],
+    "payment": [
+      {
+        "chunk_id": "69359c9d8414-0005",
+        "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
+        "page": 2,
+        "clause": "Article 5",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 5",
+          "clause_kind": "ARTICLE",
+          "char_start": 3155,
+          "char_end": 3581,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.2689,
+        "matched_field": "payment",
+        "match_reasons": [
+          "+영업일 이내"
+        ]
+      }
+    ],
+    "parties": [
+      {
+        "chunk_id": "69359c9d8414-0000",
+        "text": "“Signal of Winter” Audiovisual Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2025-001-002 2025-10-11 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2025-10-11 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution LLC\n(“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those rights\nonly within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute legally\ndistinct subject matter. No right is granted by implication.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1,
+          "clause_no": "__FRONT_MATTER__",
+          "clause_kind": "FRONT_MATTER",
+          "char_start": 0,
+          "char_end": 980,
+          "clause_page_span": [
+            1,
+            1
+          ]
+        },
+        "score": 1.0,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자",
+          "+대표자",
+          "+주식회사"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0020",
+        "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its terms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2025-10-11\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2025-10-11",
+        "page": 3,
+        "clause": "Article 19",
+        "location": {
+          "page": 3,
+          "clause_no": "Article 19",
+          "clause_kind": "ARTICLE",
+          "char_start": 8595,
+          "char_end": 9149,
+          "clause_page_span": [
+            3,
+            3
+          ]
+        },
+        "score": 0.8712,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자",
+          "+대표자",
+          "+주식회사"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0009",
+        "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and third\nparty materials expressly allocated to Licensee for separate clearance.",
+        "page": 2,
+        "clause": "Article 9",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 9",
+          "clause_kind": "ARTICLE",
+          "char_start": 4612,
+          "char_end": 5007,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.6293,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0004",
+        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose or\nsupply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical, broadcast\nand stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+        "page": 2,
+        "clause": "Article 4",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 4",
+          "clause_kind": "ARTICLE",
+          "char_start": 2628,
+          "char_end": 3154,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.613,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
+        ]
+      },
+      {
+        "chunk_id": "69359c9d8414-0010",
+        "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+        "page": 2,
+        "clause": "Article 10",
+        "location": {
+          "page": 2,
+          "clause_no": "Article 10",
+          "clause_kind": "ARTICLE",
+          "char_start": 5008,
+          "char_end": 5517,
+          "clause_page_span": [
+            2,
+            2
+          ]
+        },
+        "score": 0.4815,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자"
+        ]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "chunk_id": "69359c9d8414-0000",
+      "text": "“Signal of Winter” Audiovisual Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2025-001-002 2025-10-11 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2025-10-11 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution LLC\n(“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those rights\nonly within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute legally\ndistinct subject matter. No right is granted by implication.",
+      "page": 1,
+      "clause": "__FRONT_MATTER__",
+      "clause_kind": "FRONT_MATTER",
+      "lang": "en",
+      "location": {
+        "page": 1,
+        "clause_no": "__FRONT_MATTER__",
+        "clause_kind": "FRONT_MATTER",
+        "char_start": 0,
+        "char_end": 980,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0001",
+      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this Agreement\nor an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television, music\nstreaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of this\nAgreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
+      "page": 1,
+      "clause": "Article 1",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 1",
+        "clause_kind": "ARTICLE",
+        "char_start": 981,
+        "char_end": 1632,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0003",
+      "text": "Article 3 (Grant of Rights)\nFor exploitation by subscription video-on-demand (SVOD), the Licensed Subject Matter for this grant is limited to “Signal of\nWinter”. It is not automatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive interactive transmission and making-available right in “Signal of Winter” solely for\nexploitation by subscription video-on-demand (SVOD). Every right and mode not expressly granted is reserved to Licensor.\nFor “Signal of Winter” exploited by subscription video-on-demand (SVOD), the Territory is the United States and the License\nPeriod is from 2026-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and\nperiod stated here.",
+      "page": 1,
+      "clause": "Article 3",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 3",
+        "clause_kind": "ARTICLE",
+        "char_start": 1868,
+        "char_end": 2627,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0004",
+      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose or\nsupply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical, broadcast\nand stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "page": 2,
+      "clause": "Article 4",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 4",
+        "clause_kind": "ARTICLE",
+        "char_start": 2628,
+        "char_end": 3154,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0005",
+      "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
+      "page": 2,
+      "clause": "Article 5",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 5",
+        "clause_kind": "ARTICLE",
+        "char_start": 3155,
+        "char_end": 3581,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0008",
+      "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for three\nyears after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to examine\nrelevant records on reasonable notice, during business hours and subject to confidentiality.",
+      "page": 2,
+      "clause": "Article 8",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 8",
+        "clause_kind": "ARTICLE",
+        "char_start": 4210,
+        "char_end": 4611,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0009",
+      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and third\nparty materials expressly allocated to Licensee for separate clearance.",
+      "page": 2,
+      "clause": "Article 9",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 9",
+        "clause_kind": "ARTICLE",
+        "char_start": 4612,
+        "char_end": 5007,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0010",
+      "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+      "page": 2,
+      "clause": "Article 10",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 10",
+        "clause_kind": "ARTICLE",
+        "char_start": 5008,
+        "char_end": 5517,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0012",
+      "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding accounting\nobligations have ended. The agreement term neither replaces nor automatically extends an individual License Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a",
+      "page": 2,
+      "clause": "Article 12",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 12",
+        "clause_kind": "ARTICLE",
+        "char_start": 5967,
+        "char_end": 6367,
+        "clause_page_span": [
+          2,
+          3
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0015",
+      "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with the\nterritory, period, mode and security conditions.",
+      "page": 3,
+      "clause": "Article 14",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 14",
+        "clause_kind": "ARTICLE",
+        "char_start": 6878,
+        "char_end": 7338,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "69359c9d8414-0020",
+      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its terms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2025-10-11\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2025-10-11",
+      "page": 3,
+      "clause": "Article 19",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 19",
+        "clause_kind": "ARTICLE",
+        "char_start": 8595,
+        "char_end": 9149,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
+      "embedding": null
+    }
+  ]
+}

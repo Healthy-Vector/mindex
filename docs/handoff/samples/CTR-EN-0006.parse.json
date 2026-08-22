@@ -1,5 +1,5 @@
 {
-  "schema_version": "mindex.ocr-parse.v0.1",
+  "schema_version": "mindex.ocr-parse.v0.4",
   "document": {
     "file_name": "CTR-EN-0006.pdf",
     "file_hash": "1ce95688656f76fa1a4c2ff26f2e7b4b247efd7c13f7fb0fb2218659be76ac60",
@@ -8,7 +8,11 @@
     "language": "en",
     "text_source_summary": {
       "TEXT_LAYER": 4
-    }
+    },
+    "text_normalization": "NFC",
+    "embedding_model": "intfloat/multilingual-e5-large",
+    "embedding_dim": 1024,
+    "embedded": false
   },
   "pages": [
     {
@@ -24,8 +28,8 @@
       "tables": [
         [
           [
-            "Document Reference\nEN­2026­001­002",
-            "Agreement Date\n2026­10­03",
+            "Document Reference\nEN-2026-001-002",
+            "Agreement Date\n2026-10-03",
             "Status\nFormal Pilot ꞏ DRAFT pending review"
           ]
         ],
@@ -53,11 +57,11 @@
           [
             "Registration No.",
             "SC900101",
-            "DE­900102"
+            "DE-900102"
           ]
         ]
       ],
-      "text": "“Final Stage” Single­Mode Content Licence\nAgreement\nSYNTHETIC DATA REVIEW COPY — NOT FOR EXECUTION\nDocument Reference Agreement Date Status\nEN­2026­001­002 2026­10­03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE­900102\nRecitals\nThis Agreement is made on 2026­10­03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.\nArticle 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video­on­demand, transactional video­on­demand, linear television,\nmusic­streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue­sheet and metadata elements expressly listed for delivery.\nArticle 2 (Licensed Subject Matter)\nOnly subject matter identified by title and asset type in this Agreement or a Schedule is licensed. A season, episode,\nedit, soundtrack or other related asset is included only when expressly stated.\nArticle 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 1 / 4"
+      "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nSYNTHETIC DATA REVIEW COPY — NOT FOR EXECUTION\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.\nArticle 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.\nArticle 2 (Licensed Subject Matter)\nOnly subject matter identified by title and asset type in this Agreement or a Schedule is licensed. A season, episode,\nedit, soundtrack or other related asset is included only when expressly stated.\nArticle 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 1 / 4"
     },
     {
       "page": 2,
@@ -75,13 +79,13 @@
             ""
           ],
           [
-            "2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here."
+            "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here."
           ]
         ],
         [
           [
-            "Licensee shall maintain geo­blocking, a",
-            "ccess controls and rights­management",
+            "Licensee shall maintain geo-blocking, a",
+            "ccess controls and rights-management",
             "information. On learning of exploitation"
           ],
           [
@@ -123,7 +127,7 @@
           ],
           [
             "Failure to give timely technical notice d",
-            "oes not waive a latent chain­of­title claim",
+            "oes not waive a latent chain-of-title claim",
             "."
           ],
           [
@@ -162,7 +166,7 @@
           ]
         ]
       ],
-      "text": "2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.\nArticle 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re­purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand­alone music rights are reserved.\nLicensee shall maintain geo­blocking, access controls and rights­management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.\nArticle 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain­of­title claim.\nArticle 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect­ratio adjustments are permitted only where they do not alter meaning.\nArticle 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.\nArticle 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.\nArticle 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird­party materials expressly allocated to Licensee for separate clearance.\nArticle 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third­party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.\nArticle 11 (Confidentiality)\nEach party shall protect the non­public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 2 / 4"
+      "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.\nArticle 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.\nArticle 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.\nArticle 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect-ratio adjustments are permitted only where they do not alter meaning.\nArticle 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.\nArticle 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.\nArticle 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.\nArticle 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.\nArticle 11 (Confidentiality)\nEach party shall protect the non-public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 2 / 4"
     },
     {
       "page": 3,
@@ -262,7 +266,7 @@
           ]
         ]
       ],
-      "text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.\nArticle 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.\nArticle 13 (Termination and Consequences)\nA party may terminate this Agreement or an affected grant if the other commits a material breach not cured within\nthirty days after written notice, becomes insolvent, or loses authority essential to performance.\nOn termination, Licensee shall stop new availability and remove the content from Services under its control. Accrued\npayment, confidentiality, audit, indemnity and dispute provisions survive to the extent their nature requires.\nArticle 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.\nArticle 15 (Notices)\nFormal notices shall be sent to the representative and registered office in the Parties table by recorded post,\nrecognised courier or an electronic method producing confirmation of receipt. Address changes must be notified in the\nsame manner.\nArticle 16 (Force Majeure)\nA party delayed by an event beyond reasonable control, including natural disaster, war, government action or\nwidespread network failure, shall promptly notify the other and mitigate the effect. Payment obligations are not\nexcused by force majeure.\nArticle 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.\nArticle 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good­faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.\nArticle 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 3 / 4"
+      "text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.\nArticle 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.\nArticle 13 (Termination and Consequences)\nA party may terminate this Agreement or an affected grant if the other commits a material breach not cured within\nthirty days after written notice, becomes insolvent, or loses authority essential to performance.\nOn termination, Licensee shall stop new availability and remove the content from Services under its control. Accrued\npayment, confidentiality, audit, indemnity and dispute provisions survive to the extent their nature requires.\nArticle 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.\nArticle 15 (Notices)\nFormal notices shall be sent to the representative and registered office in the Parties table by recorded post,\nrecognised courier or an electronic method producing confirmation of receipt. Address changes must be notified in the\nsame manner.\nArticle 16 (Force Majeure)\nA party delayed by an event beyond reasonable control, including natural disaster, war, government action or\nwidespread network failure, shall promptly notify the other and mitigate the effect. Payment obligations are not\nexcused by force majeure.\nArticle 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.\nArticle 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good-faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.\nArticle 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 3 / 4"
     },
     {
       "page": 4,
@@ -283,7 +287,7 @@
             ""
           ],
           [
-            "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03"
+            "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03"
           ]
         ],
         [
@@ -300,7 +304,7 @@
             "Signature: (signature)"
           ],
           [
-            "Agreement Date: 2026­10­03"
+            "Agreement Date: 2026-10-03"
           ]
         ],
         [
@@ -369,7 +373,7 @@
           ],
           [
             "",
-            "Agreement Date: 2026­10­03",
+            "Agreement Date: 2026-10-03",
             "",
             "",
             ""
@@ -418,7 +422,7 @@
           ]
         ]
       ],
-      "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026­10­03\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 4 / 4"
+      "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03\nK-RIGHTS SYNTHETIC REVIEW COPY - NOT FOR EXECUTION | 4 / 4"
     }
   ],
   "clauses": [
@@ -430,7 +434,7 @@
       "page_end": 1,
       "char_start": 0,
       "char_end": 975,
-      "text": "“Final Stage” Single­Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN­2026­001­002 2026­10­03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE­900102\nRecitals\nThis Agreement is made on 2026­10­03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
+      "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
       "pages": [
         1
       ],
@@ -439,7 +443,7 @@
           "page": 1,
           "char_start": 0,
           "char_end": 975,
-          "text": "“Final Stage” Single­Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN­2026­001­002 2026­10­03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE­900102\nRecitals\nThis Agreement is made on 2026­10­03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication."
+          "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication."
         }
       ]
     },
@@ -451,7 +455,7 @@
       "page_end": 1,
       "char_start": 976,
       "char_end": 1627,
-      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video­on­demand, transactional video­on­demand, linear television,\nmusic­streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue­sheet and metadata elements expressly listed for delivery.",
+      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
       "pages": [
         1
       ],
@@ -460,7 +464,7 @@
           "page": 1,
           "char_start": 976,
           "char_end": 1627,
-          "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video­on­demand, transactional video­on­demand, linear television,\nmusic­streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue­sheet and metadata elements expressly listed for delivery."
+          "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery."
         }
       ]
     },
@@ -493,7 +497,7 @@
       "page_end": 2,
       "char_start": 1863,
       "char_end": 2553,
-      "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\n2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
+      "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\n2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
       "pages": [
         1,
         2
@@ -509,7 +513,7 @@
           "page": 2,
           "char_start": 2424,
           "char_end": 2553,
-          "text": "2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here."
+          "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here."
         }
       ]
     },
@@ -521,7 +525,7 @@
       "page_end": 2,
       "char_start": 2554,
       "char_end": 3080,
-      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re­purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand­alone music rights are reserved.\nLicensee shall maintain geo­blocking, access controls and rights­management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
       "pages": [
         2
       ],
@@ -530,7 +534,7 @@
           "page": 2,
           "char_start": 2554,
           "char_end": 3080,
-          "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re­purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand­alone music rights are reserved.\nLicensee shall maintain geo­blocking, access controls and rights­management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor."
+          "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor."
         }
       ]
     },
@@ -542,7 +546,7 @@
       "page_end": 2,
       "char_start": 3081,
       "char_end": 3507,
-      "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain­of­title claim.",
+      "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
       "pages": [
         2
       ],
@@ -551,7 +555,7 @@
           "page": 2,
           "char_start": 3081,
           "char_end": 3507,
-          "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain­of­title claim."
+          "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim."
         }
       ]
     },
@@ -563,7 +567,7 @@
       "page_end": 2,
       "char_start": 3508,
       "char_end": 3988,
-      "text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect­ratio adjustments are permitted only where they do not alter meaning.",
+      "text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect-ratio adjustments are permitted only where they do not alter meaning.",
       "pages": [
         2
       ],
@@ -572,7 +576,7 @@
           "page": 2,
           "char_start": 3508,
           "char_end": 3988,
-          "text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect­ratio adjustments are permitted only where they do not alter meaning."
+          "text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect-ratio adjustments are permitted only where they do not alter meaning."
         }
       ]
     },
@@ -584,7 +588,7 @@
       "page_end": 2,
       "char_start": 3989,
       "char_end": 4291,
-      "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
+      "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
       "pages": [
         2
       ],
@@ -593,7 +597,7 @@
           "page": 2,
           "char_start": 3989,
           "char_end": 4291,
-          "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes."
+          "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes."
         }
       ]
     },
@@ -626,7 +630,7 @@
       "page_end": 2,
       "char_start": 4694,
       "char_end": 5089,
-      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird­party materials expressly allocated to Licensee for separate clearance.",
+      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.",
       "pages": [
         2
       ],
@@ -635,7 +639,7 @@
           "page": 2,
           "char_start": 4694,
           "char_end": 5089,
-          "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird­party materials expressly allocated to Licensee for separate clearance."
+          "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance."
         }
       ]
     },
@@ -647,7 +651,7 @@
       "page_end": 2,
       "char_start": 5090,
       "char_end": 5599,
-      "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third­party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+      "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
       "pages": [
         2
       ],
@@ -656,7 +660,7 @@
           "page": 2,
           "char_start": 5090,
           "char_end": 5599,
-          "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third­party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability."
+          "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability."
         }
       ]
     },
@@ -668,7 +672,7 @@
       "page_end": 3,
       "char_start": 5600,
       "char_end": 6048,
-      "text": "Article 11 (Confidentiality)\nEach party shall protect the non­public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nduties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.",
+      "text": "Article 11 (Confidentiality)\nEach party shall protect the non-public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nduties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.",
       "pages": [
         2,
         3
@@ -678,13 +682,13 @@
           "page": 2,
           "char_start": 5600,
           "char_end": 5850,
-          "text": "Article 11 (Confidentiality)\nEach party shall protect the non­public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent"
+          "text": "Article 11 (Confidentiality)\nEach party shall protect the non-public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent"
         },
         {
           "page": 3,
           "char_start": 5851,
           "char_end": 6048,
-          "text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given."
+          "text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given."
         }
       ]
     },
@@ -738,7 +742,7 @@
       "page_end": 3,
       "char_start": 6960,
       "char_end": 7420,
-      "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
+      "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
       "pages": [
         3
       ],
@@ -747,7 +751,7 @@
           "page": 3,
           "char_start": 6960,
           "char_end": 7420,
-          "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions."
+          "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions."
         }
       ]
     },
@@ -801,7 +805,7 @@
       "page_end": 3,
       "char_start": 7960,
       "char_end": 8438,
-      "text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.",
+      "text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.",
       "pages": [
         3
       ],
@@ -810,7 +814,7 @@
           "page": 3,
           "char_start": 7960,
           "char_end": 8438,
-          "text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals."
+          "text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals."
         }
       ]
     },
@@ -822,7 +826,7 @@
       "page_end": 3,
       "char_start": 8439,
       "char_end": 8676,
-      "text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good­faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.",
+      "text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good-faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.",
       "pages": [
         3
       ],
@@ -831,7 +835,7 @@
           "page": 3,
           "char_start": 8439,
           "char_end": 8676,
-          "text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good­faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction."
+          "text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good-faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction."
         }
       ]
     },
@@ -843,7 +847,7 @@
       "page_end": 4,
       "char_start": 8677,
       "char_end": 9231,
-      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026­10­03",
+      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
       "pages": [
         3,
         4
@@ -859,334 +863,656 @@
           "page": 4,
           "char_start": 8833,
           "char_end": 9231,
-          "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026­10­03"
+          "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03"
         }
       ]
     }
   ],
   "chunks": [
     {
+      "chunk_id": "1ce95688656f-0000",
       "chunk_index": 0,
       "clause_no": "__FRONT_MATTER__",
       "clause_title": "표제·당사자·전문",
+      "clause_kind": "FRONT_MATTER",
       "page": 1,
       "lang": "en",
-      "chunk_text": "“Final Stage” Single­Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN­2026­001­002 2026­10­03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE­900102\nRecitals\nThis Agreement is made on 2026­10­03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
+      "chunk_text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
+      "location": {
+        "page": 1,
+        "clause_no": "__FRONT_MATTER__",
+        "clause_kind": "FRONT_MATTER",
+        "char_start": 0,
+        "char_end": 975,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
       "char_start": 0,
       "char_end": 975,
       "clause_page_span": [
         1,
         1
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0001",
       "chunk_index": 1,
       "clause_no": "Article 1",
       "clause_title": "Definitions",
+      "clause_kind": "ARTICLE",
       "page": 1,
       "lang": "en",
-      "chunk_text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video­on­demand, transactional video­on­demand, linear television,\nmusic­streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue­sheet and metadata elements expressly listed for delivery.",
+      "chunk_text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 1",
+        "clause_kind": "ARTICLE",
+        "char_start": 976,
+        "char_end": 1627,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
       "char_start": 976,
       "char_end": 1627,
       "clause_page_span": [
         1,
         1
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0002",
       "chunk_index": 2,
       "clause_no": "Article 2",
       "clause_title": "Licensed Subject Matter",
+      "clause_kind": "ARTICLE",
       "page": 1,
       "lang": "en",
       "chunk_text": "Article 2 (Licensed Subject Matter)\nOnly subject matter identified by title and asset type in this Agreement or a Schedule is licensed. A season, episode,\nedit, soundtrack or other related asset is included only when expressly stated.",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 2",
+        "clause_kind": "ARTICLE",
+        "char_start": 1628,
+        "char_end": 1862,
+        "clause_page_span": [
+          1,
+          1
+        ]
+      },
       "char_start": 1628,
       "char_end": 1862,
       "clause_page_span": [
         1,
         1
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0003",
       "chunk_index": 3,
       "clause_no": "Article 3",
       "clause_title": "Grant of Rights",
+      "clause_kind": "ARTICLE",
       "page": 1,
       "lang": "en",
       "chunk_text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
+      "location": {
+        "page": 1,
+        "clause_no": "Article 3",
+        "clause_kind": "ARTICLE",
+        "char_start": 1863,
+        "char_end": 2423,
+        "clause_page_span": [
+          1,
+          2
+        ]
+      },
       "char_start": 1863,
       "char_end": 2423,
       "clause_page_span": [
         1,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0004",
       "chunk_index": 4,
       "clause_no": "Article 3",
       "clause_title": "Grant of Rights",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
+      "chunk_text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 3",
+        "clause_kind": "ARTICLE",
+        "char_start": 2424,
+        "char_end": 2553,
+        "clause_page_span": [
+          1,
+          2
+        ]
+      },
       "char_start": 2424,
       "char_end": 2553,
       "clause_page_span": [
         1,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0005",
       "chunk_index": 5,
       "clause_no": "Article 4",
       "clause_title": "Restrictions and Reserved Rights",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re­purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand­alone music rights are reserved.\nLicensee shall maintain geo­blocking, access controls and rights­management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "chunk_text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 4",
+        "clause_kind": "ARTICLE",
+        "char_start": 2554,
+        "char_end": 3080,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 2554,
       "char_end": 3080,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0006",
       "chunk_index": 6,
       "clause_no": "Article 5",
       "clause_title": "Delivery and Acceptance",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain­of­title claim.",
+      "chunk_text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 5",
+        "clause_kind": "ARTICLE",
+        "char_start": 3081,
+        "char_end": 3507,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 3081,
       "char_end": 3507,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0007",
       "chunk_index": 7,
       "clause_no": "Article 6",
       "clause_title": "Credits, Promotion and Quality Control",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect­ratio adjustments are permitted only where they do not alter meaning.",
+      "chunk_text": "Article 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect-ratio adjustments are permitted only where they do not alter meaning.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 6",
+        "clause_kind": "ARTICLE",
+        "char_start": 3508,
+        "char_end": 3988,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 3508,
       "char_end": 3988,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0008",
       "chunk_index": 8,
       "clause_no": "Article 7",
       "clause_title": "Consideration and Payment",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
+      "chunk_text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 7",
+        "clause_kind": "ARTICLE",
+        "char_start": 3989,
+        "char_end": 4291,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 3989,
       "char_end": 4291,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0009",
       "chunk_index": 9,
       "clause_no": "Article 8",
       "clause_title": "Statements, Records and Audit",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
       "chunk_text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 8",
+        "clause_kind": "ARTICLE",
+        "char_start": 4292,
+        "char_end": 4693,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 4292,
       "char_end": 4693,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0010",
       "chunk_index": 10,
       "clause_no": "Article 9",
       "clause_title": "Representations and Warranties",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird­party materials expressly allocated to Licensee for separate clearance.",
+      "chunk_text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 9",
+        "clause_kind": "ARTICLE",
+        "char_start": 4694,
+        "char_end": 5089,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 4694,
       "char_end": 5089,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0011",
       "chunk_index": 11,
       "clause_no": "Article 10",
       "clause_title": "Indemnity and Limitation of Liability",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third­party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+      "chunk_text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 10",
+        "clause_kind": "ARTICLE",
+        "char_start": 5090,
+        "char_end": 5599,
+        "clause_page_span": [
+          2,
+          2
+        ]
+      },
       "char_start": 5090,
       "char_end": 5599,
       "clause_page_span": [
         2,
         2
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0012",
       "chunk_index": 12,
       "clause_no": "Article 11",
       "clause_title": "Confidentiality",
+      "clause_kind": "ARTICLE",
       "page": 2,
       "lang": "en",
-      "chunk_text": "Article 11 (Confidentiality)\nEach party shall protect the non­public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent",
+      "chunk_text": "Article 11 (Confidentiality)\nEach party shall protect the non-public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent",
+      "location": {
+        "page": 2,
+        "clause_no": "Article 11",
+        "clause_kind": "ARTICLE",
+        "char_start": 5600,
+        "char_end": 5850,
+        "clause_page_span": [
+          2,
+          3
+        ]
+      },
       "char_start": 5600,
       "char_end": 5850,
       "clause_page_span": [
         2,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0013",
       "chunk_index": 13,
       "clause_no": "Article 11",
       "clause_title": "Confidentiality",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
-      "chunk_text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.",
+      "chunk_text": "duties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 11",
+        "clause_kind": "ARTICLE",
+        "char_start": 5851,
+        "char_end": 6048,
+        "clause_page_span": [
+          2,
+          3
+        ]
+      },
       "char_start": 5851,
       "char_end": 6048,
       "clause_page_span": [
         2,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0014",
       "chunk_index": 14,
       "clause_no": "Article 12",
       "clause_title": "Agreement Term and License Periods",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
       "chunk_text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 12",
+        "clause_kind": "ARTICLE",
+        "char_start": 6049,
+        "char_end": 6477,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 6049,
       "char_end": 6477,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0015",
       "chunk_index": 15,
       "clause_no": "Article 13",
       "clause_title": "Termination and Consequences",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
       "chunk_text": "Article 13 (Termination and Consequences)\nA party may terminate this Agreement or an affected grant if the other commits a material breach not cured within\nthirty days after written notice, becomes insolvent, or loses authority essential to performance.\nOn termination, Licensee shall stop new availability and remove the content from Services under its control. Accrued\npayment, confidentiality, audit, indemnity and dispute provisions survive to the extent their nature requires.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 13",
+        "clause_kind": "ARTICLE",
+        "char_start": 6478,
+        "char_end": 6959,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 6478,
       "char_end": 6959,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0016",
       "chunk_index": 16,
       "clause_no": "Article 14",
       "clause_title": "Sublicensing, Assignment and Affiliates",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
-      "chunk_text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
+      "chunk_text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 14",
+        "clause_kind": "ARTICLE",
+        "char_start": 6960,
+        "char_end": 7420,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 6960,
       "char_end": 7420,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0017",
       "chunk_index": 17,
       "clause_no": "Article 15",
       "clause_title": "Notices",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
       "chunk_text": "Article 15 (Notices)\nFormal notices shall be sent to the representative and registered office in the Parties table by recorded post,\nrecognised courier or an electronic method producing confirmation of receipt. Address changes must be notified in the\nsame manner.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 15",
+        "clause_kind": "ARTICLE",
+        "char_start": 7421,
+        "char_end": 7684,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 7421,
       "char_end": 7684,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0018",
       "chunk_index": 18,
       "clause_no": "Article 16",
       "clause_title": "Force Majeure",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
       "chunk_text": "Article 16 (Force Majeure)\nA party delayed by an event beyond reasonable control, including natural disaster, war, government action or\nwidespread network failure, shall promptly notify the other and mitigate the effect. Payment obligations are not\nexcused by force majeure.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 16",
+        "clause_kind": "ARTICLE",
+        "char_start": 7685,
+        "char_end": 7959,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 7685,
       "char_end": 7959,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0019",
       "chunk_index": 19,
       "clause_no": "Article 17",
       "clause_title": "Entire Agreement and General Terms",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
-      "chunk_text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.",
+      "chunk_text": "Article 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 17",
+        "clause_kind": "ARTICLE",
+        "char_start": 7960,
+        "char_end": 8438,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 7960,
       "char_end": 8438,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0020",
       "chunk_index": 20,
       "clause_no": "Article 18",
       "clause_title": "Governing Law and Dispute Resolution",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
-      "chunk_text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good­faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.",
+      "chunk_text": "Article 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good-faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 18",
+        "clause_kind": "ARTICLE",
+        "char_start": 8439,
+        "char_end": 8676,
+        "clause_page_span": [
+          3,
+          3
+        ]
+      },
       "char_start": 8439,
       "char_end": 8676,
       "clause_page_span": [
         3,
         3
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0021",
       "chunk_index": 21,
       "clause_no": "Article 19",
       "clause_title": "Execution",
+      "clause_kind": "ARTICLE",
       "page": 3,
       "lang": "en",
       "chunk_text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor",
+      "location": {
+        "page": 3,
+        "clause_no": "Article 19",
+        "clause_kind": "ARTICLE",
+        "char_start": 8677,
+        "char_end": 8832,
+        "clause_page_span": [
+          3,
+          4
+        ]
+      },
       "char_start": 8677,
       "char_end": 8832,
       "clause_page_span": [
         3,
         4
-      ]
+      ],
+      "embedding": null
     },
     {
+      "chunk_id": "1ce95688656f-0022",
       "chunk_index": 22,
       "clause_no": "Article 19",
       "clause_title": "Execution",
+      "clause_kind": "ARTICLE",
       "page": 4,
       "lang": "en",
-      "chunk_text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026­10­03",
+      "chunk_text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
+      "location": {
+        "page": 4,
+        "clause_no": "Article 19",
+        "clause_kind": "ARTICLE",
+        "char_start": 8833,
+        "char_end": 9231,
+        "clause_page_span": [
+          3,
+          4
+        ]
+      },
       "char_start": 8833,
       "char_end": 9231,
       "clause_page_span": [
         3,
         4
-      ]
+      ],
+      "embedding": null
     }
   ],
-  "full_text": "“Final Stage” Single­Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN­2026­001­002 2026­10­03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE­900102\nRecitals\nThis Agreement is made on 2026­10­03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.\nArticle 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video­on­demand, transactional video­on­demand, linear television,\nmusic­streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue­sheet and metadata elements expressly listed for delivery.\nArticle 2 (Licensed Subject Matter)\nOnly subject matter identified by title and asset type in this Agreement or a Schedule is licensed. A season, episode,\nedit, soundtrack or other related asset is included only when expressly stated.\nArticle 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\n2027­01­01 through 2028­12­31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.\nArticle 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re­purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand­alone music rights are reserved.\nLicensee shall maintain geo­blocking, access controls and rights­management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.\nArticle 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain­of­title claim.\nArticle 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect­ratio adjustments are permitted only where they do not alter meaning.\nArticle 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.\nArticle 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.\nArticle 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird­party materials expressly allocated to Licensee for separate clearance.\nArticle 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third­party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.\nArticle 11 (Confidentiality)\nEach party shall protect the non­public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nduties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.\nArticle 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.\nArticle 13 (Termination and Consequences)\nA party may terminate this Agreement or an affected grant if the other commits a material breach not cured within\nthirty days after written notice, becomes insolvent, or loses authority essential to performance.\nOn termination, Licensee shall stop new availability and remove the content from Services under its control. Accrued\npayment, confidentiality, audit, indemnity and dispute provisions survive to the extent their nature requires.\nArticle 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.\nArticle 15 (Notices)\nFormal notices shall be sent to the representative and registered office in the Parties table by recorded post,\nrecognised courier or an electronic method producing confirmation of receipt. Address changes must be notified in the\nsame manner.\nArticle 16 (Force Majeure)\nA party delayed by an event beyond reasonable control, including natural disaster, war, government action or\nwidespread network failure, shall promptly notify the other and mitigate the effect. Payment obligations are not\nexcused by force majeure.\nArticle 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.\nArticle 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good­faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.\nArticle 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026­10­03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026­10­03"
+  "full_text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.\nArticle 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.\nArticle 2 (Licensed Subject Matter)\nOnly subject matter identified by title and asset type in this Agreement or a Schedule is licensed. A season, episode,\nedit, soundtrack or other related asset is included only when expressly stated.\nArticle 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\n2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.\nArticle 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.\nArticle 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.\nArticle 6 (Credits, Promotion and Quality Control)\nLicensee shall display the official title, production credit and principal credits supplied by Licensor in accordance with\nreasonable industry practice. Trailer, thumbnail and synopsis use is limited to promotion of the authorised Service.\nNo edit may materially distort the work or create misleading advertising. Encoding, subtitle synchronisation and\naspect-ratio adjustments are permitted only where they do not alter meaning.\nArticle 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.\nArticle 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.\nArticle 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.\nArticle 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.\nArticle 11 (Confidentiality)\nEach party shall protect the non-public commercial terms, unreleased content, technical material and business\ninformation of the other and disclose it only to personnel and advisers who need it and are bound by equivalent\nduties.\nThe duty does not apply to public information, information lawfully held without restriction, or disclosure required by\nlaw or court order; where practicable, advance notice shall be given.\nArticle 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.\nArticle 13 (Termination and Consequences)\nA party may terminate this Agreement or an affected grant if the other commits a material breach not cured within\nthirty days after written notice, becomes insolvent, or loses authority essential to performance.\nOn termination, Licensee shall stop new availability and remove the content from Services under its control. Accrued\npayment, confidentiality, audit, indemnity and dispute provisions survive to the extent their nature requires.\nArticle 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.\nArticle 15 (Notices)\nFormal notices shall be sent to the representative and registered office in the Parties table by recorded post,\nrecognised courier or an electronic method producing confirmation of receipt. Address changes must be notified in the\nsame manner.\nArticle 16 (Force Majeure)\nA party delayed by an event beyond reasonable control, including natural disaster, war, government action or\nwidespread network failure, shall promptly notify the other and mitigate the effect. Payment obligations are not\nexcused by force majeure.\nArticle 17 (Entire Agreement and General Terms)\nThis Agreement and its incorporated Schedules constitute the entire agreement on their subject and supersede prior\nproposals and discussions. Amendments and waivers must be in writing and signed by authorised representatives.\nInvalidity of one provision does not affect the remainder. Delay in exercising a right is not a waiver; headings are for\nconvenience only. Electronic and counterpart signatures are effective as originals.\nArticle 18 (Governing Law and Dispute Resolution)\nThis Agreement is governed by the laws of England and Wales. The parties shall attempt good-faith resolution for\nthirty days, after which the courts of London have exclusive jurisdiction.\nArticle 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03"
 }
