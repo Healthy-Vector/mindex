@@ -2,6 +2,82 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-22 — D-32 임시 DB 비동기 파이프라인 도입 (pdf_cache 대체)
+
+팀장이 확정한 `docs/mindex-임시DB-비동기파이프라인.html` 설계를 반영했다.
+기존 `pdf_cache`(동기 처리 전제, 5테이블 정규화)를 `mindex_staging`(비동기
+큐 + `extract_result.payload` jsonb 단일 보관, 3테이블)으로 전면 교체했다.
+
+### 한 일
+
+- `sql/pdf_cache_init/` → `sql/staging_init/`(git mv). `01_schema.sql`을
+  `pdf_blob`/`extract_job`/`extract_result` 3테이블로 재작성. `extract_job`은
+  `status`(QUEUED/RUNNING/DONE/FAILED)·`stage`(OCR/LLM)·`lease_until`(워커
+  점유 만료)·`attempts`·`consumed_at`(운영 DB 확정 완료 표시)을 갖는 큐 겸
+  상태 테이블. `(status, created_at)` 인덱스로 `SKIP LOCKED` 폴링을 지원.
+- `sql/init/01_schema.sql` — `contract.source_tmpid uuid UNIQUE` 신설.
+  별도 인스턴스라 실제 FK 불가, UNIQUE만이 같은 tmpid 이중 확정을 막는다.
+- `sql/init/02_conflict_rules.sql` — `save_rights_batch()`에 `p_source_tmpid
+  uuid DEFAULT NULL` 인자 추가. 신규 계약은 INSERT에 포함, 기존 계약은
+  SAVEPOINT 진입 전에 UPDATE로 기록해 배치가 충돌해도 값이 남게 했다.
+- `docs/mindex_remastered.dbml` — `contract.source_tmpid` 반영.
+- `docs/pdf_cache.dbml` → `docs/mindex_staging.dbml`(git mv), 새 3테이블
+  구조로 재작성. `docs/pdf_cache_erd.svg` → `docs/mindex_staging_erd.svg`(git
+  mv), 옛 `pdf_cache_erd.svg`와 같은 크로우풋 ERD 스타일(PK/FK 배지, 테이블별
+  헤더 색, 줄무늬 행)로 새 3테이블을 다시 그렸다. 1:1·CASCADE 표기는 원본의
+  1:N 갈매기 대신 양끝 "one" tick으로 바꿨다.
+- `docs/contract-registration-flow.md` — `p_source_tmpid` 설명 추가.
+- `docker-compose.yml` — 서비스/컨테이너/볼륨 `pdf-cache-db`/
+  `mindex-pdf-cache-db`/`pdf_cache_pgdata` → `staging-db`/
+  `mindex-staging-db`/`staging_pgdata`, 마운트 경로 `sql/staging_init`로 변경.
+- `.env.example` — `PDF_CACHE_DB_*` → `STAGING_DB_*`.
+- `docs/DECISIONS.md` — D-32 신설. O-12(등록 전 산출물 보관)를 D-32로 일부
+  해소 처리하고 남은 미결(TTL 배치 미구현, object storage 범위 밖)을 명시.
+
+### 검증
+
+- 이 세션에 docker/psql이 없어 **`docker compose down -v && docker compose up`
+  재기동, `sql/staging_init/01_schema.sql` 및 수정된 `sql/init/*.sql`의 실제
+  실행 검증을 하지 못했다.** 다음 세션 시작 시 최우선으로 확인할 것.
+- `save_rights_batch()` 시그니처 변경(신규 인자는 DEFAULT NULL이라 하위
+  호환)에 대한 pytest 재실행도 못 했다 — 기존 66개 테스트가 새 인자 없이도
+  통과해야 정상이다.
+
+### 추가 — 팀장 확인: B안(서버가 tmpid로 읽어 병합) 확정
+
+팀장이 "tmpid로 저장된 걸 읽어서 저장 쿼리를 날려주는 걸 생각했다"고 확인—
+위 표의 B안이다. 화면은 검증 필드만 들고 있고, 확정 API 서버가 `tmpid`로
+`extract_result.payload`를 읽어 병합한 뒤 `save_rights_batch()`를 부른다.
+이에 따라 P2 몫으로 짚었던 두 항목을 이 세션에서 마저 처리했다:
+
+- `sql/staging_init/02_roles.sql` 신설 — NOLOGIN 롤 3개(`staging_worker`/
+  `staging_confirm_api`/`staging_cleanup`, SER-002). 확정 API 롤에는
+  `pdf_blob` 권한을 안 줬다(원본 PDF 바이트는 확정 단계에 불필요). 실제
+  로그인 계정·비밀번호는 커밋 대상이 아니라 이 파일에 없다 — 배포 시
+  `GRANT <role> TO <login_role>`은 ops/P1 책임. 상세는 D-32 참고.
+- `tests/test_reason_code_pipeline.py`에 `source_tmpid` 테스트 4건 추가:
+  신규 계약 기록, 개정판 기록, 생략 시 NULL 유지, **같은 tmpid 재사용 시
+  `UniqueViolation`**(이게 핵심 방어선). `save()` 헬퍼에 `source_tmpid` 인자
+  추가. `python -m py_compile`만 확인했고 실제 DB 실행은 못 했다(아래 검증
+  항목과 동일한 이유).
+- `docs/DECISIONS.md`에 **O-14** 신설 — `extract_result.payload`가 계약서
+  원문 인용을 그대로 담고 있는데 암호화 여부가 미정이라는 점. B안에서 이
+  payload가 그대로 운영 DB `rights_grant.evidence`까지 이어지므로, 정책
+  확인이 필요하다(스키마 변경 여부는 그 다음 문제).
+
+### 남은 일
+
+- `mindex_staging` 워커(P1: SKIP LOCKED 폴링, OCR→LLM 처리), 확정 API의
+  tmpid 병합 로직(P4), TTL 7일 정리 배치는 코드로 존재하지 않는다. 이
+  세션은 스키마·롤·문서·테스트 코드만 다뤘다.
+- O-14(payload 암호화 여부) — 팀/보안 담당 확인 필요.
+- 새 NOLOGIN 롤에 실제 로그인 계정을 물리는 작업(ops/P1) — 지금은 워커·확정
+  API 모두 여전히 공용 슈퍼유저로 접근 중일 것이다.
+- Docker 환경 재검증(위 "검증" 항목) — 이번에 추가한 롤/테스트도 포함해서
+  한 번에 확인해야 한다.
+
+---
+
 ## 2026-08-21 — D-31 계약 상태·업로드 문서 상태·권리 점유 상태 분리
 
 - `contract.status`를 `draft | signed | cancelled`로 단순화했다. cancelled는 종결

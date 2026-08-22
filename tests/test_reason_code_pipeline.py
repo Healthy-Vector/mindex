@@ -12,6 +12,7 @@ save_rights_batch()의 성공/실패/개정판 세대 전환/lineage 승계/WAIV
 from __future__ import annotations
 
 import json
+import uuid
 
 import psycopg2
 import pytest
@@ -19,17 +20,18 @@ import pytest
 
 def save(cur, *, contract_id=None, counterparty="배치 상대방", ip_id, rights,
          file_name="batch.pdf", file_path="s3://batch/1.pdf", file_hash="sha256:batch",
-         document_kind="final"):
+         document_kind="final", source_tmpid=None):
     cur.execute(
         """
         SELECT batch_result, out_contract_id, out_history_id, constraint_name, conflict_report
         FROM save_rights_batch(
           %s, %s, %s, %s, %s, %s, %s::jsonb,
-          p_document_kind => %s::contract_document_kind
+          p_document_kind => %s::contract_document_kind,
+          p_source_tmpid => %s::uuid
         )
         """,
         (contract_id, counterparty, ip_id, file_name, file_path, file_hash,
-         json.dumps(rights), document_kind),
+         json.dumps(rights), document_kind, source_tmpid),
     )
     return cur.fetchone()
 
@@ -93,6 +95,65 @@ def test_save_batch_of_multiple_rights_all_succeed_together(cur, ctx, make_batch
     )
     assert result == "APPLIED"
     assert len(grants_of(cur, ctx["contract_id"])) == 2
+
+
+# ─────────────────────────────────────────────────────────────
+# source_tmpid — D-32 (mindex_staging 비동기 파이프라인 연결)
+# ─────────────────────────────────────────────────────────────
+def test_save_records_source_tmpid_on_new_contract(cur, ctx, make_batch_row):
+    tmpid = str(uuid.uuid4())
+    result, out_contract, _out_history, _constraint, _report = save(
+        cur, contract_id=None, ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        source_tmpid=tmpid,
+    )
+    assert result == "APPLIED"
+    cur.execute("SELECT source_tmpid FROM contract WHERE id = %s", (out_contract,))
+    assert cur.fetchone()[0] == tmpid
+
+
+def test_save_records_source_tmpid_on_existing_contract(cur, ctx, make_batch_row):
+    """개정판 확정도 그 확정 시도의 tmpid를 contract에 남긴다."""
+    tmpid = str(uuid.uuid4())
+    result, out_contract, _out_history, _constraint, _report = save(
+        cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        source_tmpid=tmpid,
+    )
+    assert result == "APPLIED"
+    cur.execute("SELECT source_tmpid FROM contract WHERE id = %s", (out_contract,))
+    assert cur.fetchone()[0] == tmpid
+
+
+def test_save_without_source_tmpid_leaves_column_null(cur, ctx, make_batch_row):
+    """비동기 파이프라인을 안 거친 호출은 그냥 생략하면 된다."""
+    result, out_contract, _out_history, _constraint, _report = save(
+        cur, contract_id=None, ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+    )
+    assert result == "APPLIED"
+    cur.execute("SELECT source_tmpid FROM contract WHERE id = %s", (out_contract,))
+    assert cur.fetchone()[0] is None
+
+
+def test_save_same_tmpid_twice_is_blocked_by_unique_constraint(cur, ctx, make_batch_row):
+    """같은 tmpid로 두 번 확정하면 DB가 막는다 — 별도 DB라 이게 유일한 방어선이다."""
+    tmpid = str(uuid.uuid4())
+    save(
+        cur, contract_id=None, ip_id=ctx["ip_id"],
+        rights=[make_batch_row(territory="KR")],
+        source_tmpid=tmpid,
+    )
+
+    cur.execute("INSERT INTO ip (title) VALUES ('다른 작품') RETURNING id")
+    other_ip_id = cur.fetchone()[0]
+
+    with pytest.raises(psycopg2.errors.UniqueViolation):
+        save(
+            cur, contract_id=None, ip_id=other_ip_id,
+            rights=[make_batch_row(territory="JP")],
+            source_tmpid=tmpid,
+        )
 
 
 def test_draft_contract_reserves_rights_without_becoming_confirmed(cur, ctx, make_batch_row):

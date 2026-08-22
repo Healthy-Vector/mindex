@@ -449,7 +449,8 @@ CREATE OR REPLACE FUNCTION save_rights_batch(
     p_mime_type    text DEFAULT 'application/pdf',
     p_raw_text     text DEFAULT NULL,
     p_chunks       jsonb DEFAULT NULL,  -- 선택적 contract_chunk 배치 (04_vector.sql 의존)
-    p_document_kind contract_document_kind DEFAULT 'final'
+    p_document_kind contract_document_kind DEFAULT 'final',
+    p_source_tmpid uuid DEFAULT NULL    -- mindex_staging.extract_job.tmpid (D-32). NULL이면 기록 안 함
 )
 RETURNS TABLE (
     batch_result     text,           -- 'APPLIED' · 'CONFLICTED'
@@ -482,10 +483,17 @@ BEGIN
     IF v_ip IS NULL THEN
       INSERT INTO ip (title) VALUES (p_counterparty || ' 관련 신규 작품') RETURNING id INTO v_ip;
     END IF;
-    INSERT INTO contract (counterparty) VALUES (p_counterparty) RETURNING id INTO v_contract;
+    INSERT INTO contract (counterparty, source_tmpid)
+    VALUES (p_counterparty, p_source_tmpid) RETURNING id INTO v_contract;
   ELSE
     v_contract := p_contract_id;
     v_ip := p_ip_id;
+    -- 개정판도 같은 tmpid 이중 확정 방지 대상이다. source_tmpid UNIQUE가
+    -- SAVEPOINT 밖(=이 문장)에서 걸리므로, 배치가 뒤에서 충돌해도
+    -- 이 기록은 살아남는다 — 비동기 파이프라인 문서 §3 ⑧ 순서 그대로다.
+    IF p_source_tmpid IS NOT NULL THEN
+      UPDATE contract SET source_tmpid = p_source_tmpid WHERE id = v_contract;
+    END IF;
   END IF;
 
   IF v_ip IS NOT NULL THEN

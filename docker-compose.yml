@@ -25,24 +25,24 @@ services:
       interval: 5s
       retries: 10
 
-  pdf-cache-db:
+  staging-db:
     image: postgres:17
-    container_name: mindex-pdf-cache-db
+    container_name: mindex-staging-db
     environment:
-      POSTGRES_USER: ${PDF_CACHE_DB_USER:-pdf_cache}
-      POSTGRES_PASSWORD: ${PDF_CACHE_DB_PASSWORD}
-      POSTGRES_DB: ${PDF_CACHE_DB_NAME:-pdf_cache}
+      POSTGRES_USER: ${STAGING_DB_USER:-mindex_staging}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD}
+      POSTGRES_DB: ${STAGING_DB_NAME:-mindex_staging}
     ports:
-      - "${PDF_CACHE_DB_PORT:-5434}:5432"
+      - "${STAGING_DB_PORT:-5434}:5432"
     volumes:
-      - pdf_cache_pgdata:/var/lib/postgresql/data
-      - ./sql/pdf_cache_init:/docker-entrypoint-initdb.d
+      - staging_pgdata:/var/lib/postgresql/data
+      - ./sql/staging_init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PDF_CACHE_DB_USER:-pdf_cache}"]
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_DB_USER:-mindex_staging}"]
       interval: 5s
       retries: 10
 
 volumes:
   pgdata:
   archive:
-  pdf_cache_pgdata:
+  staging_pgdata:
