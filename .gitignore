@@ -34,6 +34,8 @@ venv/
 data/generated/
 *.pdf
 *.docx
+contract_Data/
+*.zip
 
 # Frontend (React/Vite)
 frontend/node_modules/
