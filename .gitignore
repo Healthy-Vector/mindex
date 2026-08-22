@@ -37,8 +37,9 @@ data/generated/
 contract_Data/
 *.zip
 
-# 합성데이터 워크스페이스 전용 문서 (서비스 저장소에서는 관리하지 않음)
-# - docs/overview/ : Codex 작업 지시문 · Phase 진행관리. 이 저장소에 없는 파일 23개를 참조함
+# 합성데이터 워크스페이스 전용 문서 — 재유입 방지용 (해당 폴더는 이미 제거함)
+# 원본은 ../k-rights-synthetic-data 에 있으며 서비스 저장소에서는 관리하지 않는다.
+# - docs/overview/ : Codex 작업 지시문 · Phase 진행관리 (이 저장소에 없는 파일 23개 참조)
 #   → 서비스 내용은 docs/K-RIGHTS_SERVICE_OVERVIEW.md 로, 진행상태는
 #     docs/synthetic_data/DATASET_STATUS.md 로 정리해 두었다
 # - docs/synthetic_data/decisions/ : PDF 렌더링·제목 규칙 등 생성 파이프라인 결정 기록
