@@ -68,10 +68,12 @@ PDF 바이너리는 object storage에 임시 업로드한다. 등록 전에는 `
 
 `save_rights_batch()`는 다음을 한 트랜잭션에서 수행한다. 선택 인자
 `p_document_kind`는 `draft | final`이며 기본값은 `final`이다. 마지막 선택 인자
-`p_source_tmpid`는 `mindex_staging.extract_job.tmpid`를 넘기면
-`contract.source_tmpid`에 기록되어 같은 tmpid의 이중 확정을 DB가 차단한다
-(D-32, `docs/mindex-임시DB-비동기파이프라인.html`). 비동기 파이프라인을
-쓰지 않는 호출은 생략하면 된다 — 기본값 NULL.
+`p_source_tmpid`는 `staging.extract_job.tmpid`를 넘기면 `contract.source_tmpid`에
+기록되어 같은 tmpid의 이중 확정을 DB가 차단한다. `staging`은 같은 DB 안의
+별도 스키마이고 이 컬럼은 실제 FK다(D-33, `docs/mindex-임시DB-비동기파이프라인.html`,
+`docs/mindex_staging DB 설명서.md`). `staging.extract_job`에 없는 tmpid를 넘기면
+FK 위반으로 거부된다. 비동기 파이프라인을 쓰지 않는 호출은 생략하면 된다 —
+기본값 NULL.
 
 ```text
 contract 생성 또는 기존 contract ID 사용

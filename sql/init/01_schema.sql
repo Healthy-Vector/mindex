@@ -242,9 +242,9 @@ CREATE TABLE contract (
     currency            char(4),               -- 'KRW' · 'USD' · 'JPY'
     status              contract_status NOT NULL DEFAULT 'draft',
     current_history_id  bigint,                -- 등록된 최신 세대. FK는 아래서 ALTER로
-    source_tmpid        uuid UNIQUE,           -- mindex_staging.extract_job.tmpid 논리적 참조.
-                                                -- 별도 DB라 실제 FK는 못 걸고, UNIQUE로 같은
-                                                -- tmpid의 이중 확정만 막는다 (D-32)
+    source_tmpid        uuid UNIQUE,           -- staging.extract_job.tmpid 참조. FK는
+                                                -- 06_staging_schema.sql에서 staging 스키마
+                                                -- 생성 후 ALTER로 붙는다 (D-33)
 
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),

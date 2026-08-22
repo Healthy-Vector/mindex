@@ -90,6 +90,11 @@ status를 늘리지 않고 별도 cancellation reason으로 모델링한다. can
 
 ### D-32 — 임시 DB를 별도 인스턴스로 분리하고 비동기 추출 파이프라인 도입
 
+**정정(D-33)**: 아래 "별도 DB 인스턴스" 전제는 팀이 "인스턴스"를 스키마
+레벨로 오해한 것이었다. 실제로는 같은 `mindex` DB 안 `staging` 스키마
+분리다. 비동기 파이프라인 자체(3테이블·큐·상태전이)는 이 D-32 그대로
+유효하고, 물리 배치 위치만 D-33이 정정한다.
+
 OCR·LLM 추출이 계약서 한 건에 50~60초 걸려 요청 안에서 끝낼 수 없다. P1은
 운영 DB 인스턴스 안 `staging` 스키마를 제안했지만, 팀 논의로 **별도 DB
 인스턴스(`mindex_staging`)**로 분리하기로 확정했다. 근거와 대가·유실방지
@@ -118,13 +123,48 @@ OCR·LLM 추출이 계약서 한 건에 50~60초 걸려 요청 안에서 끝낼 
 - 인프라: `docker-compose.yml`의 `pdf-cache-db` 서비스/컨테이너/볼륨과
   `.env.example`의 `PDF_CACHE_DB_*`는 각각 `staging-db`/`STAGING_DB_*`로
   이름을 바꿨다. 스키마 파일 위치는 `sql/pdf_cache_init/`→`sql/staging_init/`.
+  **(D-33에서 다시 정정 — 아래 참고)**
 - `mindex_staging`에 최소권한 NOLOGIN 롤 3개(`staging_worker`,
-  `staging_confirm_api`, `staging_cleanup`)를 신설했다(`sql/staging_init/
-  02_roles.sql`, SER-002). 확정 API 쪽 롤에는 `pdf_blob` 권한을 의도적으로
-  안 줬다 — 확정 단계는 tmpid로 `extract_result`를 읽어 운영 DB 저장
-  쿼리를 만드는 데 원본 PDF 바이트가 필요 없다. 실제 로그인 계정·비밀번호는
-  이 파일에 없다 — `.env`와 같은 이유로 커밋 대상이 아니며, 배포 시
-  `GRANT <role> TO <login_role>`로 소속시키는 건 배포(ops/P1) 책임이다.
+  `staging_confirm_api`, `staging_cleanup`)를 신설했다(SER-002). 확정 API 쪽
+  롤에는 `pdf_blob` 권한을 의도적으로 안 줬다 — 확정 단계는 tmpid로
+  `extract_result`를 읽어 운영 DB 저장 쿼리를 만드는 데 원본 PDF 바이트가
+  필요 없다. 이 역할 분리 원칙은 D-33에서도 그대로 유지, 스키마 레벨
+  GRANT로 옮겨졌을 뿐이다.
+
+### D-33 — D-32 정정: 별도 인스턴스가 아니라 같은 DB의 스키마 분리
+
+팀장이 새 다이어그램(`OpenSQL Instance → mindex DB → public/staging 두
+스키마`)을 공유하며 D-32의 "별도 DB 인스턴스" 전제가 팀의 오해였음을
+확인했다. **실제 확정 구조는 하나의 `mindex` DB 안에 기존 `public`
+스키마와 신설 `staging` 스키마(`pdf_blob`/`extract_job`/`extract_result`)뿐이다.**
+`public`의 기존 19개 테이블은 옮기지 않는다 — "master 스키마"라는 다이어그램
+표현은 `public`을 부르는 이름일 뿐, 실제로 새로 만드는 스키마는 `staging`
+하나다.
+
+- **`contract.source_tmpid`는 실제 FK다**: `REFERENCES staging.extract_job(tmpid)
+  ON DELETE SET NULL` (`sql/init/06_staging_schema.sql`, `contract`가 이미
+  존재하는 `01_schema.sql` 이후 ALTER로 붙인다). 같은 DB라 가능해졌다.
+  `staging.extract_job`에 없는 tmpid로 확정을 시도하면 이제
+  `ForeignKeyViolation`으로 걸러진다 — 별도 인스턴스 가정 때는 없던
+  참조 무결성 보장이다. TTL 정리로 `extract_job`이 삭제되면
+  `contract.source_tmpid`는 `NULL`로 풀린다(CASCADE 아님 — 정리 배치가
+  이미 확정된 `contract` 행을 건드리면 안 된다).
+- **staging 스키마 권한의 "insert, select만 허용"은 일반 접근 기준값이고,
+  워커·정리 배치는 예외다.** D-32에서 설계한 3-롤 구조를 스키마 레벨
+  `GRANT`로 그대로 옮긴다 — worker(SELECT+UPDATE+INSERT), confirm_api(SELECT
+  뿐 + `extract_job.consumed_at` UPDATE), cleanup(SELECT+DELETE). 세 롤 모두
+  `GRANT USAGE ON SCHEMA staging`이 먼저 필요하다(별도 DB일 땐 불필요했던
+  권한). `sql/init/07_staging_roles.sql`.
+- 인프라 단순화: `docker-compose.yml`의 `staging-db` 서비스/컨테이너/볼륨,
+  `.env.example`의 `STAGING_DB_*`를 전부 제거했다 — 같은 `DATABASE_URL`로
+  `staging.*`까지 접근한다.
+- 문서 정본 통합: 같은 물리 DB이므로 DBML도 한 Project여야 FK가 이어진다.
+  `docs/mindex_staging.dbml`(별도 Project)을 삭제하고 `staging.*` 테이블을
+  `docs/mindex_remastered.dbml`에 스키마 접두사로 합쳤다.
+- 새로 열린 질문(O-15): 같은 DB가 되면서 확정(⑧)과 임시 정리(⑨)를 이론적으로
+  한 트랜잭션으로 묶을 수 있게 됐다. 이번 정정 범위에서는 파이프라인 단계
+  구조(`mindex-임시DB-비동기파이프라인.html` §3) 자체를 재설계하지
+  않았다 — 팀 논의 필요.
 
 ## 미결
 
@@ -138,23 +178,35 @@ OCR·LLM 추출이 계약서 한 건에 50~60초 걸려 요청 안에서 끝낼 
 
 ### O-12 — 등록 전 산출물 보관 (D-32로 일부 해소)
 
-D-32로 위치·수명 자체는 정해졌다 — `mindex_staging.pdf_blob`/`extract_job`/
+D-32로 위치·수명 자체는 정해졌다 — `staging.pdf_blob`/`extract_job`/
 `extract_result`에 보관하고, 확정되면 `consumed_at` 기록 후 TTL 7일 배치가
 정리하며, 확정 안 된 `FAILED`·방치 행도 같은 배치가 청소한다. 남은 미결은
 TTL 7일 배치 자체(스케줄러·구현 위치)가 아직 코드로 존재하지 않는다는 점,
 그리고 object storage(PDF 원본을 DB `bytea`가 아니라 별도 스토리지에 둘지)는
 D-32 문서 범위 밖이라는 점이다.
 
-### O-14 — extract_result.payload 암호화 여부 (D-32)
-
-`pdf_blob.data`는 "암호화된 바이트"라고 명시돼 있는데 `extract_result.payload`는
-암호화 언급이 없다. 이 payload에는 evidence의 원문 인용(계약서 exact text)이
-그대로 들어있고, B안(확정 API가 tmpid로 이걸 읽어 운영 DB에 병합)이 채택되면
-평문 payload가 그대로 운영 DB `rights_grant.evidence`까지 이어진다. D-14는
-애플리케이션 레이어 암호화 원칙이라 이 판단도 정책 확인이 필요하다 — 스키마
-컬럼 타입 자체는 안 바뀔 수 있지만(jsonb 그대로), 암호화 대상 여부는 팀/보안
-담당 확인 필요.
-
 ### O-13 — 다중 territory 표현과 스냅샷
 
 `JP + TW`, `Worldwide except US` 같은 논리 범위의 원문 표현, 국가 전개 시점, 그룹 버전 정책이 미결이다. JSONB를 충돌 판정의 정본으로 쓰지 않고 국가별 원자 행을 사용하는 원칙만 확정돼 있다.
+
+### O-14 — staging.extract_result.payload 암호화 여부 (D-32·D-33)
+
+`staging.pdf_blob.data`는 "암호화된 바이트"라고 명시돼 있는데
+`staging.extract_result.payload`는 암호화 언급이 없다. 이 payload에는
+evidence의 원문 인용(계약서 exact text)이 그대로 들어있고, B안(확정 API가
+tmpid로 이걸 읽어 운영 쪽에 병합)이 채택되면 평문 payload가 그대로
+`rights_grant.evidence`까지 이어진다. D-14는 애플리케이션 레이어 암호화
+원칙이라 이 판단도 정책 확인이 필요하다 — 스키마 컬럼 타입 자체는 안 바뀔
+수 있지만(jsonb 그대로), 암호화 대상 여부는 팀/보안 담당 확인 필요. 같은
+DB의 별도 스키마로 정정됐다고 이 이슈의 실질(원문이 평문으로 존재)이
+바뀌지는 않는다.
+
+### O-15 — 확정(⑧)·임시 정리(⑨) 트랜잭션 통합 여부 (D-33)
+
+D-32 설계 시점엔 별도 인스턴스 가정이라 ⑧(운영 DB 확정)과 ⑨(임시 DB 정리)를
+물리적으로 한 트랜잭션으로 묶을 수 없었다. D-33으로 같은 DB의 스키마
+분리임이 확인되면서 이론적으로는 한 트랜잭션으로 묶을 수 있게 됐다 —
+그러면 `mindex_staging DB 설명서.md` §7의 "⑧ 커밋 직후·⑨ 직전" 유실 구간
+자체가 사라진다. 반대로 확정 트랜잭션이 길어지고 워커/API 프로세스 경계와
+어긋난다는 트레이드오프가 있다. 이번 D-33 정정 범위에서는 파이프라인 단계
+구조를 그대로 유지했고, 통합 여부는 팀 논의가 필요하다.

@@ -106,4 +106,12 @@ INSERT INTO schema_meta (version, note) VALUES
      'rights_grant active로 충돌 슬롯을 선점하며 save_rights_batch의 p_document_kind로 '
      '초안/최종본 저장을 지원. final/applied만 contract를 signed로 전환. contract '
      'cancelled 전환 시 active grant를 terminated/cancelled로 종료. signed 계약 권리 '
-     '전용 confirmed_rights_grant view 추가');
+     '전용 confirmed_rights_grant view 추가'),
+    ('2026-08-22.1',
+     'D-33 임시 DB를 staging 스키마로 확정 — D-32에서 "별도 DB 인스턴스"로 정했던 건 '
+     '팀이 인스턴스를 스키마 레벨로 오해한 것이었고(D-32는 배포된 적 없어 별도 버전 '
+     '태그 없이 이번에 정정), 실제로는 같은 mindex DB 안 staging 스키마(pdf_blob/'
+     'extract_job/extract_result, 06_staging_schema.sql)다. 같은 DB라 '
+     'contract.source_tmpid를 staging.extract_job.tmpid에 실제 FK로 걸었다 '
+     '(ON DELETE SET NULL). staging 스키마 최소권한 롤 3종(staging_worker/'
+     'staging_confirm_api/staging_cleanup, 07_staging_roles.sql) 스키마 레벨로 이식');

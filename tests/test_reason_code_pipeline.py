@@ -98,10 +98,10 @@ def test_save_batch_of_multiple_rights_all_succeed_together(cur, ctx, make_batch
 
 
 # ─────────────────────────────────────────────────────────────
-# source_tmpid — D-32 (mindex_staging 비동기 파이프라인 연결)
+# source_tmpid — D-33 (staging 스키마, 같은 DB. contract.source_tmpid는 실제 FK)
 # ─────────────────────────────────────────────────────────────
-def test_save_records_source_tmpid_on_new_contract(cur, ctx, make_batch_row):
-    tmpid = str(uuid.uuid4())
+def test_save_records_source_tmpid_on_new_contract(cur, ctx, make_batch_row, make_staging_job):
+    tmpid = make_staging_job()
     result, out_contract, _out_history, _constraint, _report = save(
         cur, contract_id=None, ip_id=ctx["ip_id"],
         rights=[make_batch_row(territory="KR")],
@@ -112,9 +112,9 @@ def test_save_records_source_tmpid_on_new_contract(cur, ctx, make_batch_row):
     assert cur.fetchone()[0] == tmpid
 
 
-def test_save_records_source_tmpid_on_existing_contract(cur, ctx, make_batch_row):
+def test_save_records_source_tmpid_on_existing_contract(cur, ctx, make_batch_row, make_staging_job):
     """개정판 확정도 그 확정 시도의 tmpid를 contract에 남긴다."""
-    tmpid = str(uuid.uuid4())
+    tmpid = make_staging_job()
     result, out_contract, _out_history, _constraint, _report = save(
         cur, contract_id=ctx["contract_id"], ip_id=ctx["ip_id"],
         rights=[make_batch_row(territory="KR")],
@@ -136,9 +136,9 @@ def test_save_without_source_tmpid_leaves_column_null(cur, ctx, make_batch_row):
     assert cur.fetchone()[0] is None
 
 
-def test_save_same_tmpid_twice_is_blocked_by_unique_constraint(cur, ctx, make_batch_row):
-    """같은 tmpid로 두 번 확정하면 DB가 막는다 — 별도 DB라 이게 유일한 방어선이다."""
-    tmpid = str(uuid.uuid4())
+def test_save_same_tmpid_twice_is_blocked_by_unique_constraint(cur, ctx, make_batch_row, make_staging_job):
+    """같은 tmpid로 두 번 확정하면 DB가 막는다."""
+    tmpid = make_staging_job()
     save(
         cur, contract_id=None, ip_id=ctx["ip_id"],
         rights=[make_batch_row(territory="KR")],
@@ -152,6 +152,19 @@ def test_save_same_tmpid_twice_is_blocked_by_unique_constraint(cur, ctx, make_ba
         save(
             cur, contract_id=None, ip_id=other_ip_id,
             rights=[make_batch_row(territory="JP")],
+            source_tmpid=tmpid,
+        )
+
+
+def test_save_unknown_tmpid_is_blocked_by_foreign_key(cur, ctx, make_batch_row):
+    """D-33 — 같은 DB가 되면서 생긴 참조 무결성: staging.extract_job에 없는
+    tmpid로 확정을 시도하면 DB가 막는다(별도 인스턴스 가정 때는 없던 방어)."""
+    tmpid = str(uuid.uuid4())  # staging.extract_job에 없음
+
+    with pytest.raises(psycopg2.errors.ForeignKeyViolation):
+        save(
+            cur, contract_id=None, ip_id=ctx["ip_id"],
+            rights=[make_batch_row(territory="KR")],
             source_tmpid=tmpid,
         )
 

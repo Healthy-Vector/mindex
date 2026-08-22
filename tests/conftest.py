@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 
 import psycopg2
 import pytest
@@ -146,5 +147,29 @@ def make_batch_row():
         if conditions_raw is not None:
             row["conditions_raw"] = conditions_raw
         return row
+
+    return _make
+
+
+@pytest.fixture
+def make_staging_job(cur):
+    """staging.pdf_blob + staging.extract_job(status='DONE') 한 벌을 만들고 tmpid를 반환한다.
+
+    D-33 — contract.source_tmpid가 staging.extract_job.tmpid에 실제 FK로 걸려
+    있어서, save_rights_batch(p_source_tmpid=>...)에 넘길 tmpid는 이제
+    staging 쪽에 실제로 존재해야 한다(없으면 ForeignKeyViolation).
+    """
+
+    def _make(status="DONE"):
+        tmpid = str(uuid.uuid4())
+        cur.execute(
+            "INSERT INTO staging.pdf_blob (tmpid, data) VALUES (%s::uuid, %s)",
+            (tmpid, b"%PDF-1.4 test"),
+        )
+        cur.execute(
+            "INSERT INTO staging.extract_job (tmpid, status) VALUES (%s::uuid, %s)",
+            (tmpid, status),
+        )
+        return tmpid
 
     return _make

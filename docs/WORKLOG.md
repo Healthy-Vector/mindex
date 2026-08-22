@@ -65,16 +65,64 @@
   payload가 그대로 운영 DB `rights_grant.evidence`까지 이어지므로, 정책
   확인이 필요하다(스키마 변경 여부는 그 다음 문제).
 
+### 추가 — 인스턴스 분리는 오해, 스키마 레벨로 정정 (D-33)
+
+팀장이 새 다이어그램(`OpenSQL Instance → mindex DB → public/staging 두
+스키마`)을 공유하며 정정: "인스턴스"를 스키마 레벨로 오해하고 있었다.
+실제 확정 구조는 **같은 mindex DB 안에 `public`(기존 19개 테이블, 안
+옮김)과 `staging`(신설, `pdf_blob`/`extract_job`/`extract_result`) 두
+스키마**뿐이다. AskUserQuestion으로 확인한 3가지: (1) `public`은 그대로,
+`staging`만 신설 (2) `contract.source_tmpid`는 실제 FK로 (3) staging 권한
+"insert/select만"은 일반 접근 기준값이고 워커/정리 배치는 예외 — 지난
+D-32 3-롤 구조를 스키마 레벨로 그대로 옮긴다.
+
+**한 일**:
+
+- `sql/staging_init/`(별도 인스턴스용) 삭제. `sql/init/06_staging_schema.sql`
+  (`CREATE SCHEMA staging` + 3테이블 + `contract.source_tmpid`에 실제 FK
+  `ON DELETE SET NULL` ALTER) · `sql/init/07_staging_roles.sql`(3-롤,
+  `GRANT USAGE ON SCHEMA staging` 추가, 스키마 한정 GRANT)로 대체.
+  `05_change_log.sql`과 `99_schema_meta.sql` 사이에 위치.
+- `sql/init/01_schema.sql`·`02_conflict_rules.sql` 주석에서 "별도 DB라
+  FK 없음" 문구 제거. `99_schema_meta.sql`에 `2026-08-22.1` 버전 행 추가
+  (D-32가 버전 태그 없이 지나간 것도 이번에 같이 기록).
+- `docker-compose.yml`의 `staging-db` 서비스/컨테이너/볼륨,
+  `.env.example`의 `STAGING_DB_*` 전부 제거 — `db` 서비스 하나, 기존
+  `DATABASE_URL` 하나로 `staging.*`까지 접근.
+- `docs/mindex_staging.dbml` 삭제, `staging.*` 테이블을
+  `docs/mindex_remastered.dbml`에 스키마 접두사로 합침(같은 물리 DB라 한
+  Project여야 `Ref: contract.source_tmpid > staging.extract_job.tmpid
+  [delete: set null]`가 제대로 이어진다).
+- `docs/mindex_staging_erd.svg` — 구조(3테이블, CASCADE)는 안 바꾸고
+  title/desc/캡션 텍스트만 "별도 인스턴스" → "같은 mindex DB, staging
+  스키마"로 수정.
+- `docs/mindex_staging DB 설명서.md` 전면 수정 — 서두 정정 안내,
+  §3 파이프라인 표의 "DB" 열을 "스키마"(public/staging)로, §5 source_tmpid를
+  실제 FK 코드로, §6 롤을 스키마 한정 GRANT로, §7에 O-15 각주 추가.
+- `docs/contract-registration-flow.md`의 `p_source_tmpid` 설명 정정.
+- `docs/DECISIONS.md` — D-32 본문 위에 정정 pointer, 새 **D-33** 신설,
+  O-14 문구 정정("별도 DB"→"같은 DB의 별도 스키마"), 새 **O-15**(⑧+⑨
+  트랜잭션 통합 여부, 이번엔 결정 안 함) 추가.
+
+**검증**: 이번에도 Docker 데몬이 안 떠 있어 `docker compose down -v && up`,
+`\dn`/`\dt staging.*`/`\d contract`로 FK 확인, `pg_roles` 조회 전부 못
+했다. `pytest`도 실제 DB 실행은 못 함. 다음 세션 최우선 확인 필요.
+
 ### 남은 일
 
-- `mindex_staging` 워커(P1: SKIP LOCKED 폴링, OCR→LLM 처리), 확정 API의
-  tmpid 병합 로직(P4), TTL 7일 정리 배치는 코드로 존재하지 않는다. 이
-  세션은 스키마·롤·문서·테스트 코드만 다뤘다.
-- O-14(payload 암호화 여부) — 팀/보안 담당 확인 필요.
-- 새 NOLOGIN 롤에 실제 로그인 계정을 물리는 작업(ops/P1) — 지금은 워커·확정
-  API 모두 여전히 공용 슈퍼유저로 접근 중일 것이다.
-- Docker 환경 재검증(위 "검증" 항목) — 이번에 추가한 롤/테스트도 포함해서
-  한 번에 확인해야 한다.
+- **Docker 환경 실제 검증(최우선, 3세션 연속 밀림)**: `staging` 스키마
+  생성, `contract_source_tmpid_fkey` FK, 3롤(`pg_roles`), `pytest -q` 전체
+  재실행(특히 `source_tmpid`/신규 FK 관련 테스트). `tests/conftest.py`의
+  `make_staging_job` 픽스처와 `test_reason_code_pipeline.py`의 관련 테스트가
+  이번에 함께 바뀌었다 — 실제 FK 위반 케이스가 새로 추가됐다.
+- `staging_confirm_api`가 `public` 스키마에 필요한 권한(EXECUTE
+  `save_rights_batch()` 등, SER-002 전체 롤 설계) — 후속 작업.
+- O-14(payload 암호화 여부), O-15(⑧+⑨ 트랜잭션 통합 여부) — 둘 다 팀/보안
+  담당 확인 필요.
+- `staging` 워커(P1), 확정 API의 tmpid 병합 로직(P4), TTL 7일 정리 배치는
+  여전히 코드로 존재하지 않는다.
+- 새 NOLOGIN 롤에 실제 로그인 계정을 물리는 작업(ops/P1) — 지금은 여전히
+  공용 슈퍼유저로 접근 중일 것이다.
 
 ---
 

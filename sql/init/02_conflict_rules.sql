@@ -450,7 +450,8 @@ CREATE OR REPLACE FUNCTION save_rights_batch(
     p_raw_text     text DEFAULT NULL,
     p_chunks       jsonb DEFAULT NULL,  -- 선택적 contract_chunk 배치 (04_vector.sql 의존)
     p_document_kind contract_document_kind DEFAULT 'final',
-    p_source_tmpid uuid DEFAULT NULL    -- mindex_staging.extract_job.tmpid (D-32). NULL이면 기록 안 함
+    p_source_tmpid uuid DEFAULT NULL    -- staging.extract_job.tmpid (D-33). NULL이면 기록 안 함.
+                                         -- 값이 있는데 staging.extract_job에 없으면 FK 위반으로 걸러진다
 )
 RETURNS TABLE (
     batch_result     text,           -- 'APPLIED' · 'CONFLICTED'
