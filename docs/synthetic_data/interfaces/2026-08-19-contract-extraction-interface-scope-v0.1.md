@@ -352,7 +352,7 @@ offset이 제공될 경우 기준은 다음과 같다.
 
 복수 Grant, 복수 이용형태, 지역 정의·제외, 별도 OST Grant, 복수 payment와 다대다 Evidence를 포함한 전체 예시는 다음 파일에 둔다.
 
-- `docs/proposals/examples/contract-extraction-v0.1.example.json`
+- `docs/synthetic_data/interfaces/examples/contract-extraction-v0.1.example.json`
 
 이 예시는 논리 interface를 설명하기 위한 것으로 DB ID나 dataset ID를 포함하지 않는다.
 
