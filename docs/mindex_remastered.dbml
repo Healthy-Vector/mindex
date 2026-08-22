@@ -125,6 +125,7 @@ Table ip {
   id BIGSERIAL [pk]
   title TEXT [not null]
   kind TEXT
+  activity TEXT [not null, default: 'active', note: 'ENUM: active/deactive. 프런트 필터 전용, 판정 로직 무관']
   created_at TIMESTAMPTZ [not null, default: `now()`]
 }
 Table ip_alias {

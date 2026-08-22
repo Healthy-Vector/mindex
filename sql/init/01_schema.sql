@@ -56,6 +56,9 @@ CREATE TYPE terminated_reason_kind AS ENUM ('superseded', 'expired', 'waiver', '
 -- D-30 — content_asset의 대상 범위 종류. 시리즈 전체/시즌/에피소드/에디션.
 CREATE TYPE asset_scope_kind AS ENUM ('SERIES_ALL', 'SEASON', 'EPISODE', 'EDITION');
 
+-- 프런트 필터 전용. 판정 로직·EXCLUDE·트리거 어디에도 관여하지 않는다.
+CREATE TYPE ip_activity_kind AS ENUM ('active', 'deactive');
+
 -- ─────────────────────────────────────────────────────────────
 -- 참조 테이블 (시드는 03_reference_data.sql)
 -- ─────────────────────────────────────────────────────────────
@@ -177,6 +180,7 @@ CREATE TABLE ip (
     id          bigserial PRIMARY KEY,
     title       text NOT NULL,
     kind        text,                    -- '드라마' · '영화'
+    activity    ip_activity_kind NOT NULL DEFAULT 'active',
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 

@@ -114,4 +114,7 @@ INSERT INTO schema_meta (version, note) VALUES
      'extract_job/extract_result, 06_staging_schema.sql)다. 같은 DB라 '
      'contract.source_tmpid를 staging.extract_job.tmpid에 실제 FK로 걸었다 '
      '(ON DELETE SET NULL). staging 스키마 최소권한 롤 3종(staging_worker/'
-     'staging_confirm_api/staging_cleanup, 07_staging_roles.sql) 스키마 레벨로 이식');
+     'staging_confirm_api/staging_cleanup, 07_staging_roles.sql) 스키마 레벨로 이식'),
+    ('2026-08-23.1',
+     'ip.activity 컬럼 추가(ip_activity_kind ENUM: active/deactive, DEFAULT active). '
+     '프런트 목록 필터 전용 플래그 — EXCLUDE/트리거/판정 로직 어디에도 관여하지 않는다');
