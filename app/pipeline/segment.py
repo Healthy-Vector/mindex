@@ -16,18 +16,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from enum import StrEnum
+
+from app.schemas.pipeline import ClauseKind
 
 FRONT_MATTER = "__FRONT_MATTER__"
 UNSEGMENTED = "__UNSEGMENTED__"
-
-
-class ClauseKind(StrEnum):
-    FRONT_MATTER = "FRONT_MATTER"
-    ARTICLE = "ARTICLE"
-    SCHEDULE = "SCHEDULE"
-    GRANT_ITEM = "GRANT_ITEM"
-    UNSEGMENTED = "UNSEGMENTED"
 
 
 # 본문 조항 머리. 언어 판별에도 쓴다.

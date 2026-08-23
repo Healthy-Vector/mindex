@@ -11,7 +11,8 @@ CI에서 그대로 돈다. 신호 계산은 extract.py가 맡는다.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
+
+from app.schemas.pipeline import TextSource
 
 # 판정 임계값 — 합성데이터 86건 446페이지(전부 digital-born) 문자밀도 실측으로 정했다.
 #
@@ -27,12 +28,6 @@ MAX_IMAGE_COVERAGE = 0.6
 # 이미지가 페이지를 덮으면서 텍스트도 어느 정도 있으면
 # "스캔 + 품질 나쁜 OCR 레이어"를 의심한다.
 SUSPECT_DENSITY_UNDER_IMAGE = 0.5
-
-
-class TextSource(StrEnum):
-    TEXT_LAYER = "TEXT_LAYER"
-    OCR = "OCR"
-    VERIFY = "VERIFY"
 
 
 @dataclass(frozen=True)

@@ -8,6 +8,10 @@ Task1의 담당 경계 전체가 이 함수 하나다.
 사용자가 저장을 확정한 시점에 Worker가 한다. 그래서 임베딩 벡터를 번들에 실어
 보낸다. 안 그러면 사용자 검색용 벡터가 어디에도 남지 않아 검색할 때마다 PDF를
 다시 파싱해야 한다.
+
+반환값은 pydantic 모델이다. JSON이 필요하면 `.model_dump(mode="json")`를 쓴다.
+모델을 거치는 이유는 직렬화가 아니라 검증이다 — offset 정합성, 페이지 범위,
+`fields[]`의 참조 무결성이 여기서 걸린다. 자세한 내용은 app/schemas/pipeline.py.
 """
 
 from __future__ import annotations
@@ -19,49 +23,58 @@ from app.pipeline.chunk import Chunk, build_chunks, chunk_stats
 from app.pipeline.extract import extract_document
 from app.pipeline.retrieval import FIELD_QUERIES, Hit, retrieve
 from app.pipeline.segment import segment
+from app.schemas.pipeline import (
+    SCHEMA_VERSION,
+    BundleChunk,
+    ChunkLocation,
+    DocumentInfo,
+    FieldHit,
+    RetrievalBundle,
+    RetrievalInfo,
+)
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = "mindex.retrieval-bundle.v0.2"
+__all__ = ["SCHEMA_VERSION", "retrieve_contract_chunks"]
 
 
-def _chunk_payload(c: Chunk) -> dict:
-    return {
-        "chunk_id": c.chunk_id,
-        "chunk_index": c.chunk_index,
-        "clause_no": c.clause_no,
-        "clause_title": c.clause_title,
-        "clause_kind": str(c.clause_kind),
-        "lang": c.lang,
-        "text": c.text,
+def _to_bundle_chunk(c: Chunk) -> BundleChunk:
+    return BundleChunk(
+        chunk_id=c.chunk_id,
+        chunk_index=c.chunk_index,
+        clause_no=c.clause_no,
+        clause_title=c.clause_title,
+        clause_kind=c.clause_kind,
+        lang=c.lang,
+        text=c.text,
         # 페이지는 범위로 준다. 조항이 페이지를 넘는 경우가 실측 9.4%다.
-        "page_start": c.page_start,
-        "page_end": c.page_end,
+        page_start=c.page_start,
+        page_end=c.page_end,
         # DB의 page 단일 컬럼 호환용. 컬럼 분리 협의가 끝나면 뺀다.
-        "page": c.page,
-        "location": {
-            "page_start": c.page_start,
-            "page_end": c.page_end,
-            "clause_no": c.clause_no,
-            "clause_kind": str(c.clause_kind),
-            "char_start": c.char_start,
-            "char_end": c.char_end,
-        },
-        "char_start": c.char_start,
-        "char_end": c.char_end,
-        "embedding": c.embedding,
-    }
+        page=c.page,
+        location=ChunkLocation(
+            page_start=c.page_start,
+            page_end=c.page_end,
+            clause_no=c.clause_no,
+            clause_kind=c.clause_kind,
+            char_start=c.char_start,
+            char_end=c.char_end,
+        ),
+        char_start=c.char_start,
+        char_end=c.char_end,
+        embedding=c.embedding,
+    )
 
 
-def _hit_payload(h: Hit, field_name: str) -> dict:
-    return {
-        "chunk_id": h.chunk_id,
-        "score": h.score,
-        "lexical": h.lexical,
-        "semantic": h.semantic,
-        "matched_field": field_name,
-        "match_reasons": h.reasons,
-    }
+def _to_field_hit(h: Hit, field_name: str) -> FieldHit:
+    return FieldHit(
+        chunk_id=h.chunk_id,
+        score=h.score,
+        lexical=h.lexical,
+        semantic=h.semantic,
+        matched_field=field_name,
+        match_reasons=h.reasons,
+    )
 
 
 def retrieve_contract_chunks(
@@ -72,7 +85,7 @@ def retrieve_contract_chunks(
     top_k: int = 5,
     min_score: float = 0.15,
     semantic_weight: float = 0.0,
-) -> dict:
+) -> RetrievalBundle:
     """PDF 바이트 → 필드별 회수 결과 묶음.
 
     `embed=True`인데 실행 환경에 `sentence_transformers`가 없으면 임베딩 없이
@@ -112,34 +125,37 @@ def retrieve_contract_chunks(
     used = {h.chunk_id for hits in fields.values() for h in hits}
     referenced = [c for c in chunks if c.chunk_id in used]
 
-    return {
-        "schema_version": SCHEMA_VERSION,
-        "document": {
-            "file_name": file_name,
-            "file_hash": doc.file_hash,
-            "mime_type": "application/pdf",
-            "page_count": doc.page_count,
-            "language": lang,
-            "text_source_summary": doc.source_summary,
-            "text_normalization": "NFC",
-            "embedding_model": embed_mod.MODEL_NAME,
-            "embedding_dim": embed_mod.EMBEDDING_DIM,
-            "embedded": embedded,
-            "full_text_length": len(full_text),
+    # 색인 제외 청크는 임베딩을 받지 않는다. embedded=True면 벡터가 전부
+    # 있어야 한다는 스키마 규칙과 부딪히지 않도록, 참조된 것만 헤아린다.
+    referenced_embedded = embedded and all(c.embedding is not None for c in referenced)
+
+    return RetrievalBundle(
+        schema_version=SCHEMA_VERSION,
+        document=DocumentInfo(
+            file_name=file_name,
+            file_hash=doc.file_hash,
+            page_count=doc.page_count,
+            language=lang,
+            text_source_summary=doc.source_summary,
+            embedding_model=embed_mod.MODEL_NAME,
+            embedding_dim=embed_mod.EMBEDDING_DIM,
+            embedded=referenced_embedded,
+            full_text_length=len(full_text),
+        ),
+        retrieval=RetrievalInfo(
+            scorer="hybrid" if query_vectors else "lexical-v0",
+            semantic_weight=semantic_weight if query_vectors else 0.0,
+            top_k=top_k,
+            min_score=min_score,
+            field_count=len(fields),
+            clause_total=len(clauses),
+            chunk_total=stats.total,
+            chunk_indexable=stats.indexable,
+            chunk_referenced=len(referenced),
+        ),
+        fields={
+            name: [_to_field_hit(h, name) for h in hits]
+            for name, hits in fields.items()
         },
-        "retrieval": {
-            "scorer": "hybrid" if query_vectors else "lexical-v0",
-            "semantic_weight": semantic_weight if query_vectors else 0.0,
-            "top_k": top_k,
-            "min_score": min_score,
-            "field_count": len(fields),
-            "clause_total": len(clauses),
-            "chunk_total": stats.total,
-            "chunk_indexable": stats.indexable,
-            "chunk_referenced": len(referenced),
-        },
-        "fields": {
-            name: [_hit_payload(h, name) for h in hits] for name, hits in fields.items()
-        },
-        "chunks": [_chunk_payload(c) for c in referenced],
-    }
+        chunks=[_to_bundle_chunk(c) for c in referenced],
+    )

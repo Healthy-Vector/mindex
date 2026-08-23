@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 from app.pipeline import retrieve_contract_chunks
+from app.schemas.pipeline import RETRIEVAL_FIELDS, RetrievalBundle
 
 TESTDATA = Path("testdata/k-rights")
 EVIDENCE_JSON = TESTDATA / "annotations/phase_h_actual_evidence.json"
@@ -36,8 +37,10 @@ def _squash(s: str) -> str:
 
 
 @pytest.fixture(scope="module")
-def bundle() -> dict:
-    return retrieve_contract_chunks(SAMPLE_PDF.read_bytes(), file_name=SAMPLE_PDF.name, embed=False)
+def bundle() -> RetrievalBundle:
+    return retrieve_contract_chunks(
+        SAMPLE_PDF.read_bytes(), file_name=SAMPLE_PDF.name, embed=False
+    )
 
 
 @pytest.fixture(scope="module")
@@ -47,21 +50,26 @@ def evidence() -> list[dict]:
 
 
 def test_번들_기본구조(bundle):
-    assert bundle["schema_version"].startswith("mindex.retrieval-bundle.")
-    assert set(bundle) == {"schema_version", "document", "retrieval", "fields", "chunks"}
-    doc = bundle["document"]
-    assert doc["language"] == "ko"
-    assert doc["page_count"] > 1
-    assert doc["text_normalization"] == "NFC"
+    assert bundle.schema_version.startswith("mindex.retrieval-bundle.")
+    assert bundle.document.language == "ko"
+    assert bundle.document.page_count > 1
+    assert bundle.document.text_normalization == "NFC"
+    assert set(bundle.fields) == set(RETRIEVAL_FIELDS)
+
+
+def test_JSON_직렬화가_되고_되돌아온다(bundle):
+    """Task2는 JSON으로 받는다. 왕복이 안 되면 규격이 아니다."""
+    payload = bundle.model_dump(mode="json")
+    assert RetrievalBundle.model_validate(json.loads(json.dumps(payload))) == bundle
 
 
 def test_임베딩_없이도_회수가_동작한다(bundle):
     """CI에는 torch가 없다. 이 경로가 깨지면 나머지 검증이 전부 막힌다."""
-    assert bundle["document"]["embedded"] is False
-    assert bundle["retrieval"]["scorer"] == "lexical-v0"
-    assert all(c["embedding"] is None for c in bundle["chunks"])
+    assert bundle.document.embedded is False
+    assert bundle.retrieval.scorer == "lexical-v0"
+    assert all(c.embedding is None for c in bundle.chunks)
     # 어휘 신호만으로도 필드가 비지 않아야 한다
-    assert bundle["fields"]["territory"], "territory 회수 결과가 비었다"
+    assert bundle.fields["territory"], "territory 회수 결과가 비었다"
 
 
 def test_ML_미설치_환경을_흉내내도_예외가_나지_않는다(monkeypatch):
@@ -69,30 +77,36 @@ def test_ML_미설치_환경을_흉내내도_예외가_나지_않는다(monkeypa
 
     monkeypatch.setattr(embed_mod, "is_available", lambda: False)
     out = retrieve_contract_chunks(SAMPLE_PDF.read_bytes(), embed=True)
-    assert out["document"]["embedded"] is False
+    assert out.document.embedded is False
 
 
 def test_별지가_독립_청크로_잡힌다(bundle):
     """T5는 권리 명세를 전부 별지에 넣는다. 본문 조항에 흡수되면 추출이 어긋난다."""
-    kinds = {c["clause_kind"] for c in bundle["chunks"]}
+    kinds = {c.clause_kind for c in bundle.chunks}
     assert "GRANT_ITEM" in kinds or "SCHEDULE" in kinds
 
 
 def test_페이지가_범위로_기록된다(bundle):
-    for c in bundle["chunks"]:
-        assert c["page_start"] <= c["page_end"]
-        # DB의 단일 page 컬럼 호환값은 시작 페이지여야 한다
-        assert c["page"] == c["page_start"]
+    for c in bundle.chunks:
+        assert c.page_start <= c.page_end
+        assert c.page == c.page_start
 
 
-def test_청크_offset이_서로_어긋나지_않는다(bundle):
-    for c in bundle["chunks"]:
-        assert c["char_end"] - c["char_start"] == len(c["text"])
+def test_회수결과가_전부_본문을_찾을_수_있다(bundle):
+    """fields[]는 본문 대신 chunk_id만 담는다. 참조가 끊기면 근거를 못 읽는다."""
+    known = {c.chunk_id for c in bundle.chunks}
+    for name, hits in bundle.fields.items():
+        for h in hits:
+            assert h.chunk_id in known, f"{name}: 참조가 끊긴 {h.chunk_id}"
 
 
 @pytest.mark.parametrize(
     ("label", "field_name"),
-    [("TERRITORY", "territory"), ("LICENSE_PERIOD", "period"), ("EXCLUSIVITY", "exclusivity")],
+    [
+        ("TERRITORY", "territory"),
+        ("LICENSE_PERIOD", "period"),
+        ("EXCLUSIVITY", "exclusivity"),
+    ],
 )
 def test_정답_근거가_상위_회수결과_안에_있다(bundle, evidence, label, field_name):
     """검색 품질 회귀 가드.
@@ -104,9 +118,9 @@ def test_정답_근거가_상위_회수결과_안에_있다(bundle, evidence, la
     if not answers:
         pytest.skip(f"{SAMPLE_ID}에 {label} 정답이 없다")
 
-    by_id = {c["chunk_id"]: c for c in bundle["chunks"]}
-    retrieved = [_squash(by_id[h["chunk_id"]]["text"]) for h in bundle["fields"][field_name]]
+    by_id = {c.chunk_id: _squash(c.text) for c in bundle.chunks}
+    retrieved = [by_id[h.chunk_id] for h in bundle.fields[field_name]]
     assert retrieved, f"{field_name} 회수 결과가 비었다"
-    assert any(any(a in r for r in retrieved) for a in answers), (
-        f"{field_name}: 정답 근거가 상위 {len(retrieved)}개 안에 없다"
-    )
+    assert any(
+        any(a in r for r in retrieved) for a in answers
+    ), f"{field_name}: 정답 근거가 상위 {len(retrieved)}개 안에 없다"
