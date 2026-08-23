@@ -1,0 +1,39 @@
+# ML 스택 — requirements.txt와 의도적으로 분리한다.
+#
+# 왜 분리하는가
+#   CI(ubuntu-latest)와 Dockerfile(python:3.12-slim)이 requirements.txt를 그대로
+#   설치한다. torch를 거기 넣으면 GPU도 없는 러너가 매 푸시마다 수 GB를 내려받고,
+#   슬림 이미지가 몇 GB로 부풀며, 0건으로 맞춰 둔 pip-audit 감사 대상이 수백 개로
+#   늘어난다. 이 파일은 파이프라인을 실제로 실행하는 환경(개발 GPU 머신, 추론
+#   워커)에서만 설치한다.
+#
+# 설치
+#   pip install -r requirements-ml.txt
+#
+# CUDA 라인을 cu130으로 고정한 이유
+#   개발 GPU가 RTX 5050(Blackwell, sm_120)이다. sm_120 커널은 cu128 이상 빌드에만
+#   들어 있어서, 흔히 쓰는 cu121/cu124 휠은 설치는 되지만 실행 시
+#   "no kernel image is available"로 죽는다.
+#   여기에 더해 Windows·cp312 기준으로 torch와 paddlepaddle-gpu 휠이 동시에
+#   존재하는 CUDA 라인은 cu130뿐이다(paddle은 cu128 Windows 휠을 내지 않는다).
+#   두 프레임워크를 서로 다른 CUDA 마이너로 깔면 한 프로세스에서 cuDNN DLL이
+#   충돌하므로 라인을 맞춰 둔다. OCR 스택은 아래 주석 참조.
+#
+# PyPI에도 torch가 있어서 --extra-index-url만으로는 CPU 빌드가 잡힐 수 있다.
+# +cu130 로컬 버전까지 명시해 PyTorch 인덱스의 휠만 매칭되게 한다.
+
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+torch==2.13.0+cu130
+
+# 임베딩 — intfloat/multilingual-e5-large (1024-dim, MIT)
+# transformers·tokenizers·safetensors·huggingface-hub는 의존성으로 따라온다.
+sentence-transformers==6.0.*
+
+# --- OCR (아직 미설치) ---
+# paddlepaddle-gpu는 PyPI 버전이 2.6.2에서 멈춰 있어(CUDA 11.8/12.0 세대)
+# sm_120에서 동작하지 않는다. 반드시 Paddle 공식 인덱스에서 받아야 한다.
+#   pip install paddlepaddle-gpu==3.3.1 \
+#       -i https://www.paddlepaddle.org.cn/packages/stable/cu130/
+#   pip install paddleocr==3.7.*
+# sm_120 커널 포함 여부가 실행 전까지 확정되지 않으므로 별도 단계로 둔다.
