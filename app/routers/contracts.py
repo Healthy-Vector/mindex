@@ -253,3 +253,78 @@ def get_contract(
         rights=rights,
         history=history,
     )
+
+
+# --- 9번 GET /contracts/{id}/file (지시서 §6 9번, 세션 필요) ---
+import os  # noqa: E402
+
+from fastapi.responses import FileResponse  # noqa: E402
+
+from app.errors import AlreadyCancelled, NoSourceFile, ValidationFailed  # noqa: E402
+from app.schemas.contracts import CancelRequest, CancelResponse  # noqa: E402
+
+
+@router.get("/contracts/{contract_id}/file")
+def get_contract_file(
+    contract_id: int,
+    db: Session = Depends(get_db),
+    _team: str = Depends(require_session),
+):
+    """contract_history.file_path 원본을 스트리밍. staging.pdf_blob 은 확정 시 이미 삭제(§6 9번)."""
+    fp = db.execute(
+        text(
+            "SELECT COALESCE(h.file_path, "
+            " (SELECT file_path FROM master.contract_history WHERE contract_id=c.id "
+            "  ORDER BY created_at DESC LIMIT 1)) AS file_path "
+            "FROM master.contract c "
+            "LEFT JOIN master.contract_history h ON h.id=c.current_history_id "
+            "WHERE c.id=:c"
+        ),
+        {"c": contract_id},
+    ).scalar()
+    if not fp or not os.path.isfile(fp):
+        raise NoSourceFile("원본 파일을 찾을 수 없습니다")
+    filename = os.path.basename(fp)
+    # FileResponse 는 파일을 스트리밍하며 Content-Disposition 을 설정한다.
+    return FileResponse(fp, media_type="application/pdf", filename=filename)
+
+
+# --- 11번 POST /contracts/{id}/cancel — 계약 종료 (지시서 §5.7, 세션 필요) ---
+_CANCEL_REASONS = {"superseded", "cancelled", "expired", "waiver"}
+
+
+@router.post("/contracts/{contract_id}/cancel", response_model=CancelResponse)
+def cancel_contract(
+    contract_id: int,
+    body: CancelRequest,
+    db: Session = Depends(get_db),
+    _team: str = Depends(require_session),
+) -> CancelResponse:
+    """계약 상태 cancelled + 그 계약의 active 권리를 terminated 로 내린다(§5.7).
+
+    두 번째 UPDATE 가 존재 이유: 안 내리면 끝난 계약이 EXCLUDE 에 남아 다른 계약을 막는다.
+    """
+    if body.reason not in _CANCEL_REASONS:
+        raise ValidationFailed("reason 값이 올바르지 않습니다", details={"field": "reason"})
+
+    updated = db.execute(
+        text(
+            "UPDATE master.contract SET status='cancelled', updated_at=now() "
+            "WHERE id=:c AND status<>'cancelled'"
+        ),
+        {"c": contract_id},
+    ).rowcount
+    if updated == 0:
+        db.rollback()
+        raise AlreadyCancelled("이미 종료된 계약입니다")
+
+    terminated = db.execute(
+        text(
+            "UPDATE master.rights_grant "
+            "SET status='terminated', terminated_at=now(), terminated_reason=:r "
+            "WHERE contract_id=:c AND status='active'"
+        ),
+        {"r": body.reason, "c": contract_id},
+    ).rowcount
+    db.commit()
+    return CancelResponse(contract_id=contract_id, status="cancelled", terminated_rights=terminated)

@@ -107,3 +107,13 @@ class ConfirmResponse(CamelModel):
     has_conflict: bool
     rights_grant_ids: list[int] = []
     conflicts: list[ConflictItem] = []
+
+
+class CancelRequest(CamelModel):
+    reason: str = "cancelled"  # superseded / cancelled / expired / waiver
+
+
+class CancelResponse(CamelModel):
+    contract_id: int
+    status: str
+    terminated_rights: int
