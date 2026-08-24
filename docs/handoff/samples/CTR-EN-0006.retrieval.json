@@ -1,5 +1,5 @@
 {
-  "schema_version": "mindex.retrieval-bundle.v0.1",
+  "schema_version": "mindex.retrieval-bundle.v0.2",
   "document": {
     "file_name": "CTR-EN-0006.pdf",
     "file_hash": "1ce95688656f76fa1a4c2ff26f2e7b4b247efd7c13f7fb0fb2218659be76ac60",
@@ -9,37 +9,30 @@
     "text_source_summary": {
       "TEXT_LAYER": 4
     },
+    "text_normalization": "NFC",
     "embedding_model": "intfloat/multilingual-e5-large",
     "embedding_dim": 1024,
-    "embedded": false
+    "embedded": false,
+    "full_text_length": 9231
   },
   "retrieval": {
     "scorer": "lexical-v0",
+    "semantic_weight": 0.0,
     "top_k": 5,
     "min_score": 0.15,
     "field_count": 6,
-    "chunk_total": 23,
-    "chunk_referenced": 13
+    "clause_total": 20,
+    "chunk_total": 20,
+    "chunk_indexable": 20,
+    "chunk_referenced": 12
   },
   "fields": {
     "territory": [
       {
         "chunk_id": "1ce95688656f-0003",
-        "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
-        "page": 1,
-        "clause": "Article 3",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 1863,
-          "char_end": 2423,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.5,
+        "score": 0.6667,
+        "lexical": 0.6667,
+        "semantic": null,
         "matched_field": "territory",
         "match_reasons": [
           "+이용지역",
@@ -47,66 +40,20 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0004",
-        "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
-        "page": 2,
-        "clause": "Article 3",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 2424,
-          "char_end": 2553,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
+        "chunk_id": "1ce95688656f-0008",
         "score": 0.4174,
+        "lexical": 0.4174,
+        "semantic": null,
         "matched_field": "territory",
         "match_reasons": [
           "+이용지역"
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0009",
-        "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.",
-        "page": 2,
-        "clause": "Article 8",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 8",
-          "clause_kind": "ARTICLE",
-          "char_start": 4292,
-          "char_end": 4693,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "1ce95688656f-0014",
         "score": 0.4174,
-        "matched_field": "territory",
-        "match_reasons": [
-          "+이용지역"
-        ]
-      },
-      {
-        "chunk_id": "1ce95688656f-0016",
-        "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
-        "page": 3,
-        "clause": "Article 14",
-        "location": {
-          "page": 3,
-          "clause_no": "Article 14",
-          "clause_kind": "ARTICLE",
-          "char_start": 6960,
-          "char_end": 7420,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
-        "score": 0.4174,
+        "lexical": 0.4174,
+        "semantic": null,
         "matched_field": "territory",
         "match_reasons": [
           "+이용지역"
@@ -114,21 +61,9 @@
       },
       {
         "chunk_id": "1ce95688656f-0000",
-        "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
-        "page": 1,
-        "clause": "__FRONT_MATTER__",
-        "location": {
-          "page": 1,
-          "clause_no": "__FRONT_MATTER__",
-          "clause_kind": "FRONT_MATTER",
-          "char_start": 0,
-          "char_end": 975,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.2624,
+        "lexical": 0.2624,
+        "semantic": null,
         "matched_field": "territory",
         "match_reasons": [
           "+이용지역"
@@ -138,21 +73,9 @@
     "rights_type": [
       {
         "chunk_id": "1ce95688656f-0003",
-        "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
-        "page": 1,
-        "clause": "Article 3",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 1863,
-          "char_end": 2423,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
         "score": 0.6995,
+        "lexical": 0.6995,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+이용방식",
@@ -160,22 +83,10 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0005",
-        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
-        "page": 2,
-        "clause": "Article 4",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 4",
-          "clause_kind": "ARTICLE",
-          "char_start": 2554,
-          "char_end": 3080,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "1ce95688656f-0004",
         "score": 0.5449,
+        "lexical": 0.5449,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+이용방식",
@@ -184,21 +95,9 @@
       },
       {
         "chunk_id": "1ce95688656f-0001",
-        "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
-        "page": 1,
-        "clause": "Article 1",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 1",
-          "clause_kind": "ARTICLE",
-          "char_start": 976,
-          "char_end": 1627,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.5416,
+        "lexical": 0.5416,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+SVOD",
@@ -206,22 +105,10 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0014",
-        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.",
-        "page": 3,
-        "clause": "Article 12",
-        "location": {
-          "page": 3,
-          "clause_no": "Article 12",
-          "clause_kind": "ARTICLE",
-          "char_start": 6049,
-          "char_end": 6477,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
+        "chunk_id": "1ce95688656f-0012",
         "score": 0.3392,
+        "lexical": 0.3392,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+이용방식"
@@ -230,45 +117,22 @@
     ],
     "period": [
       {
-        "chunk_id": "1ce95688656f-0004",
-        "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
-        "page": 2,
-        "clause": "Article 3",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 2424,
-          "char_end": 2553,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.6522,
+        "chunk_id": "1ce95688656f-0003",
+        "score": 0.836,
+        "lexical": 0.836,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
+          "+이용기간",
           "+\\d{1,2}\\s+\\w+\\s+\\d{4}",
           "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0014",
-        "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.",
-        "page": 3,
-        "clause": "Article 12",
-        "location": {
-          "page": 3,
-          "clause_no": "Article 12",
-          "clause_kind": "ARTICLE",
-          "char_start": 6049,
-          "char_end": 6477,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
+        "chunk_id": "1ce95688656f-0012",
         "score": 0.4716,
+        "lexical": 0.4716,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+이용기간",
@@ -276,22 +140,10 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0022",
-        "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
-        "page": 4,
-        "clause": "Article 19",
-        "location": {
-          "page": 4,
-          "clause_no": "Article 19",
-          "clause_kind": "ARTICLE",
-          "char_start": 8833,
-          "char_end": 9231,
-          "clause_page_span": [
-            3,
-            4
-          ]
-        },
+        "chunk_id": "1ce95688656f-0019",
         "score": 0.449,
+        "lexical": 0.449,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
@@ -299,111 +151,42 @@
       },
       {
         "chunk_id": "1ce95688656f-0001",
-        "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
-        "page": 1,
-        "clause": "Article 1",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 1",
-          "clause_kind": "ARTICLE",
-          "char_start": 976,
-          "char_end": 1627,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.4174,
+        "lexical": 0.4174,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+이용기간"
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0003",
-        "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
-        "page": 1,
-        "clause": "Article 3",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 1863,
-          "char_end": 2423,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.4174,
+        "chunk_id": "1ce95688656f-0000",
+        "score": 0.27,
+        "lexical": 0.27,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
-          "+이용기간"
+          "+\\d{4}[-/]\\d{2}[-/]\\d{2}"
         ]
       }
     ],
     "exclusivity": [
       {
         "chunk_id": "1ce95688656f-0003",
-        "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
-        "page": 1,
-        "clause": "Article 3",
-        "location": {
-          "page": 1,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 1863,
-          "char_end": 2423,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.449,
+        "score": 0.689,
+        "lexical": 0.689,
+        "semantic": null,
         "matched_field": "exclusivity",
         "match_reasons": [
+          "+독점성은",
           "+독점"
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0004",
-        "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
-        "page": 2,
-        "clause": "Article 3",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 3",
-          "clause_kind": "ARTICLE",
-          "char_start": 2424,
-          "char_end": 2553,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.4174,
-        "matched_field": "exclusivity",
-        "match_reasons": [
-          "+독점성은"
-        ]
-      },
-      {
         "chunk_id": "1ce95688656f-0000",
-        "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
-        "page": 1,
-        "clause": "__FRONT_MATTER__",
-        "location": {
-          "page": 1,
-          "clause_no": "__FRONT_MATTER__",
-          "clause_kind": "FRONT_MATTER",
-          "char_start": 0,
-          "char_end": 975,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.2624,
+        "lexical": 0.2624,
+        "semantic": null,
         "matched_field": "exclusivity",
         "match_reasons": [
           "+독점성은"
@@ -412,22 +195,10 @@
     ],
     "payment": [
       {
-        "chunk_id": "1ce95688656f-0008",
-        "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
-        "page": 2,
-        "clause": "Article 7",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 7",
-          "clause_kind": "ARTICLE",
-          "char_start": 3989,
-          "char_end": 4291,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "1ce95688656f-0007",
         "score": 0.9524,
+        "lexical": 0.9524,
+        "semantic": null,
         "matched_field": "payment",
         "match_reasons": [
           "+계약대가",
@@ -437,22 +208,10 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0006",
-        "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
-        "page": 2,
-        "clause": "Article 5",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 5",
-          "clause_kind": "ARTICLE",
-          "char_start": 3081,
-          "char_end": 3507,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "1ce95688656f-0005",
         "score": 0.2689,
+        "lexical": 0.2689,
+        "semantic": null,
         "matched_field": "payment",
         "match_reasons": [
           "+영업일 이내"
@@ -462,21 +221,9 @@
     "parties": [
       {
         "chunk_id": "1ce95688656f-0000",
-        "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
-        "page": 1,
-        "clause": "__FRONT_MATTER__",
-        "location": {
-          "page": 1,
-          "clause_no": "__FRONT_MATTER__",
-          "clause_kind": "FRONT_MATTER",
-          "char_start": 0,
-          "char_end": 975,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 1.0,
+        "lexical": 1.0,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+계약 당사자",
@@ -486,98 +233,48 @@
         ]
       },
       {
-        "chunk_id": "1ce95688656f-0022",
-        "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
-        "page": 4,
-        "clause": "Article 19",
-        "location": {
-          "page": 4,
-          "clause_no": "Article 19",
-          "clause_kind": "ARTICLE",
-          "char_start": 8833,
-          "char_end": 9231,
-          "clause_page_span": [
-            3,
-            4
-          ]
-        },
-        "score": 0.7613,
+        "chunk_id": "1ce95688656f-0019",
+        "score": 0.8712,
+        "lexical": 0.8712,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+계약 당사자",
           "+허락자",
           "+대표자",
           "+주식회사"
+        ]
+      },
+      {
+        "chunk_id": "1ce95688656f-0009",
+        "score": 0.6293,
+        "lexical": 0.6293,
+        "semantic": null,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
+        ]
+      },
+      {
+        "chunk_id": "1ce95688656f-0004",
+        "score": 0.613,
+        "lexical": 0.613,
+        "semantic": null,
+        "matched_field": "parties",
+        "match_reasons": [
+          "+계약 당사자",
+          "+허락자"
         ]
       },
       {
         "chunk_id": "1ce95688656f-0010",
-        "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.",
-        "page": 2,
-        "clause": "Article 9",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 9",
-          "clause_kind": "ARTICLE",
-          "char_start": 4694,
-          "char_end": 5089,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
-        "score": 0.6293,
+        "score": 0.4815,
+        "lexical": 0.4815,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
-          "+계약 당사자",
-          "+허락자"
-        ]
-      },
-      {
-        "chunk_id": "1ce95688656f-0005",
-        "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
-        "page": 2,
-        "clause": "Article 4",
-        "location": {
-          "page": 2,
-          "clause_no": "Article 4",
-          "clause_kind": "ARTICLE",
-          "char_start": 2554,
-          "char_end": 3080,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
-        "score": 0.613,
-        "matched_field": "parties",
-        "match_reasons": [
-          "+계약 당사자",
-          "+허락자"
-        ]
-      },
-      {
-        "chunk_id": "1ce95688656f-0021",
-        "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor",
-        "page": 3,
-        "clause": "Article 19",
-        "location": {
-          "page": 3,
-          "clause_no": "Article 19",
-          "clause_kind": "ARTICLE",
-          "char_start": 8677,
-          "char_end": 8832,
-          "clause_page_span": [
-            3,
-            4
-          ]
-        },
-        "score": 0.5416,
-        "matched_field": "parties",
-        "match_reasons": [
-          "+계약 당사자",
-          "+허락자",
-          "+대표자"
+          "+계약 당사자"
         ]
       }
     ]
@@ -585,262 +282,278 @@
   "chunks": [
     {
       "chunk_id": "1ce95688656f-0000",
-      "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
-      "page": 1,
-      "clause": "__FRONT_MATTER__",
+      "chunk_index": 0,
+      "clause_no": "__FRONT_MATTER__",
+      "clause_title": "표제·당사자·전문",
       "clause_kind": "FRONT_MATTER",
       "lang": "en",
+      "text": "“Final Stage” Single-Mode Content Licence\nAgreement\nDocument Reference Agreement Date Status\nEN-2026-001-002 2026-10-03 Formal Pilot ꞏ DRAFT pending review\nParties\nLicensor Licensee\nParties Northstar Pictures Ltd. Blue Harbor Distribution LLC\nAuthorised Representative Amelia Hart Daniel Reed\nRegistered Office 18 Meridian Square, London EC2A 4NE, 420 Harbor Avenue, Wilmington,\nUnited Kingdom Delaware 19801, USA\nRegistration No. SC900101 DE-900102\nRecitals\nThis Agreement is made on 2026-10-03 between Northstar Pictures Ltd. (“Licensor”) and Blue Harbor Distribution\nLLC (“Licensee”).\nLicensor controls the expressly identified rights in the Licensed Subject Matter, and Licensee wishes to exploit those\nrights only within the media, territory, period and exclusivity stated in this Agreement.\nThe parties acknowledge that an audiovisual work, a soundtrack master and other related assets may constitute\nlegally distinct subject matter. No right is granted by implication.",
+      "page_start": 1,
+      "page_end": 1,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 1,
         "clause_no": "__FRONT_MATTER__",
         "clause_kind": "FRONT_MATTER",
         "char_start": 0,
-        "char_end": 975,
-        "clause_page_span": [
-          1,
-          1
-        ]
+        "char_end": 975
       },
+      "char_start": 0,
+      "char_end": 975,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0001",
-      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
-      "page": 1,
-      "clause": "Article 1",
+      "chunk_index": 1,
+      "clause_no": "Article 1",
+      "clause_title": "Definitions",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 1 (Definitions)\n“Licensed Subject Matter” means only the audiovisual work or related asset identified by title and scope in this\nAgreement or an incorporated Schedule.\n“Service” means the particular subscription video-on-demand, transactional video-on-demand, linear television,\nmusic-streaming or other exploitation mode stated for a grant. This definition does not enlarge an operative grant.\n“License Period” means the period stated for an individual grant and is not presumed to be the same as the term of\nthis Agreement.\n“Materials” means the picture, audio, subtitle, still, cue-sheet and metadata elements expressly listed for delivery.",
+      "page_start": 1,
+      "page_end": 1,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 1,
         "clause_no": "Article 1",
         "clause_kind": "ARTICLE",
         "char_start": 976,
-        "char_end": 1627,
-        "clause_page_span": [
-          1,
-          1
-        ]
+        "char_end": 1627
       },
+      "char_start": 976,
+      "char_end": 1627,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0003",
-      "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from",
-      "page": 1,
-      "clause": "Article 3",
+      "chunk_index": 3,
+      "clause_no": "Article 3",
+      "clause_title": "Grant of Rights",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 3 (Grant of Rights)\nFor exploitation by theatrical exhibition, the Licensed Subject Matter for this grant is limited to “Final Stage”. It is not\nautomatically merged with any unlisted audiovisual work or related asset.\nLicensor grants Licensee the exclusive public performance and exhibition right in “Final Stage” solely for exploitation\nby theatrical exhibition. Every right and mode not expressly granted is reserved to Licensor.\nFor “Final Stage” exploited by theatrical exhibition, the Territory is the United States and the License Period is from\n2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
+      "page_start": 1,
+      "page_end": 2,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 2,
         "clause_no": "Article 3",
         "clause_kind": "ARTICLE",
         "char_start": 1863,
-        "char_end": 2423,
-        "clause_page_span": [
-          1,
-          2
-        ]
+        "char_end": 2553
       },
+      "char_start": 1863,
+      "char_end": 2553,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0004",
-      "text": "2027-01-01 through 2028-12-31, inclusive. Exclusivity applies only to the combined right, mode, territory and period\nstated here.",
-      "page": 2,
-      "clause": "Article 3",
+      "chunk_index": 4,
+      "clause_no": "Article 4",
+      "clause_title": "Restrictions and Reserved Rights",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
-        "clause_no": "Article 3",
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "Article 4",
         "clause_kind": "ARTICLE",
-        "char_start": 2424,
-        "char_end": 2553,
-        "clause_page_span": [
-          1,
-          2
-        ]
+        "char_start": 2554,
+        "char_end": 3080
       },
+      "char_start": 2554,
+      "char_end": 3080,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0005",
-      "text": "Article 4 (Restrictions and Reserved Rights)\nExcept for technical copies reasonably required to operate an authorised Service, Licensee shall not edit, re-purpose\nor supply the Licensed Subject Matter to a third party. Unstated remake, sequel, format, merchandising, theatrical,\nbroadcast and stand-alone music rights are reserved.\nLicensee shall maintain geo-blocking, access controls and rights-management information. On learning of exploitation\noutside the grant, Licensee shall promptly stop that use and notify Licensor.",
-      "page": 2,
-      "clause": "Article 4",
+      "chunk_index": 5,
+      "clause_no": "Article 5",
+      "clause_title": "Delivery and Acceptance",
       "clause_kind": "ARTICLE",
       "lang": "en",
-      "location": {
-        "page": 2,
-        "clause_no": "Article 4",
-        "clause_kind": "ARTICLE",
-        "char_start": 2554,
-        "char_end": 3080,
-        "clause_page_span": [
-          2,
-          2
-        ]
-      },
-      "embedding": null
-    },
-    {
-      "chunk_id": "1ce95688656f-0006",
       "text": "Article 5 (Delivery and Acceptance)\nBy the agreed delivery date, Licensor shall provide serviceable picture or audio masters, available subtitle or script\nmaterials, approved stills and core metadata by secure transfer.\nLicensee shall inspect technical conformity within ten business days and give particularised notice of material defects.\nFailure to give timely technical notice does not waive a latent chain-of-title claim.",
+      "page_start": 2,
+      "page_end": 2,
       "page": 2,
-      "clause": "Article 5",
-      "clause_kind": "ARTICLE",
-      "lang": "en",
       "location": {
-        "page": 2,
+        "page_start": 2,
+        "page_end": 2,
         "clause_no": "Article 5",
         "clause_kind": "ARTICLE",
         "char_start": 3081,
-        "char_end": 3507,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_end": 3507
       },
+      "char_start": 3081,
+      "char_end": 3507,
+      "embedding": null
+    },
+    {
+      "chunk_id": "1ce95688656f-0007",
+      "chunk_index": 7,
+      "clause_no": "Article 7",
+      "clause_title": "Consideration and Payment",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
+      "location": {
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "Article 7",
+        "clause_kind": "ARTICLE",
+        "char_start": 3989,
+        "char_end": 4291
+      },
+      "char_start": 3989,
+      "char_end": 4291,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0008",
-      "text": "Article 7 (Consideration and Payment)\nTotal consideration is 193,000.00 USD, payable in USD. Licensee shall pay it as follows: 30% (57,900.00 USD, within\n10 business days after signing); 70% (135,100.00 USD, within 15 business days after delivery). The stated amounts\nexclude applicable indirect taxes.",
-      "page": 2,
-      "clause": "Article 7",
+      "chunk_index": 8,
+      "clause_no": "Article 8",
+      "clause_title": "Statements, Records and Audit",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
-        "clause_no": "Article 7",
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "Article 8",
         "clause_kind": "ARTICLE",
-        "char_start": 3989,
-        "char_end": 4291,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_start": 4292,
+        "char_end": 4693
       },
+      "char_start": 4292,
+      "char_end": 4693,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0009",
-      "text": "Article 8 (Statements, Records and Audit)\nLicensee shall retain records sufficient to identify the territory, mode, availability period and relevant transactions for\nthree years after expiry.\nWhere usage or revenue accounting applies, Licensor may once per year appoint an independent professional to\nexamine relevant records on reasonable notice, during business hours and subject to confidentiality.",
-      "page": 2,
-      "clause": "Article 8",
+      "chunk_index": 9,
+      "clause_no": "Article 9",
+      "clause_title": "Representations and Warranties",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
-        "clause_no": "Article 8",
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "Article 9",
         "clause_kind": "ARTICLE",
-        "char_start": 4292,
-        "char_end": 4693,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_start": 4694,
+        "char_end": 5089
       },
+      "char_start": 4694,
+      "char_end": 5089,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0010",
-      "text": "Article 9 (Representations and Warranties)\nEach party represents that it is duly organised and has power to enter into and perform this Agreement, and that its\nsignatory is duly authorised to bind it.\nLicensor represents that it controls the express grant. That representation excludes music, trade mark, likeness and\nthird-party materials expressly allocated to Licensee for separate clearance.",
-      "page": 2,
-      "clause": "Article 9",
+      "chunk_index": 10,
+      "clause_no": "Article 10",
+      "clause_title": "Indemnity and Limitation of Liability",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 10 (Indemnity and Limitation of Liability)\nA party shall indemnify the other against direct third-party claims and reasonable costs arising from its breach, wilful\nmisconduct or gross negligence, provided prompt notice and reasonable cooperation are given.\nExcept for liability that cannot lawfully be limited, neither party is liable for indirect, special or consequential loss or lost\nprofits. This exclusion does not apply to payment obligations, confidentiality breaches or infringement liability.",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
-        "clause_no": "Article 9",
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "Article 10",
         "clause_kind": "ARTICLE",
-        "char_start": 4694,
-        "char_end": 5089,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_start": 5090,
+        "char_end": 5599
       },
+      "char_start": 5090,
+      "char_end": 5599,
+      "embedding": null
+    },
+    {
+      "chunk_id": "1ce95688656f-0012",
+      "chunk_index": 12,
+      "clause_no": "Article 12",
+      "clause_title": "Agreement Term and License Periods",
+      "clause_kind": "ARTICLE",
+      "lang": "en",
+      "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.",
+      "page_start": 3,
+      "page_end": 3,
+      "page": 3,
+      "location": {
+        "page_start": 3,
+        "page_end": 3,
+        "clause_no": "Article 12",
+        "clause_kind": "ARTICLE",
+        "char_start": 6049,
+        "char_end": 6477
+      },
+      "char_start": 6049,
+      "char_end": 6477,
       "embedding": null
     },
     {
       "chunk_id": "1ce95688656f-0014",
-      "text": "Article 12 (Agreement Term and License Periods)\nThis Agreement takes effect on the Agreement Date and continues until all License Periods and outstanding\naccounting obligations have ended. The agreement term neither replaces nor automatically extends an individual\nLicense Period.\nEach License Period includes its stated first and last dates. Renewal or additional exploitation is effective only by a\nseparate written agreement.",
-      "page": 3,
-      "clause": "Article 12",
+      "chunk_index": 14,
+      "clause_no": "Article 14",
+      "clause_title": "Sublicensing, Assignment and Affiliates",
       "clause_kind": "ARTICLE",
       "lang": "en",
-      "location": {
-        "page": 3,
-        "clause_no": "Article 12",
-        "clause_kind": "ARTICLE",
-        "char_start": 6049,
-        "char_end": 6477,
-        "clause_page_span": [
-          3,
-          3
-        ]
-      },
-      "embedding": null
-    },
-    {
-      "chunk_id": "1ce95688656f-0016",
       "text": "Article 14 (Sublicensing, Assignment and Affiliates)\nSublicensing is permitted only where and to the extent stated in the applicable grant. Neither party may assign this\nAgreement or a material obligation without prior written consent; use of a technical vendor is not itself an assignment.\nLicensee remains responsible for the acts of permitted vendors and affiliates and shall ensure their compliance with\nthe territory, period, mode and security conditions.",
+      "page_start": 3,
+      "page_end": 3,
       "page": 3,
-      "clause": "Article 14",
-      "clause_kind": "ARTICLE",
-      "lang": "en",
       "location": {
-        "page": 3,
+        "page_start": 3,
+        "page_end": 3,
         "clause_no": "Article 14",
         "clause_kind": "ARTICLE",
         "char_start": 6960,
-        "char_end": 7420,
-        "clause_page_span": [
-          3,
-          3
-        ]
+        "char_end": 7420
       },
+      "char_start": 6960,
+      "char_end": 7420,
       "embedding": null
     },
     {
-      "chunk_id": "1ce95688656f-0021",
-      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor",
-      "page": 3,
-      "clause": "Article 19",
+      "chunk_id": "1ce95688656f-0019",
+      "chunk_index": 19,
+      "clause_no": "Article 19",
+      "clause_title": "Execution",
       "clause_kind": "ARTICLE",
       "lang": "en",
+      "text": "Article 19 (Execution)\nThe parties, acting through their duly authorised representatives, execute this Agreement after reviewing all of its\nterms.\nLicensor\nParties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
+      "page_start": 3,
+      "page_end": 4,
+      "page": 3,
       "location": {
-        "page": 3,
+        "page_start": 3,
+        "page_end": 4,
         "clause_no": "Article 19",
         "clause_kind": "ARTICLE",
         "char_start": 8677,
-        "char_end": 8832,
-        "clause_page_span": [
-          3,
-          4
-        ]
+        "char_end": 9231
       },
-      "embedding": null
-    },
-    {
-      "chunk_id": "1ce95688656f-0022",
-      "text": "Parties: Northstar Pictures Ltd.\nAuthorised Representative: Amelia Hart\nRegistered Office: 18 Meridian Square, London EC2A 4NE, United Kingdom\nSignature: (signature)\nAgreement Date: 2026-10-03\nLicensee\nParties: Blue Harbor Distribution LLC\nAuthorised Representative: Daniel Reed\nRegistered Office: 420 Harbor Avenue, Wilmington, Delaware 19801, USA\nSignature: (signature)\nAgreement Date: 2026-10-03",
-      "page": 4,
-      "clause": "Article 19",
-      "clause_kind": "ARTICLE",
-      "lang": "en",
-      "location": {
-        "page": 4,
-        "clause_no": "Article 19",
-        "clause_kind": "ARTICLE",
-        "char_start": 8833,
-        "char_end": 9231,
-        "clause_page_span": [
-          3,
-          4
-        ]
-      },
+      "char_start": 8677,
+      "char_end": 9231,
       "embedding": null
     }
   ]

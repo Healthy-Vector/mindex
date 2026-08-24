@@ -2,7 +2,7 @@
 
 **P3 파싱 → LLM 추출·정규화 담당자 인계 문서**
 
-status: `DRAFT v0.2`
+status: `DRAFT v0.3`
 date: 2026-08-22
 
 `retrieve_contract_chunks(pdf_bytes) -> RetrievalBundle` — PDF를 파싱·분해하고
@@ -18,19 +18,21 @@ date: 2026-08-22
 | | 경로 |
 |---|---|
 | **Task1 최종 출력** `*.retrieval.json` | [samples/](samples/) |
-| 중간 파싱 결과 `*.parse.json` | [samples/](samples/) |
-| 생성 스크립트 | [ocr_parse_sample.py](../../scripts/ocr_parse_sample.py) · [build_retrieval_bundle.py](../../scripts/build_retrieval_bundle.py) |
+| **구조·필드 설명** | [samples/README.md](samples/README.md) |
+| 규격 정의 | [app/schemas/pipeline.py](../../app/schemas/pipeline.py) |
+| 생성 스크립트 | [make_handoff_samples.py](../../scripts/make_handoff_samples.py) |
 | DB 전달 규격 | [docs/synthetic_data/interfaces/](../synthetic_data/interfaces/) |
 | DB 스키마 | [docs/erd/](../erd/) |
 
 ```bash
-python scripts/ocr_parse_sample.py <pdf...> -o <폴더>              # PDF -> 파싱
-python scripts/build_retrieval_bundle.py <폴더>/*.parse.json -o <폴더>  # 파싱 -> 번들
+# 샘플 재생성 (실제 파이프라인을 그대로 호출한다)
+PYTHONPATH=. python scripts/make_handoff_samples.py
 ```
 
-**Task2 담당자는 `*.retrieval.json`만 보면 된다.** `*.parse.json`은 중간 산출물이다.
+**Task2 담당자는 `*.retrieval.json`만 보면 된다.**
 
-> 두 파일의 전체 구조와 필드 설명은 [samples/README.md](samples/README.md) 에 따로 정리해 두었다.
+> 전체 구조와 필드 설명은 [samples/README.md](samples/README.md) 에 정리해 두었다.
+> `*.parse.json`(중간 산출물)은 더 이상 만들지 않는다.
 
 ### 샘플 구성 — 10건
 
@@ -59,185 +61,45 @@ python scripts/build_retrieval_bundle.py <폴더>/*.parse.json -o <폴더>  # �
 
 ## 2. Task1 최종 출력 — `RetrievalBundle`
 
-`retrieve_contract_chunks(pdf_bytes: bytes) -> RetrievalBundle` 의 반환값이다.
-스키마 `mindex.retrieval-bundle.v0.1`, 샘플은 `samples/*.retrieval.json`.
+스키마 `mindex.retrieval-bundle.v0.2`. 샘플은 `samples/*.retrieval.json`.
+
+**전체 구조와 필드 설명은 [samples/README.md](samples/README.md)에 있다.**
+같은 규격을 두 문서에 쓰면 반드시 갈라지므로 그쪽 하나만 유지한다.
+규격의 실제 정의는 [app/schemas/pipeline.py](../../app/schemas/pipeline.py)다.
 
 ```jsonc
 {
-  "schema_version": "mindex.retrieval-bundle.v0.1",
-
-  "document": {
-    "file_name": "CTR-KO-0015.pdf",
-    "file_hash": "sha256...",           // 재업로드 감지 · contract_history.file_hash
-    "mime_type": "application/pdf",
-    "page_count": 8,
-    "language": "ko",                   // ko | en | ja
-    "text_source_summary": { "TEXT_LAYER": 8 },
-    "embedding_model": "intfloat/multilingual-e5-large",
-    "embedding_dim": 1024,
-    "embedded": false                   // true 면 chunks[].embedding 이 채워져 있음
-  },
-
-  "retrieval": {
-    "scorer": "lexical-v0",             // 임베딩 붙으면 semantic-e5-v1 / hybrid
-    "top_k": 5,
-    "min_score": 0.15,
-    "field_count": 6,
-    "chunk_total": 26,                  // 문서 전체 청크
-    "chunk_referenced": 10              // 그중 어느 field에든 걸린 것
-  },
-
-  // ── 요청하신 필드별 묶음 ──
-  "fields": {
-    "territory": [{
-      "chunk_id": "3f2a1b9c4d5e-0012",  // 파일 간 유일. 조인 키
-      "text": "…이용지역은 대한민국이고…",
-      "page": 5,
-      "clause": "개별 이용허락 1",
-      "location": {
-        "page": 5,
-        "clause_no": "개별 이용허락 1",
-        "clause_kind": "GRANT_ITEM",     // FRONT_MATTER|ARTICLE|SCHEDULE|GRANT_ITEM
-        "char_start": 8123,
-        "char_end": 8574,
-        "clause_page_span": [5, 5]
-      },
-      "score": 0.9581,                   // 0~1
-      "matched_field": "territory",
-      "match_reasons": ["+이용지역", "+지역은", "+대한민국"]   // 디버깅용
-    }],
-    "rights_type": [ … ], "period": [ … ], "exclusivity": [ … ],
-    "payment": [ … ], "parties": [ … ]
-  },
-
-  // 같은 청크가 여러 field에 걸리므로 본문은 여기 한 번만 둔다.
-  // fields[] 의 text 는 편의상 중복해 넣었고, 정본은 이쪽이다.
-  "chunks": [{
-    "chunk_id": "3f2a1b9c4d5e-0012",
-    "text": "…",
-    "page": 5,
-    "clause": "개별 이용허락 1",
-    "clause_kind": "GRANT_ITEM",
-    "lang": "ko",
-    "location": { … },
-    "embedding": null                    // 1024차원 float. Worker가 contract_chunk 적재에 사용
-  }]
+  "schema_version": "mindex.retrieval-bundle.v0.2",
+  "document":  { ... },   // 이 PDF가 무엇인가
+  "retrieval": { ... },   // 어떻게 회수했는가
+  "fields":    { ... },   // 필드별로 어디를 봐야 하나  <- 여기서 시작
+  "chunks":    [ ... ]    // 본문 조각 (fields가 가리키는 대상)
 }
 ```
 
-### 요청 필드 대응
+`fields`는 색인, `chunks`는 자료다. `fields["territory"][0].chunk_id`로
+`chunks[]`를 찾아 `.text`를 읽는다.
 
-| 요청 | 제공 | 비고 |
+### v0.1에서 바뀐 점 (받는 쪽 코드에 영향 있음)
+
+| | v0.1 | v0.2 |
 |---|---|---|
-| `chunk_id` | ✅ | `{file_hash 앞12자}-{순번4자리}`. 내용에 대해 결정론적 |
-| `text` | ✅ | |
-| `page` | ✅ | 항상 단일 페이지 |
-| `clause` | ✅ | `제3조` · `별지 1` · `개별 이용허락 1` · `__FRONT_MATTER__` |
-| `location` | ✅ | page · clause_no · clause_kind · char offset · 조항 페이지 범위 |
-| `score` | ✅ | 0~1 |
-| `matched_field` | ✅ | |
-| **추가 제공** | `clause_kind` | 별지·개별허락 구분. **권리 정보가 어디 있는지 알려주는 신호** |
-| | `match_reasons` | 왜 걸렸는지. 디버깅·튜닝용 |
-| | `embedding` | Worker의 `contract_chunk` 적재용 |
-| | `text_source` | 페이지를 OCR로 읽었는지. **추출 신뢰도 산정에 반영 필요** |
+| `fields[]` 항목 | `chunk_id` + **본문**(`text`·`page`·`clause`·`location`) + `score` | `chunk_id` + `score`/`lexical`/`semantic` + `matched_field`/`match_reasons` |
+| 본문 위치 | `fields[]`와 `chunks[]` 양쪽 | `chunks[]` 한 곳 |
+| 페이지 | `chunks[].page` 단일값 | `page_start`/`page_end` 범위 (+ 호환용 `page`) |
+| 조항 번호 | `clause` | `clause_no` |
+| 추가 필드 | — | `chunk_index` · `clause_title` · `char_start` · `char_end` |
 
-### 점수에 대하여
+본문을 뺀 이유는 중복이다. 한 청크가 여러 필드에 동시에 잡히는데(지역·기간·
+독점성이 한 조항에 같이 있다) v0.1은 그때마다 본문을 복사했다. `CTR-KO-0015`
+실측으로 `fields[]` 안 본문이 6977자, `chunks[]`가 2945자 — **2.4배 중복**이었다.
+크기보다 나쁜 것은 본문이 두 곳에 있으면 어느 쪽이 진짜인지 애매해진다는 점이다.
 
-현재 `lexical-v0`(어휘 기반)이다. 임베딩 모델을 붙이면 `semantic-e5-v1`으로 바꾸고
-hybrid로 간다. **필드 묶음과 점수의 형식은 바뀌지 않는다.**
+### 중간 산출물 `*.parse.json`은 없어졌다
 
-어휘 baseline을 먼저 둔 이유는 DISTRACTOR 때문이다. 이 데이터셋은 함정을 의도적으로 심어둔다.
+파이프라인이 모듈로 정리되면서 중간 결과를 파일로 내보내지 않는다.
+문서 전체 분해 결과가 필요하면 알려주기 바란다. 번들에 담아 보낼 수 있다.
 
-- 제18조(준거법) "이 계약은 **대한민국** 법률에 따라 해석한다" → territory 아님
-- 제12조(계약기간) "**계약기간**은 개별 콘텐츠의 이용기간을 대체하지 않는다" → period 아님
-- 제11조(비밀유지) 등에 나오는 "지급"·"원" → payment 아님
-
-순수 의미유사도로는 걸러내기 어려워 명시적 감점을 넣었다.
-
-**검증 결과 — 샘플 10건 전부에서 `territory`·`period`·`exclusivity` top-1이
-정답지(Ground Truth)의 권리부여 조항을 가리킨다.** 별지가 있는 계약은
-`개별 이용허락 1`, 없는 계약은 `제3조`/`Article 3`/`第3条`.
-
----
-
-## 3. 중간 산출물 — `mindex.ocr-parse.v0.4`
-
-```jsonc
-{
-  "schema_version": "mindex.ocr-parse.v0.4",
-
-  "document": {
-    "file_name":  "CTR-KO-0001.pdf",
-    "file_hash":  "sha256...",          // 동일 파일 재업로드 감지
-    "mime_type":  "application/pdf",
-    "page_count": 3,
-    "language":   "ko",                 // ko | en | ja | unknown
-    "text_source_summary": { "TEXT_LAYER": 3 }
-  },
-
-  "pages": [{
-    "page": 1,
-    "text_source": "TEXT_LAYER",        // TEXT_LAYER | OCR | VERIFY
-    "signals": { "char_count": 1594, "chars_per_kpx": 3.18,
-                 "image_coverage": 0.0, "image_count": 0, "bad_char_count": 0 },
-    "tables": [ [["구분","내용"], ["...","..."]] ],   // 페이지 내 표. 당사자표·별지표
-    "text": "페이지 원문"
-  }],
-
-  "clauses": [{
-    "clause_no":  "제3조",
-    "kind":       "ARTICLE",            // FRONT_MATTER | ARTICLE | SCHEDULE | GRANT_ITEM
-    "title":      "이용허락",
-    "page_start": 1,
-    "page_end":   1,
-    "char_start": 1010,                 // full_text 기준 offset
-    "char_end":   1361,
-    "text":       "조항 전문",
-    "pages":      [1],
-    "page_parts": [{ "page": 1, "char_start": 1010, "char_end": 1361, "text": "..." }]
-  }],
-
-  "chunks": [{
-    "chunk_index": 5,
-    "clause_no":   "제3조",
-    "clause_title":"이용허락",
-    "page":        1,                   // 항상 단일 페이지
-    "lang":        "ko",
-    "chunk_text":  "...",
-    "char_start":  1010,
-    "char_end":    1361,
-    "clause_page_span": [1, 1]
-  }],
-
-  "full_text": "노이즈 제거 후 전체 텍스트"
-}
-```
-
-### `kind` — 분해 단위 종류
-
-| kind | 의미 |
-|---|---|
-| `FRONT_MATTER` | 표제·당사자표·전문. **당사자명·체결일·계약명**이 여기 있다 |
-| `ARTICLE` | 본문 조항 (`제N조` / `第N条` / `Article N`) |
-| `SCHEDULE` | 별지 (`별지N` / `別紙N` / `Schedule N`) |
-| `GRANT_ITEM` | 별지 안의 개별 권리부여 (`개별 이용허락 N` / `個別許諾 N`) |
-
-> ⚠️ **별지를 반드시 읽어야 한다.**
-> T5/T6 계약서는 본문에 권리 내용이 없고 **별지에 작품명·권리·이용방식·지역·기간·독점성·금액이 전부 들어간다.**
-> 초기 구현에서 별지를 직전 조항에 흡수시켰다가 `CTR-KO-0015`의 권리 명세를 통째로 놓쳤다.
-
-### `text_source` — 이 페이지를 어떻게 읽었나
-
-| 값 | 의미 | 추출 신뢰도 |
-|---|---|---|
-| `TEXT_LAYER` | PDF 텍스트 레이어에서 직접 추출 | 높음 |
-| `OCR` | 스캔본이라 OCR로 읽음 | **낮게 잡을 것** |
-| `VERIFY` | 텍스트가 의심스러워 교차검증 대상 | 중간 |
-
-추출 결과의 `confidence`를 산정할 때 이 값을 반영해 주기 바란다.
-OCR로 읽은 페이지에서 나온 값은 사람 검수 우선순위를 높여야 한다.
-
----
 
 ## 4. 넘길 때 권장하는 사용법
 
@@ -333,14 +195,34 @@ Task1이 필요로 하는 것만이다. `requirements.txt` 통합은 Task2 담�
 pdfplumber==0.11.*
 pypdfium2==4.*
 
-# 임베딩 (구현 예정)
-sentence-transformers==3.*
-torch==2.*                 # GPU 환경이면 CUDA 빌드로
+# 임베딩 (구현 완료) — requirements-ml.txt 로 분리돼 있다
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.13.0+cu130
+sentence-transformers==6.0.*
 
 # OCR (구현 예정 · 스캔본 경로에서만 동작)
-paddleocr==2.8.*
-paddlepaddle-gpu==2.6.*    # CPU 환경이면 paddlepaddle
+#   paddlepaddle-gpu 는 PyPI 버전이 2.6.2 에서 멈춰 있어(CUDA 11.8/12.0 세대)
+#   최신 GPU 에서 동작하지 않는다. Paddle 공식 인덱스에서 받아야 한다.
+#   pip install paddlepaddle-gpu==3.3.1 #       -i https://www.paddlepaddle.org.cn/packages/stable/cu130/
+#   pip install paddleocr==3.7.*
 ```
+
+**ML 의존성은 `requirements.txt` 와 분리했다.** CI(ubuntu-latest)와
+Dockerfile(python:3.12-slim)이 `requirements.txt` 를 그대로 설치하는데, torch 를
+거기 넣으면 GPU 없는 러너가 매 푸시마다 수 GB를 받고 pip-audit 감사 대상이
+수백 개로 늘어난다. 파이프라인을 실제로 돌리는 환경에서만
+`pip install -r requirements-ml.txt` 를 한다.
+
+`scripts/check_ml_env.py` 로 설치 상태를 진단할 수 있다. import 통과가 아니라
+실제 GPU 연산까지 시켜서 판정한다 — 설치가 됐는데 커널이 없어 첫 연산에서
+죽는 경우가 있기 때문이다.
+
+### CUDA 라인 주의
+
+개발 GPU가 **Blackwell(sm_120)** 이면 흔히 쓰는 cu121/cu124 휠은 설치는 되지만
+실행 시 `no kernel image is available` 로 죽는다. cu128 이상이 필요하고,
+Windows·cp312 기준으로 torch 와 paddlepaddle-gpu 휠이 동시에 존재하는 라인은
+cu130 뿐이다.
 
 **PyMuPDF는 쓰지 않는다.** AGPL이라 프로젝트 전체 라이선스가 오염된다.
 PDF 파싱은 `pdfplumber`, 래스터화는 `pypdfium2`로 처리한다.
@@ -350,8 +232,9 @@ PDF 파싱은 `pdfplumber`, 래스터화는 `pypdfium2`로 처리한다.
 요청마다 재로딩하지 않는다. 프로세스 시작 시 1회 로딩하는 싱글턴으로 잡는다.
 K8s 배포 시 고려할 점:
 
-- **콜드스타트가 길다.** e5-large + PaddleOCR 로딩에 수십 초. readiness probe 여유 필요
-- **메모리.** e5-large fp32 약 2.2GB + PaddleOCR 수백MB. 파드 메모리 한도를 넉넉히
+- **콜드스타트가 길다.** e5-large 로딩만 실측 **13.7초**. readiness probe 여유 필요
+- **메모리.** e5-large fp16 VRAM peak 실측 3.5GB + PaddleOCR 수백MB. 파드 한도를 넉넉히
+- **fp16 을 쓴다.** 실측(RTX 5050, 232청크) fp32 29 chunk/s vs fp16 **80 chunk/s**
 - 모델 파일은 이미지에 굽거나 볼륨에 캐시. 매 기동마다 받으면 느리다
 
 ---

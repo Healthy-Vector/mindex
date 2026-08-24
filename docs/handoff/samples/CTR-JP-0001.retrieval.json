@@ -1,5 +1,5 @@
 {
-  "schema_version": "mindex.retrieval-bundle.v0.1",
+  "schema_version": "mindex.retrieval-bundle.v0.2",
   "document": {
     "file_name": "CTR-JP-0001.pdf",
     "file_hash": "5e5bffb06aaf3acf12d090d648e20ea6dba530e79185bee80c915e1310c5c02c",
@@ -9,37 +9,30 @@
     "text_source_summary": {
       "TEXT_LAYER": 3
     },
+    "text_normalization": "NFC",
     "embedding_model": "intfloat/multilingual-e5-large",
     "embedding_dim": 1024,
-    "embedded": false
+    "embedded": false,
+    "full_text_length": 3625
   },
   "retrieval": {
     "scorer": "lexical-v0",
+    "semantic_weight": 0.0,
     "top_k": 5,
     "min_score": 0.15,
     "field_count": 6,
-    "chunk_total": 21,
+    "clause_total": 20,
+    "chunk_total": 20,
+    "chunk_indexable": 20,
     "chunk_referenced": 10
   },
   "fields": {
     "territory": [
       {
         "chunk_id": "5e5bffb06aaf-0003",
-        "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-        "page": 1,
-        "clause": "第3条",
-        "location": {
-          "page": 1,
-          "clause_no": "第3条",
-          "clause_kind": "ARTICLE",
-          "char_start": 851,
-          "char_end": 1165,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.3392,
+        "lexical": 0.3392,
+        "semantic": null,
         "matched_field": "territory",
         "match_reasons": [
           "+지역은"
@@ -49,21 +42,9 @@
     "rights_type": [
       {
         "chunk_id": "5e5bffb06aaf-0003",
-        "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-        "page": 1,
-        "clause": "第3条",
-        "location": {
-          "page": 1,
-          "clause_no": "第3条",
-          "clause_kind": "ARTICLE",
-          "char_start": 851,
-          "char_end": 1165,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.9421,
+        "lexical": 0.9421,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+전송권",
@@ -74,21 +55,9 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0001",
-        "text": "第1条 (定義)\n「対象コンテンツ」とは、本契約又は別紙において題名及び範囲が特定された映像著作物又は関連素材のみをいう。\n「サービス」とは、各個別許諾に定める定額制動画配信、都度課金型動画配信、リニア放送、音楽ストリーミングその\n他の利用方法をいう。本定義は個別の許諾範囲を拡張しない。\n「利用期間」とは、個別許諾に記載された利用可能期間をいい、本契約自体の存続期間と同一であるとは推定しない。\n「素材」とは、納入明細に定める映像、音声、字幕、スチル、キューシート及びメタデータをいう。",
-        "page": 1,
-        "clause": "第1条",
-        "location": {
-          "page": 1,
-          "clause_no": "第1条",
-          "clause_kind": "ARTICLE",
-          "char_start": 507,
-          "char_end": 751,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.6405,
+        "lexical": 0.6405,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+SVOD",
@@ -98,44 +67,20 @@
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0009",
-        "text": "第8条 (利用報告・帳簿及び監査)\n被許諾者は、地域、利用方法、提供期間及び取引を確認できる記録を利用終了後3年間保存する。\n利用量又は収益精算がある場合、許諾者は年1回、合理的な事前通知により独立専門家を通じて関連帳簿を確認でき\nる。監査は秘密保持義務の下、通常の営業時間に行う。",
-        "page": 2,
-        "clause": "第8条",
-        "location": {
-          "page": 2,
-          "clause_no": "第8条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1853,
-          "char_end": 1994,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0008",
         "score": 0.3392,
+        "lexical": 0.3392,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+이용방식"
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0015",
-        "text": "第14条 (再許諾・譲渡及び関係会社)\n再許諾は該当する個別許諾に明示された範囲に限り認める。契約上の地位又は重要義務の譲渡には相手方の事前書面同\n意を要し、技術委託のみをもって譲渡とはしない。\n許可された委託先及び関係会社の行為について被許諾者が責任を負い、地域、期間、利用方法及びセキュリティ条件を\n遵守させる。",
-        "page": 3,
-        "clause": "第14条",
-        "location": {
-          "page": 3,
-          "clause_no": "第14条",
-          "clause_kind": "ARTICLE",
-          "char_start": 2801,
-          "char_end": 2959,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0014",
         "score": 0.3392,
+        "lexical": 0.3392,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+이용방식"
@@ -143,21 +88,9 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0004",
-        "text": "第4条 (利用制限及び留保権利)\n許諾サービスの運営に合理的に必要な技術的複製を除き、被許諾者は対象コンテンツを改変、再編集又は第三者に提供\nしてはならない。明示されないリメイク、続編、フォーマット、商品化、劇場、放送及び音楽の独立利用権は許諾者に",
-        "page": 1,
-        "clause": "第4条",
-        "location": {
-          "page": 1,
-          "clause_no": "第4条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1166,
-          "char_end": 1290,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
         "score": 0.3057,
+        "lexical": 0.3057,
+        "semantic": null,
         "matched_field": "rights_type",
         "match_reasons": [
           "+방송",
@@ -168,21 +101,9 @@
     "period": [
       {
         "chunk_id": "5e5bffb06aaf-0003",
-        "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-        "page": 1,
-        "clause": "第3条",
-        "location": {
-          "page": 1,
-          "clause_no": "第3条",
-          "clause_kind": "ARTICLE",
-          "char_start": 851,
-          "char_end": 1165,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.8835,
+        "lexical": 0.8835,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+이용기간",
@@ -191,44 +112,20 @@
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0020",
-        "text": "第19条 (署名)\n当事者は本契約のすべての条件を確認し、権限ある代表者により各1通に署名する。\n許諾者\n契約当事者: 株式会社月影スタジオ\n代表者: 佐藤美咲\n本店所在地: 東京都渋谷区神宮前三丁目18番9号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日\n被許諾者\n契約当事者: 青波コンテンツ株式会社\n代表者: 高橋蓮\n本店所在地: 東京都港区海岸一丁目7番12号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日",
-        "page": 3,
-        "clause": "第19条",
-        "location": {
-          "page": 3,
-          "clause_no": "第19条",
-          "clause_kind": "ARTICLE",
-          "char_start": 3394,
-          "char_end": 3625,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0019",
         "score": 0.589,
+        "lexical": 0.589,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+\\d{4}\\s*年\\s*\\d{1,2}\\s*月\\s*\\d{1,2}\\s*日"
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0013",
-        "text": "第12条 (契約期間・利用期間及び終了)\n本契約は契約締結日に効力を生じ、すべての利用期間及び未了の精算義務が終了するまで存続する。契約期間は個別の\n利用期間を置き換え又は自動延長しない。\n各利用期間は記載された初日及び末日を含む。更新又は追加利用は、別途の書面合意がある場合に限り有効とする。",
-        "page": 2,
-        "clause": "第12条",
-        "location": {
-          "page": 2,
-          "clause_no": "第12条",
-          "clause_kind": "ARTICLE",
-          "char_start": 2471,
-          "char_end": 2618,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0012",
         "score": 0.4716,
+        "lexical": 0.4716,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+이용기간",
@@ -237,21 +134,9 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0001",
-        "text": "第1条 (定義)\n「対象コンテンツ」とは、本契約又は別紙において題名及び範囲が特定された映像著作物又は関連素材のみをいう。\n「サービス」とは、各個別許諾に定める定額制動画配信、都度課金型動画配信、リニア放送、音楽ストリーミングその\n他の利用方法をいう。本定義は個別の許諾範囲を拡張しない。\n「利用期間」とは、個別許諾に記載された利用可能期間をいい、本契約自体の存続期間と同一であるとは推定しない。\n「素材」とは、納入明細に定める映像、音声、字幕、スチル、キューシート及びメタデータをいう。",
-        "page": 1,
-        "clause": "第1条",
-        "location": {
-          "page": 1,
-          "clause_no": "第1条",
-          "clause_kind": "ARTICLE",
-          "char_start": 507,
-          "char_end": 751,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.4174,
+        "lexical": 0.4174,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+이용기간"
@@ -259,21 +144,9 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0000",
-        "text": "『最後の軌道』 映像コンテンツ利用許諾契約書\n合成データ・レビュー用 — 実際の契約には使用できません\n文書参照番号 契約締結日 Status\nJP‒2025‒001‒002 2025年8月30日 正式Pilot・レビュー前DRAFT\n契約当事者\n許諾者 被許諾者\n契約当事者 株式会社月影スタジオ 青波コンテンツ株式会社\n代表者 佐藤美咲 高橋蓮\n本店所在地 東京都渋谷区神宮前三丁目18番9号 東京都港区海岸一丁目7番12号\n法人番号 0100‒01‒900101 0100‒01‒900102\n前文\n株式会社月影スタジオ（以下「許諾者」という。）及び青波コンテンツ株式会社（以下「被許諾者」という。）は、\n2025年8月30日付で、コンテンツの利用許諾及び配信条件を明確にするため、本契約を締結する。\n許諾者は、以下に特定される権利対象について明示された範囲の権限を有し、被許諾者は、媒体、地域、期間及び独占\n性の範囲を超えずに利用することを希望する。\n当事者は、映像本編、OST音源その他の関連素材が法的に別個の権利対象となり得ることを確認し、本契約に明記され\nない権利は黙示的に許諾されないものとする。",
-        "page": 1,
-        "clause": "__FRONT_MATTER__",
-        "location": {
-          "page": 1,
-          "clause_no": "__FRONT_MATTER__",
-          "clause_kind": "FRONT_MATTER",
-          "char_start": 0,
-          "char_end": 506,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.3046,
+        "lexical": 0.3046,
+        "semantic": null,
         "matched_field": "period",
         "match_reasons": [
           "+\\d{4}\\s*年\\s*\\d{1,2}\\s*月\\s*\\d{1,2}\\s*日"
@@ -283,21 +156,9 @@
     "exclusivity": [
       {
         "chunk_id": "5e5bffb06aaf-0003",
-        "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-        "page": 1,
-        "clause": "第3条",
-        "location": {
-          "page": 1,
-          "clause_no": "第3条",
-          "clause_kind": "ARTICLE",
-          "char_start": 851,
-          "char_end": 1165,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.6971,
+        "lexical": 0.6971,
+        "semantic": null,
         "matched_field": "exclusivity",
         "match_reasons": [
           "+독점적으로 허락",
@@ -307,22 +168,10 @@
     ],
     "payment": [
       {
-        "chunk_id": "5e5bffb06aaf-0008",
-        "text": "第7条 (対価及び支払)\n契約対価の総額は55,000,000 JPYとし、支払通貨もJPYとする。被許諾者は次のとおり支払う：30% (16,500,000\nJPY, 署名後10営業日以内); 70% (38,500,000 JPY, 納入後15営業日以内)。表示金額には適用ある間接税を含まな\nい。",
-        "page": 2,
-        "clause": "第7条",
-        "location": {
-          "page": 2,
-          "clause_no": "第7条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1701,
-          "char_end": 1852,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0007",
         "score": 0.9819,
+        "lexical": 0.9819,
+        "semantic": null,
         "matched_field": "payment",
         "match_reasons": [
           "+계약대가",
@@ -333,22 +182,10 @@
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0006",
-        "text": "第5条 (素材の納入及び検収)\n許諾者は合意した納入日までに、利用可能な映像又は音声マスター、字幕又は台本、承認済みスチル及び基本メタデー\nタを安全な方法で提供する。\n被許諾者は受領後10営業日以内に技術的適合性を検査し、重大な不具合を具体的に通知する。期間内の技術通知がなく\nても潜在的な権利瑕疵に関する権利を放棄したものとしない。",
-        "page": 2,
-        "clause": "第5条",
-        "location": {
-          "page": 2,
-          "clause_no": "第5条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1360,
-          "char_end": 1527,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0005",
         "score": 0.2689,
+        "lexical": 0.2689,
+        "semantic": null,
         "matched_field": "payment",
         "match_reasons": [
           "+영업일 이내"
@@ -358,21 +195,9 @@
     "parties": [
       {
         "chunk_id": "5e5bffb06aaf-0000",
-        "text": "『最後の軌道』 映像コンテンツ利用許諾契約書\n合成データ・レビュー用 — 実際の契約には使用できません\n文書参照番号 契約締結日 Status\nJP‒2025‒001‒002 2025年8月30日 正式Pilot・レビュー前DRAFT\n契約当事者\n許諾者 被許諾者\n契約当事者 株式会社月影スタジオ 青波コンテンツ株式会社\n代表者 佐藤美咲 高橋蓮\n本店所在地 東京都渋谷区神宮前三丁目18番9号 東京都港区海岸一丁目7番12号\n法人番号 0100‒01‒900101 0100‒01‒900102\n前文\n株式会社月影スタジオ（以下「許諾者」という。）及び青波コンテンツ株式会社（以下「被許諾者」という。）は、\n2025年8月30日付で、コンテンツの利用許諾及び配信条件を明確にするため、本契約を締結する。\n許諾者は、以下に特定される権利対象について明示された範囲の権限を有し、被許諾者は、媒体、地域、期間及び独占\n性の範囲を超えずに利用することを希望する。\n当事者は、映像本編、OST音源その他の関連素材が法的に別個の権利対象となり得ることを確認し、本契約に明記され\nない権利は黙示的に許諾されないものとする。",
-        "page": 1,
-        "clause": "__FRONT_MATTER__",
-        "location": {
-          "page": 1,
-          "clause_no": "__FRONT_MATTER__",
-          "clause_kind": "FRONT_MATTER",
-          "char_start": 0,
-          "char_end": 506,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 1.0,
+        "lexical": 1.0,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+계약 당사자",
@@ -382,22 +207,10 @@
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0020",
-        "text": "第19条 (署名)\n当事者は本契約のすべての条件を確認し、権限ある代表者により各1通に署名する。\n許諾者\n契約当事者: 株式会社月影スタジオ\n代表者: 佐藤美咲\n本店所在地: 東京都渋谷区神宮前三丁目18番9号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日\n被許諾者\n契約当事者: 青波コンテンツ株式会社\n代表者: 高橋蓮\n本店所在地: 東京都港区海岸一丁目7番12号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日",
-        "page": 3,
-        "clause": "第19条",
-        "location": {
-          "page": 3,
-          "clause_no": "第19条",
-          "clause_kind": "ARTICLE",
-          "char_start": 3394,
-          "char_end": 3625,
-          "clause_page_span": [
-            3,
-            3
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0019",
         "score": 0.8672,
+        "lexical": 0.8672,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+계약 당사자",
@@ -408,21 +221,9 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0003",
-        "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-        "page": 1,
-        "clause": "第3条",
-        "location": {
-          "page": 1,
-          "clause_no": "第3条",
-          "clause_kind": "ARTICLE",
-          "char_start": 851,
-          "char_end": 1165,
-          "clause_page_span": [
-            1,
-            1
-          ]
-        },
         "score": 0.4295,
+        "lexical": 0.4295,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+허락자"
@@ -430,43 +231,19 @@
       },
       {
         "chunk_id": "5e5bffb06aaf-0004",
-        "text": "第4条 (利用制限及び留保権利)\n許諾サービスの運営に合理的に必要な技術的複製を除き、被許諾者は対象コンテンツを改変、再編集又は第三者に提供\nしてはならない。明示されないリメイク、続編、フォーマット、商品化、劇場、放送及び音楽の独立利用権は許諾者に",
-        "page": 1,
-        "clause": "第4条",
-        "location": {
-          "page": 1,
-          "clause_no": "第4条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1166,
-          "char_end": 1290,
-          "clause_page_span": [
-            1,
-            2
-          ]
-        },
-        "score": 0.3807,
+        "score": 0.4295,
+        "lexical": 0.4295,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+허락자"
         ]
       },
       {
-        "chunk_id": "5e5bffb06aaf-0006",
-        "text": "第5条 (素材の納入及び検収)\n許諾者は合意した納入日までに、利用可能な映像又は音声マスター、字幕又は台本、承認済みスチル及び基本メタデー\nタを安全な方法で提供する。\n被許諾者は受領後10営業日以内に技術的適合性を検査し、重大な不具合を具体的に通知する。期間内の技術通知がなく\nても潜在的な権利瑕疵に関する権利を放棄したものとしない。",
-        "page": 2,
-        "clause": "第5条",
-        "location": {
-          "page": 2,
-          "clause_no": "第5条",
-          "clause_kind": "ARTICLE",
-          "char_start": 1360,
-          "char_end": 1527,
-          "clause_page_span": [
-            2,
-            2
-          ]
-        },
+        "chunk_id": "5e5bffb06aaf-0005",
         "score": 0.3807,
+        "lexical": 0.3807,
+        "semantic": null,
         "matched_field": "parties",
         "match_reasons": [
           "+허락자"
@@ -477,202 +254,232 @@
   "chunks": [
     {
       "chunk_id": "5e5bffb06aaf-0000",
-      "text": "『最後の軌道』 映像コンテンツ利用許諾契約書\n合成データ・レビュー用 — 実際の契約には使用できません\n文書参照番号 契約締結日 Status\nJP‒2025‒001‒002 2025年8月30日 正式Pilot・レビュー前DRAFT\n契約当事者\n許諾者 被許諾者\n契約当事者 株式会社月影スタジオ 青波コンテンツ株式会社\n代表者 佐藤美咲 高橋蓮\n本店所在地 東京都渋谷区神宮前三丁目18番9号 東京都港区海岸一丁目7番12号\n法人番号 0100‒01‒900101 0100‒01‒900102\n前文\n株式会社月影スタジオ（以下「許諾者」という。）及び青波コンテンツ株式会社（以下「被許諾者」という。）は、\n2025年8月30日付で、コンテンツの利用許諾及び配信条件を明確にするため、本契約を締結する。\n許諾者は、以下に特定される権利対象について明示された範囲の権限を有し、被許諾者は、媒体、地域、期間及び独占\n性の範囲を超えずに利用することを希望する。\n当事者は、映像本編、OST音源その他の関連素材が法的に別個の権利対象となり得ることを確認し、本契約に明記され\nない権利は黙示的に許諾されないものとする。",
-      "page": 1,
-      "clause": "__FRONT_MATTER__",
+      "chunk_index": 0,
+      "clause_no": "__FRONT_MATTER__",
+      "clause_title": "표제·당사자·전문",
       "clause_kind": "FRONT_MATTER",
       "lang": "ja",
+      "text": "『最後の軌道』 映像コンテンツ利用許諾契約書\n合成データ・レビュー用 — 実際の契約には使用できません\n文書参照番号 契約締結日 Status\nJP‒2025‒001‒002 2025年8月30日 正式Pilot・レビュー前DRAFT\n契約当事者\n許諾者 被許諾者\n契約当事者 株式会社月影スタジオ 青波コンテンツ株式会社\n代表者 佐藤美咲 高橋蓮\n本店所在地 東京都渋谷区神宮前三丁目18番9号 東京都港区海岸一丁目7番12号\n法人番号 0100‒01‒900101 0100‒01‒900102\n前文\n株式会社月影スタジオ（以下「許諾者」という。）及び青波コンテンツ株式会社（以下「被許諾者」という。）は、\n2025年8月30日付で、コンテンツの利用許諾及び配信条件を明確にするため、本契約を締結する。\n許諾者は、以下に特定される権利対象について明示された範囲の権限を有し、被許諾者は、媒体、地域、期間及び独占\n性の範囲を超えずに利用することを希望する。\n当事者は、映像本編、OST音源その他の関連素材が法的に別個の権利対象となり得ることを確認し、本契約に明記され\nない権利は黙示的に許諾されないものとする。",
+      "page_start": 1,
+      "page_end": 1,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 1,
         "clause_no": "__FRONT_MATTER__",
         "clause_kind": "FRONT_MATTER",
         "char_start": 0,
-        "char_end": 506,
-        "clause_page_span": [
-          1,
-          1
-        ]
+        "char_end": 506
       },
+      "char_start": 0,
+      "char_end": 506,
       "embedding": null
     },
     {
       "chunk_id": "5e5bffb06aaf-0001",
-      "text": "第1条 (定義)\n「対象コンテンツ」とは、本契約又は別紙において題名及び範囲が特定された映像著作物又は関連素材のみをいう。\n「サービス」とは、各個別許諾に定める定額制動画配信、都度課金型動画配信、リニア放送、音楽ストリーミングその\n他の利用方法をいう。本定義は個別の許諾範囲を拡張しない。\n「利用期間」とは、個別許諾に記載された利用可能期間をいい、本契約自体の存続期間と同一であるとは推定しない。\n「素材」とは、納入明細に定める映像、音声、字幕、スチル、キューシート及びメタデータをいう。",
-      "page": 1,
-      "clause": "第1条",
+      "chunk_index": 1,
+      "clause_no": "第1条",
+      "clause_title": "定義",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第1条 (定義)\n「対象コンテンツ」とは、本契約又は別紙において題名及び範囲が特定された映像著作物又は関連素材のみをいう。\n「サービス」とは、各個別許諾に定める定額制動画配信、都度課金型動画配信、リニア放送、音楽ストリーミングその\n他の利用方法をいう。本定義は個別の許諾範囲を拡張しない。\n「利用期間」とは、個別許諾に記載された利用可能期間をいい、本契約自体の存続期間と同一であるとは推定しない。\n「素材」とは、納入明細に定める映像、音声、字幕、スチル、キューシート及びメタデータをいう。",
+      "page_start": 1,
+      "page_end": 1,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 1,
         "clause_no": "第1条",
         "clause_kind": "ARTICLE",
         "char_start": 507,
-        "char_end": 751,
-        "clause_page_span": [
-          1,
-          1
-        ]
+        "char_end": 751
       },
+      "char_start": 507,
+      "char_end": 751,
       "embedding": null
     },
     {
       "chunk_id": "5e5bffb06aaf-0003",
-      "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
-      "page": 1,
-      "clause": "第3条",
+      "chunk_index": 3,
+      "clause_no": "第3条",
+      "clause_title": "権利の許諾",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第3条 (権利の許諾)\n定額制動画配信（SVOD）による利用のための本個別許諾の権利対象は「最後の軌道」に限る。当該権利対象は、明記\nされない映像本編又は関連音源と当然に統合されない。\n許諾者は被許諾者に対し、「最後の軌道」に関する自動公衆送信権及び送信可能化に係る権利を、定額制動画配信\n（SVOD）の方法に限り、独占的に許諾する。明示されない権利及び利用方法は許諾者に留保される。\n「最後の軌道」を定額制動画配信（SVOD）により利用する地域は日本国内とし、利用期間は2026年1月1日から2028\n年12月31日まで（初日及び末日を含む。）とする。独占性は、ここに定める権利・利用方法・地域・期間の組合せに\nのみ適用する。",
+      "page_start": 1,
+      "page_end": 1,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 1,
         "clause_no": "第3条",
         "clause_kind": "ARTICLE",
         "char_start": 851,
-        "char_end": 1165,
-        "clause_page_span": [
-          1,
-          1
-        ]
+        "char_end": 1165
       },
+      "char_start": 851,
+      "char_end": 1165,
       "embedding": null
     },
     {
       "chunk_id": "5e5bffb06aaf-0004",
-      "text": "第4条 (利用制限及び留保権利)\n許諾サービスの運営に合理的に必要な技術的複製を除き、被許諾者は対象コンテンツを改変、再編集又は第三者に提供\nしてはならない。明示されないリメイク、続編、フォーマット、商品化、劇場、放送及び音楽の独立利用権は許諾者に",
-      "page": 1,
-      "clause": "第4条",
+      "chunk_index": 4,
+      "clause_no": "第4条",
+      "clause_title": "利用制限及び留保権利",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第4条 (利用制限及び留保権利)\n許諾サービスの運営に合理的に必要な技術的複製を除き、被許諾者は対象コンテンツを改変、再編集又は第三者に提供\nしてはならない。明示されないリメイク、続編、フォーマット、商品化、劇場、放送及び音楽の独立利用権は許諾者に\n留保される。\n被許諾者は地域制限、アクセス制御及び権利管理情報を維持し、許諾範囲外の利用を知ったときは直ちに停止して許諾\n者に通知する。",
+      "page_start": 1,
+      "page_end": 2,
+      "page": 1,
       "location": {
-        "page": 1,
+        "page_start": 1,
+        "page_end": 2,
         "clause_no": "第4条",
         "clause_kind": "ARTICLE",
         "char_start": 1166,
-        "char_end": 1290,
-        "clause_page_span": [
-          1,
-          2
-        ]
+        "char_end": 1359
       },
+      "char_start": 1166,
+      "char_end": 1359,
       "embedding": null
     },
     {
-      "chunk_id": "5e5bffb06aaf-0006",
-      "text": "第5条 (素材の納入及び検収)\n許諾者は合意した納入日までに、利用可能な映像又は音声マスター、字幕又は台本、承認済みスチル及び基本メタデー\nタを安全な方法で提供する。\n被許諾者は受領後10営業日以内に技術的適合性を検査し、重大な不具合を具体的に通知する。期間内の技術通知がなく\nても潜在的な権利瑕疵に関する権利を放棄したものとしない。",
-      "page": 2,
-      "clause": "第5条",
+      "chunk_id": "5e5bffb06aaf-0005",
+      "chunk_index": 5,
+      "clause_no": "第5条",
+      "clause_title": "素材の納入及び検収",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第5条 (素材の納入及び検収)\n許諾者は合意した納入日までに、利用可能な映像又は音声マスター、字幕又は台本、承認済みスチル及び基本メタデー\nタを安全な方法で提供する。\n被許諾者は受領後10営業日以内に技術的適合性を検査し、重大な不具合を具体的に通知する。期間内の技術通知がなく\nても潜在的な権利瑕疵に関する権利を放棄したものとしない。",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
+        "page_start": 2,
+        "page_end": 2,
         "clause_no": "第5条",
         "clause_kind": "ARTICLE",
         "char_start": 1360,
-        "char_end": 1527,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_end": 1527
       },
+      "char_start": 1360,
+      "char_end": 1527,
+      "embedding": null
+    },
+    {
+      "chunk_id": "5e5bffb06aaf-0007",
+      "chunk_index": 7,
+      "clause_no": "第7条",
+      "clause_title": "対価及び支払",
+      "clause_kind": "ARTICLE",
+      "lang": "ja",
+      "text": "第7条 (対価及び支払)\n契約対価の総額は55,000,000 JPYとし、支払通貨もJPYとする。被許諾者は次のとおり支払う：30% (16,500,000\nJPY, 署名後10営業日以内); 70% (38,500,000 JPY, 納入後15営業日以内)。表示金額には適用ある間接税を含まな\nい。",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
+      "location": {
+        "page_start": 2,
+        "page_end": 2,
+        "clause_no": "第7条",
+        "clause_kind": "ARTICLE",
+        "char_start": 1701,
+        "char_end": 1852
+      },
+      "char_start": 1701,
+      "char_end": 1852,
       "embedding": null
     },
     {
       "chunk_id": "5e5bffb06aaf-0008",
-      "text": "第7条 (対価及び支払)\n契約対価の総額は55,000,000 JPYとし、支払通貨もJPYとする。被許諾者は次のとおり支払う：30% (16,500,000\nJPY, 署名後10営業日以内); 70% (38,500,000 JPY, 納入後15営業日以内)。表示金額には適用ある間接税を含まな\nい。",
-      "page": 2,
-      "clause": "第7条",
+      "chunk_index": 8,
+      "clause_no": "第8条",
+      "clause_title": "利用報告・帳簿及び監査",
       "clause_kind": "ARTICLE",
       "lang": "ja",
-      "location": {
-        "page": 2,
-        "clause_no": "第7条",
-        "clause_kind": "ARTICLE",
-        "char_start": 1701,
-        "char_end": 1852,
-        "clause_page_span": [
-          2,
-          2
-        ]
-      },
-      "embedding": null
-    },
-    {
-      "chunk_id": "5e5bffb06aaf-0009",
       "text": "第8条 (利用報告・帳簿及び監査)\n被許諾者は、地域、利用方法、提供期間及び取引を確認できる記録を利用終了後3年間保存する。\n利用量又は収益精算がある場合、許諾者は年1回、合理的な事前通知により独立専門家を通じて関連帳簿を確認でき\nる。監査は秘密保持義務の下、通常の営業時間に行う。",
+      "page_start": 2,
+      "page_end": 2,
       "page": 2,
-      "clause": "第8条",
-      "clause_kind": "ARTICLE",
-      "lang": "ja",
       "location": {
-        "page": 2,
+        "page_start": 2,
+        "page_end": 2,
         "clause_no": "第8条",
         "clause_kind": "ARTICLE",
         "char_start": 1853,
-        "char_end": 1994,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_end": 1994
       },
+      "char_start": 1853,
+      "char_end": 1994,
       "embedding": null
     },
     {
-      "chunk_id": "5e5bffb06aaf-0013",
-      "text": "第12条 (契約期間・利用期間及び終了)\n本契約は契約締結日に効力を生じ、すべての利用期間及び未了の精算義務が終了するまで存続する。契約期間は個別の\n利用期間を置き換え又は自動延長しない。\n各利用期間は記載された初日及び末日を含む。更新又は追加利用は、別途の書面合意がある場合に限り有効とする。",
-      "page": 2,
-      "clause": "第12条",
+      "chunk_id": "5e5bffb06aaf-0012",
+      "chunk_index": 12,
+      "clause_no": "第12条",
+      "clause_title": "契約期間・利用期間及び終了",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第12条 (契約期間・利用期間及び終了)\n本契約は契約締結日に効力を生じ、すべての利用期間及び未了の精算義務が終了するまで存続する。契約期間は個別の\n利用期間を置き換え又は自動延長しない。\n各利用期間は記載された初日及び末日を含む。更新又は追加利用は、別途の書面合意がある場合に限り有効とする。",
+      "page_start": 2,
+      "page_end": 2,
+      "page": 2,
       "location": {
-        "page": 2,
+        "page_start": 2,
+        "page_end": 2,
         "clause_no": "第12条",
         "clause_kind": "ARTICLE",
         "char_start": 2471,
-        "char_end": 2618,
-        "clause_page_span": [
-          2,
-          2
-        ]
+        "char_end": 2618
       },
+      "char_start": 2471,
+      "char_end": 2618,
       "embedding": null
     },
     {
-      "chunk_id": "5e5bffb06aaf-0015",
-      "text": "第14条 (再許諾・譲渡及び関係会社)\n再許諾は該当する個別許諾に明示された範囲に限り認める。契約上の地位又は重要義務の譲渡には相手方の事前書面同\n意を要し、技術委託のみをもって譲渡とはしない。\n許可された委託先及び関係会社の行為について被許諾者が責任を負い、地域、期間、利用方法及びセキュリティ条件を\n遵守させる。",
-      "page": 3,
-      "clause": "第14条",
+      "chunk_id": "5e5bffb06aaf-0014",
+      "chunk_index": 14,
+      "clause_no": "第14条",
+      "clause_title": "再許諾・譲渡及び関係会社",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第14条 (再許諾・譲渡及び関係会社)\n再許諾は該当する個別許諾に明示された範囲に限り認める。契約上の地位又は重要義務の譲渡には相手方の事前書面同\n意を要し、技術委託のみをもって譲渡とはしない。\n許可された委託先及び関係会社の行為について被許諾者が責任を負い、地域、期間、利用方法及びセキュリティ条件を\n遵守させる。",
+      "page_start": 3,
+      "page_end": 3,
+      "page": 3,
       "location": {
-        "page": 3,
+        "page_start": 3,
+        "page_end": 3,
         "clause_no": "第14条",
         "clause_kind": "ARTICLE",
         "char_start": 2801,
-        "char_end": 2959,
-        "clause_page_span": [
-          3,
-          3
-        ]
+        "char_end": 2959
       },
+      "char_start": 2801,
+      "char_end": 2959,
       "embedding": null
     },
     {
-      "chunk_id": "5e5bffb06aaf-0020",
-      "text": "第19条 (署名)\n当事者は本契約のすべての条件を確認し、権限ある代表者により各1通に署名する。\n許諾者\n契約当事者: 株式会社月影スタジオ\n代表者: 佐藤美咲\n本店所在地: 東京都渋谷区神宮前三丁目18番9号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日\n被許諾者\n契約当事者: 青波コンテンツ株式会社\n代表者: 高橋蓮\n本店所在地: 東京都港区海岸一丁目7番12号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日",
-      "page": 3,
-      "clause": "第19条",
+      "chunk_id": "5e5bffb06aaf-0019",
+      "chunk_index": 19,
+      "clause_no": "第19条",
+      "clause_title": "署名",
       "clause_kind": "ARTICLE",
       "lang": "ja",
+      "text": "第19条 (署名)\n当事者は本契約のすべての条件を確認し、権限ある代表者により各1通に署名する。\n許諾者\n契約当事者: 株式会社月影スタジオ\n代表者: 佐藤美咲\n本店所在地: 東京都渋谷区神宮前三丁目18番9号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日\n被許諾者\n契約当事者: 青波コンテンツ株式会社\n代表者: 高橋蓮\n本店所在地: 東京都港区海岸一丁目7番12号\n署名又は押印: （署名又は押印）\n契約締結日: 2025年8月30日",
+      "page_start": 3,
+      "page_end": 3,
+      "page": 3,
       "location": {
-        "page": 3,
+        "page_start": 3,
+        "page_end": 3,
         "clause_no": "第19条",
         "clause_kind": "ARTICLE",
         "char_start": 3394,
-        "char_end": 3625,
-        "clause_page_span": [
-          3,
-          3
-        ]
+        "char_end": 3625
       },
+      "char_start": 3394,
+      "char_end": 3625,
       "embedding": null
     }
   ]
