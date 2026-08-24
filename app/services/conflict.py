@@ -250,3 +250,215 @@ def verify_contract(db: Session, req, team_id: str) -> dict[str, Any]:
         }
     finally:
         db.rollback()  # 통과·충돌 무관 항상 되돌림(§5.5)
+
+
+# ─────────────────────────────────────────────────────────────
+# 6번 확정 저장 (지시서 §5.6) — 전체가 한 트랜잭션. 순서를 바꾸지 않는다.
+# ─────────────────────────────────────────────────────────────
+from datetime import date as _date  # noqa: E402
+
+from app.errors import AlreadyConfirmed, NotFound  # noqa: E402
+
+
+def _json_default(o):
+    if isinstance(o, _date):
+        return o.isoformat()
+    return str(o)
+
+
+def _next_version(db: Session, contract_id: int, mode: str) -> str:
+    if mode == "final":
+        return "final"
+    n = db.execute(
+        text(
+            "SELECT count(*) FROM master.contract_history "
+            "WHERE contract_id=:c AND version <> 'final'"
+        ),
+        {"c": contract_id},
+    ).scalar_one()
+    return f"v{int(n) + 1}"
+
+
+def _vector_literal(emb) -> Optional[str]:
+    if not emb:
+        return None
+    return "[" + ",".join(str(float(x)) for x in emb) + "]"
+
+
+def confirm_contract(db: Session, req, team_id: str) -> dict[str, Any]:
+    """6번 — 확정 저장. 성공이든 충돌이든 항상 COMMIT(§5.6)."""
+    tmpid = str(req.source_tmpid) if req.source_tmpid else None
+
+    # 1. 중복 확정 차단
+    if tmpid:
+        dup = db.execute(
+            text(
+                "SELECT id, current_history_id FROM master.contract "
+                "WHERE source_tmpid = :t"
+            ),
+            {"t": tmpid},
+        ).mappings().first()
+        if dup:
+            db.rollback()
+            raise AlreadyConfirmed(
+                "이미 확정된 계약입니다",
+                details={"contractId": dup["id"], "contractHistoryId": dup["current_history_id"]},
+            )
+
+    # 2. contract / history / chunk (되돌리지 않는 구간)
+    if req.mode in ("revision", "final") and req.contract_id:
+        contract_id = req.contract_id
+        row = db.execute(
+            text("SELECT status FROM master.contract WHERE id=:c"), {"c": contract_id}
+        ).first()
+        if row is None:
+            db.rollback()
+            raise NotFound("대상 계약을 찾을 수 없습니다")
+        base_status = row[0]
+    else:
+        contract_id = int(
+            db.execute(
+                text(
+                    "INSERT INTO master.contract"
+                    "(team_id,title,contract_type,counterparty,signed_date,lang,amount,currency,"
+                    " source_tmpid,status) "
+                    "VALUES (:t,:title,:ctype,:cp,:sd,:lang,:amt,:cur,:tmp,'draft') RETURNING id"
+                ),
+                {
+                    "t": team_id, "title": req.title or "(제목 미상)",
+                    "ctype": req.contract_type, "cp": req.counterparty or "(미상)",
+                    "sd": req.signed_date, "lang": req.lang, "amt": req.amount,
+                    "cur": req.currency, "tmp": tmpid,
+                },
+            ).scalar_one()
+        )
+        base_status = "draft"
+
+    version = _next_version(db, contract_id, req.mode)
+    history_id = int(
+        db.execute(
+            text(
+                "INSERT INTO master.contract_history"
+                "(team_id,contract_id,version,status,file_path,raw_text,title,counterparty,"
+                " signed_date,lang,amount,currency,parsed_at) "
+                "VALUES (:t,:c,:v,'applied',:fp,:rt,:title,:cp,:sd,:lang,:amt,:cur,now()) "
+                "RETURNING id"
+            ),
+            {
+                "t": team_id, "c": contract_id, "v": version,
+                "fp": req.file_path, "rt": req.raw_text, "title": req.title,
+                "cp": req.counterparty, "sd": req.signed_date, "lang": req.lang,
+                "amt": req.amount, "cur": req.currency,
+            },
+        ).scalar_one()
+    )
+
+    for ch in req.chunks:
+        db.execute(
+            text(
+                "INSERT INTO master.contract_chunk"
+                "(team_id,contract_history_id,clause_no,chunk_text,lang,page,embedding) "
+                "VALUES (:t,:h,:cl,:ct,:lang,:pg,"
+                + ("CAST(:emb AS vector)" if ch.embedding else ":emb")
+                + ")"
+            ),
+            {
+                "t": team_id, "h": history_id, "cl": ch.clause_no, "ct": ch.chunk_text,
+                "lang": ch.lang, "pg": ch.page, "emb": _vector_literal(ch.embedding),
+            },
+        )
+
+    # 3. SAVEPOINT — 이전 세대 terminated + 이번 rows 일괄 INSERT
+    rows = build_rows(db, req.rights, contract_id, history_id, team_id)
+    sp = db.begin_nested()
+    conflicted = False
+    new_ids: list[int] = []
+    try:
+        db.execute(
+            text(
+                "UPDATE master.rights_grant "
+                "SET status='terminated', terminated_reason='superseded', terminated_at=now() "
+                "WHERE contract_id=:c AND status='active'"
+            ),
+            {"c": contract_id},
+        )
+        for r in rows:
+            new_ids.append(int(db.execute(_INSERT_SQL, r).scalar_one()))
+        db.flush()  # EXCLUDE 판정
+    except IntegrityError as ex:
+        if ExclusionViolation is None or not isinstance(ex.orig, ExclusionViolation):
+            raise
+        sp.rollback()  # terminate + active insert 전부 되돌림
+        conflicted = True
+
+    conflicts: list[dict[str, Any]] = []
+
+    if not conflicted:
+        # 4-통과: lineage_id 채우기(이전 세대 승계 or 자기 id)
+        for r, nid in zip(rows, new_ids):
+            prev = db.execute(
+                text(
+                    "SELECT lineage_id FROM master.rights_grant "
+                    "WHERE content_asset_id=:ca AND territory=:t AND rights_type=:rt "
+                    "  AND status='terminated' AND lineage_id IS NOT NULL AND id<>:nid "
+                    "ORDER BY terminated_at DESC NULLS LAST, created_at DESC LIMIT 1"
+                ),
+                {"ca": r["content_asset_id"], "t": r["territory"], "rt": r["rights_type"], "nid": nid},
+            ).scalar()
+            lin = int(prev) if prev is not None else nid
+            db.execute(
+                text("UPDATE master.rights_grant SET lineage_id=:l WHERE id=:nid"),
+                {"l": lin, "nid": nid},
+            )
+
+        contract_status = "signed" if req.mode == "final" else base_status
+        db.execute(
+            text(
+                "UPDATE master.contract SET current_history_id=:h, status=:st, "
+                "title=COALESCE(:title,title), amount=COALESCE(:amt,amount), "
+                "currency=COALESCE(:cur,currency), updated_at=now() WHERE id=:c"
+            ),
+            {
+                "h": history_id, "st": contract_status, "title": req.title,
+                "amt": req.amount, "cur": req.currency, "c": contract_id,
+            },
+        )
+        history_status = "applied"
+    else:
+        # 4-위반: 상대 조회 + conflicted 재INSERT + history conflicted
+        conflicts = find_conflicts(db, rows)
+        new_ids = []
+        for r in rows:
+            cr = dict(r)
+            cr["status"] = "conflicted"
+            cr["lineage_id"] = None
+            new_ids.append(int(db.execute(_INSERT_SQL, cr).scalar_one()))
+        db.execute(
+            text(
+                "UPDATE master.contract_history "
+                "SET status='conflicted', conflict_report=CAST(:rep AS jsonb) WHERE id=:h"
+            ),
+            {"rep": json.dumps(conflicts, ensure_ascii=False, default=_json_default), "h": history_id},
+        )
+        # contract.current_history_id 는 갱신하지 않는다. status 유지(final 도 draft 유지)
+        contract_status = base_status
+        history_status = "conflicted"
+
+    # 5. staging 정리 — pdf_blob 한 줄이면 CASCADE 로 나머지 둘도 사라진다(§3.3)
+    if tmpid:
+        db.execute(
+            text("DELETE FROM staging.pdf_blob WHERE tmpid=:t"), {"t": tmpid}
+        )
+
+    # 6. COMMIT — 성공이든 충돌이든 항상
+    db.commit()
+
+    return {
+        "contract_id": contract_id,
+        "contract_history_id": history_id,
+        "contract_status": contract_status,
+        "history_status": history_status,
+        "has_conflict": conflicted,
+        "rights_grant_ids": new_ids,
+        "conflicts": conflicts,
+    }

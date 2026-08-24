@@ -21,3 +21,19 @@ def verify_contract(body: VerifyRequest, db: Session = Depends(get_db)) -> Verif
     team_id = resolve_team_id(db)
     result = conflict_svc.verify_contract(db, body, team_id)
     return VerifyResponse.model_validate(result)
+
+
+# --- 6번 POST /contracts — 확정 저장 (지시서 §5.6) ---
+from fastapi import Response  # noqa: E402
+
+from app.schemas.contracts import ConfirmRequest, ConfirmResponse  # noqa: E402
+
+
+@router.post("/contracts", response_model=ConfirmResponse, status_code=201)
+def confirm_contract(
+    body: ConfirmRequest, response: Response, db: Session = Depends(get_db)
+) -> ConfirmResponse:
+    """6번 — 확정 저장. 충돌도 201(§4.3): 본문 hasConflict/conflicts 로 구분."""
+    team_id = resolve_team_id(db)
+    result = conflict_svc.confirm_contract(db, body, team_id)
+    return ConfirmResponse.model_validate(result)

@@ -68,3 +68,42 @@ class VerifyResponse(CamelModel):
     has_conflict: bool
     checked_rows: int
     conflicts: list[ConflictItem] = []
+
+
+# --- 6번 확정 저장 (지시서 §5.6) ---
+from uuid import UUID  # noqa: E402
+
+
+class ChunkIn(CamelModel):
+    clause_no: Optional[str] = None
+    chunk_text: str
+    lang: Optional[str] = None
+    page: Optional[int] = None
+    embedding: Optional[list[float]] = None
+
+
+class ConfirmRequest(CamelModel):
+    mode: str = Field(default="new")  # new / revision / final
+    contract_id: Optional[int] = None
+    source_tmpid: Optional[UUID] = None  # 확정 원본. 중복 확정 차단(source_tmpid UNIQUE)
+    title: Optional[str] = None
+    counterparty: Optional[str] = None
+    contract_type: Optional[str] = None
+    signed_date: Optional[date] = None
+    lang: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    file_path: Optional[str] = None
+    raw_text: Optional[str] = None
+    rights: list[RightIn]
+    chunks: list[ChunkIn] = []
+
+
+class ConfirmResponse(CamelModel):
+    contract_id: int
+    contract_history_id: int
+    contract_status: str
+    history_status: str  # applied / conflicted
+    has_conflict: bool
+    rights_grant_ids: list[int] = []
+    conflicts: list[ConflictItem] = []
