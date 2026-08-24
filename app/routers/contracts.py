@@ -140,6 +140,7 @@ from app.schemas.detail import (  # noqa: E402
     Authority,
     ContractDetail,
     HistoryRow,
+    IpBrief,
     RightRow,
 )
 
@@ -180,19 +181,27 @@ def get_contract(
     # rights: active + conflicted (terminated 제외)
     rrows = db.execute(
         text(
-            "SELECT id, lineage_id, content_asset_id, territory, rights_type, "
-            "       lower(period) AS lo, upper(period) AS hi, exclusivity, status, "
-            "       conditions_raw, confidence, evidence "
-            "FROM master.rights_grant "
-            "WHERE contract_id=:c AND status IN ('active','conflicted') "
-            "ORDER BY id"
+            "SELECT rg.id, rg.lineage_id, rg.content_asset_id, "
+            "       ca.title AS asset_title, ca.scope_type AS scope_type, "
+            "       ip.id AS ip_id, ip.title AS ip_title, ip.kind AS ip_kind, "
+            "       rg.territory, rg.rights_type, "
+            "       lower(rg.period) AS lo, upper(rg.period) AS hi, "
+            "       rg.exclusivity, rg.status, rg.conditions_raw, rg.confidence, rg.evidence "
+            "FROM master.rights_grant rg "
+            "JOIN master.content_asset ca ON ca.id = rg.content_asset_id "
+            "JOIN master.ip ip ON ip.id = ca.ip_id "
+            "WHERE rg.contract_id=:c AND rg.status IN ('active','conflicted') "
+            "ORDER BY rg.id"
         ),
         {"c": contract_id},
     ).mappings().all()
     rights = [
         RightRow(
             rights_grant_id=r["id"], lineage_id=r["lineage_id"],
-            content_asset_id=r["content_asset_id"], territory=r["territory"],
+            content_asset_id=r["content_asset_id"],
+            ip_id=r["ip_id"], ip_title=r["ip_title"], ip_kind=r["ip_kind"],
+            content_asset_title=r["asset_title"], scope_type=r["scope_type"],
+            territory=r["territory"],
             rights_type=r["rights_type"], period_start=r["lo"],
             period_end=end_inclusive_from_upper(r["hi"]), exclusivity=r["exclusivity"],
             status=r["status"], conditions_raw=r["conditions_raw"],
@@ -201,6 +210,13 @@ def get_contract(
         )
         for r in rrows
     ]
+    # 계약에 걸린 IP 목록(중복 제거, 등장 순서 보존)
+    ips: list[IpBrief] = []
+    _seen_ip: set[int] = set()
+    for r in rrows:
+        if r["ip_id"] is not None and r["ip_id"] not in _seen_ip:
+            _seen_ip.add(r["ip_id"])
+            ips.append(IpBrief(ip_id=r["ip_id"], title=r["ip_title"], kind=r["ip_kind"]))
 
     hrows = db.execute(
         text(
@@ -250,6 +266,7 @@ def get_contract(
         service_title=None,
         grantor=team_name,
         authority=Authority(),
+        ips=ips,
         rights=rights,
         history=history,
     )

@@ -10,10 +10,24 @@ from typing import Any, Optional
 from app.schemas.common import CamelModel
 
 
+class IpBrief(CamelModel):
+    """계약에 걸린 IP 요약 (상단 표시용)."""
+
+    ip_id: int
+    title: str
+    kind: Optional[str] = None
+
+
 class RightRow(CamelModel):
     rights_grant_id: int
     lineage_id: Optional[int] = None
     content_asset_id: int
+    # IP·작품 정보(화면 표시용) — content_asset → ip 조인 결과
+    ip_id: Optional[int] = None
+    ip_title: Optional[str] = None
+    ip_kind: Optional[str] = None
+    content_asset_title: Optional[str] = None
+    scope_type: Optional[str] = None
     territory: str
     rights_type: str
     period_start: date
@@ -58,5 +72,6 @@ class ContractDetail(CamelModel):
     service_title: Optional[str] = None  # §11-2 → null
     grantor: Optional[str] = None        # §11-4 → team.name
     authority: Authority = Authority()   # §11-1 → 전 필드 null
+    ips: list[IpBrief] = []              # 계약에 걸린 IP 목록(중복 제거)
     rights: list[RightRow] = []
     history: list[HistoryRow] = []
