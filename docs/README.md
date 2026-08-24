@@ -5,8 +5,9 @@
 
 ## 현재 문서
 
-- [`mindex_remastered.dbml`](mindex_remastered.dbml): PostgreSQL 16 데이터 모델 정본
+- [`mindex_remastered.dbml`](mindex_remastered.dbml): PostgreSQL 16 데이터 모델 정본. `public`(운영) 스키마와 `staging`(비동기 추출 큐) 스키마를 모두 포함한다
 - [`mindex DB 설명서.md`](mindex%20DB%20설명서.md): 정본 DBML의 테이블 구조와 서비스 플로우 설명
+- [`mindex_staging DB 설명서.md`](mindex_staging%20DB%20설명서.md), [`mindex_staging_erd.svg`](mindex_staging_erd.svg): `staging` 스키마(비동기 OCR/LLM 추출 파이프라인) 구조 설명. D-32/D-33 참고
 - [`contract-registration-flow.md`](contract-registration-flow.md): 최초 업로드·검증·실제 등록·충돌 처리·계약 최종화 실행 흐름
 - [`ha-design.md`](ha-design.md), [`mindex-architecture.svg`](mindex-architecture.svg): HA 및 배포 아키텍처
 - `WORKLOG.md`, `DECISIONS.md`: 개인 작업 기록이며 `.gitignore` 대상

@@ -89,8 +89,9 @@ mindex/
 
 ## 문서
 
-- 데이터 모델 정본: [`docs/mindex_remastered.dbml`](docs/mindex_remastered.dbml)
+- 데이터 모델 정본: [`docs/mindex_remastered.dbml`](docs/mindex_remastered.dbml) (운영 `public` 스키마 + 비동기 추출용 `staging` 스키마)
 - DB 구조와 서비스 플로우: [`docs/mindex DB 설명서.md`](docs/mindex%20DB%20설명서.md)
+- staging 스키마(비동기 OCR/LLM 파이프라인): [`docs/mindex_staging DB 설명서.md`](docs/mindex_staging%20DB%20설명서.md)
 - 문서 목록: [`docs/README.md`](docs/README.md)
 
 프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에서 관리합니다.
