@@ -300,7 +300,8 @@ $$;
 -- 커밋만 되지 않은 상태다.
 CREATE OR REPLACE FUNCTION validate_rights_batch(
     p_contract_id  bigint,           -- NULL이면 신규 계약
-    p_counterparty text,
+    p_grantor      text,
+    p_grantee      text,
     p_ip_id        bigint,           -- NULL이면 신규 작품
     p_file_name    text,
     p_file_path    text,
@@ -341,7 +342,7 @@ BEGIN
      ORDER BY id LIMIT 1;
 
     IF p_contract_id IS NULL THEN
-      INSERT INTO contract (counterparty) VALUES (p_counterparty) RETURNING id INTO v_contract;
+      INSERT INTO contract (grantor, grantee) VALUES (p_grantor, p_grantee) RETURNING id INTO v_contract;
       v_version := 1;
     ELSE
       v_contract := p_contract_id;
@@ -440,7 +441,8 @@ $$;
 -- 남긴다 — "충돌 건은 처리 대상으로 커밋한다"는 D-28/D-30 예외 원칙이다.
 CREATE OR REPLACE FUNCTION save_rights_batch(
     p_contract_id  bigint,           -- NULL이면 신규 계약
-    p_counterparty text,
+    p_grantor      text,
+    p_grantee      text,
     p_ip_id        bigint,           -- NULL이면 신규 작품 (신규 계약일 때만 의미가 있다)
     p_file_name    text,
     p_file_path    text,
@@ -482,10 +484,10 @@ BEGIN
   IF p_contract_id IS NULL THEN
     v_ip := p_ip_id;
     IF v_ip IS NULL THEN
-      INSERT INTO ip (title) VALUES (p_counterparty || ' 관련 신규 작품') RETURNING id INTO v_ip;
+      INSERT INTO ip (title) VALUES (p_grantor || ' 관련 신규 작품') RETURNING id INTO v_ip;
     END IF;
-    INSERT INTO contract (counterparty, source_tmpid)
-    VALUES (p_counterparty, p_source_tmpid) RETURNING id INTO v_contract;
+    INSERT INTO contract (grantor, grantee, source_tmpid)
+    VALUES (p_grantor, p_grantee, p_source_tmpid) RETURNING id INTO v_contract;
   ELSE
     v_contract := p_contract_id;
     v_ip := p_ip_id;
@@ -661,10 +663,10 @@ BEGIN
   -- contract_chunk는 성공/실패 무관하게 삽입한다 — 검색엔 유용하다
   -- (04_vector.sql 의존. p_chunks가 NULL이면 아무 일도 하지 않는다).
   IF p_chunks IS NOT NULL THEN
-    INSERT INTO contract_chunk (contract_id, contract_history_id, clause_no, chunk_text, lang, page, embedding)
-    SELECT v_contract, v_history, c.clause_no, c.chunk_text, c.lang, c.page, c.embedding
+    INSERT INTO contract_chunk (contract_id, contract_history_id, clause_no, chunk_text, lang, page_start, page_end, embedding)
+    SELECT v_contract, v_history, c.clause_no, c.chunk_text, c.lang, c.page_start, c.page_end, c.embedding
     FROM jsonb_to_recordset(p_chunks) AS c(
-        clause_no text, chunk_text text, lang char(2), page int, embedding vector(1024));
+        clause_no text, chunk_text text, lang char(2), page_start int, page_end int, embedding vector(1024));
   END IF;
 
   RETURN QUERY SELECT v_result, v_contract, v_history, v_constraint, v_report;

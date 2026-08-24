@@ -77,7 +77,7 @@ _FULL_EVIDENCE_JSON = (
     ],
 )
 def test_hierarchy_overlap(conn, cur, ctx, make_grant, existing, incoming, blocked, why):
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('상대2') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '상대2') RETURNING id")
     other_contract_id = cur.fetchone()[0]
     cur.execute(
         "INSERT INTO contract_history (contract_id, version, status, file_name, file_path, file_hash) "
@@ -102,7 +102,7 @@ def test_hierarchy_overlap(conn, cur, ctx, make_grant, existing, incoming, block
 # 나머지 판정축 — 계층 도입으로 회귀하지 않았는지
 # ─────────────────────────────────────────────────────────────
 def _other_contract(cur):
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('상대2') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '상대2') RETURNING id")
     contract_id = cur.fetchone()[0]
     cur.execute(
         "INSERT INTO contract_history (contract_id, version, status, file_name, file_path, file_hash) "

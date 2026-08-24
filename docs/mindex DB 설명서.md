@@ -64,7 +64,7 @@ candidate, evaluation, 개별 승인 계층은 없다. PDF 한 건의 권리 배
 
 ## 3. 계약과 PDF 세대
 
-`contract`는 counterparty, signed date, amount 같은 업무 메타데이터를 가진다. 상태는
+`contract`는 grantor, grantee, signed date, amount 같은 업무 메타데이터를 가진다. 상태는
 `draft | signed | cancelled`다. signed에는 applied 세대를 가리키는
 `current_history_id`가 필요하다. 취소·해지·협의 결렬은 모두 cancelled로 처리한다.
 cancelled는 종결 상태이며 draft나 signed로 되돌릴 수 없다.

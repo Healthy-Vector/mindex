@@ -239,7 +239,8 @@ CREATE TABLE team (
 -- uploaded_by/changed_by 등 개인식별 컬럼은 두지 않는다(D-29 정신 연장).
 CREATE TABLE contract (
     id                  bigserial PRIMARY KEY,
-    counterparty        text NOT NULL,
+    grantor             text NOT NULL,         -- 권리를 주는 쪽(갑)
+    grantee             text NOT NULL,         -- 권리를 받는 쪽(을)
     signed_date         date,
     lang                char(2),               -- 'ko' · 'en' · 'ja'
     amount              numeric,               -- SER-006 계층1 암호화 대상 (D-14, 미적용)

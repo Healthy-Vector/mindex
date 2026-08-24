@@ -26,7 +26,8 @@ CREATE TABLE contract_chunk (
     clause_no    text,                   -- '제8조'
     chunk_text   text NOT NULL,
     lang         char(2),                -- 'ko' · 'en' · 'ja'
-    page         int,
+    page_start   int,                    -- 조항이 페이지를 걸치는 경우가 흔해(실측 9.4%) 단일 page로 못 담는다
+    page_end     int,
 
     -- SFR-005 — multilingual-e5-large, 1024차원.
     -- 한·영·일을 같은 벡터 공간에 매핑해 한국어 질의로 영문 계약서를 찾는다(TER-004).
@@ -40,7 +41,8 @@ CREATE TABLE contract_chunk (
     created_at   timestamptz NOT NULL DEFAULT now(),
 
     FOREIGN KEY (contract_id)         REFERENCES contract         (id) ON DELETE CASCADE,
-    FOREIGN KEY (contract_history_id) REFERENCES contract_history (id) ON DELETE CASCADE
+    FOREIGN KEY (contract_history_id) REFERENCES contract_history (id) ON DELETE CASCADE,
+    CONSTRAINT contract_chunk_page_order CHECK (page_end IS NULL OR page_start IS NULL OR page_end >= page_start)
 );
 
 CREATE INDEX contract_chunk_embedding

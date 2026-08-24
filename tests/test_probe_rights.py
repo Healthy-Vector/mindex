@@ -15,14 +15,14 @@ import pytest
 
 VALIDATE = """
 SELECT batch_result, constraint_name, conflict_report
-FROM validate_rights_batch(%s, %s, %s, %s, %s, %s, %s::jsonb)
+FROM validate_rights_batch(%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
 """
 
 
-def validate(cur, *, contract_id=None, counterparty="검증용", ip_id, rights):
+def validate(cur, *, contract_id=None, grantor="mindex", grantee="검증용", ip_id, rights):
     cur.execute(
         VALIDATE,
-        (contract_id, counterparty, ip_id, "v.pdf", "s3://v/1.pdf", "sha256:v",
+        (contract_id, grantor, grantee, ip_id, "v.pdf", "s3://v/1.pdf", "sha256:v",
          json.dumps(rights)),
     )
     return cur.fetchone()

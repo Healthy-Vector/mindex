@@ -158,7 +158,8 @@ Table team {
 }
 Table contract {
   id BIGSERIAL [pk]
-  counterparty TEXT [not null]
+  grantor TEXT [not null, note: '권리를 주는 쪽(갑)']
+  grantee TEXT [not null, note: '권리를 받는 쪽(을)']
   signed_date DATE
   lang CHAR(2)
   amount NUMERIC
@@ -214,7 +215,8 @@ Table contract_chunk {
   clause_no TEXT
   chunk_text TEXT [not null]
   lang CHAR(2)
-  page INT
+  page_start INT
+  page_end INT
   embedding VECTOR(1024)
   created_at TIMESTAMPTZ [not null, default: `now()`]
 }

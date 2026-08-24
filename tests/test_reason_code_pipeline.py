@@ -18,19 +18,19 @@ import psycopg2
 import pytest
 
 
-def save(cur, *, contract_id=None, counterparty="배치 상대방", ip_id, rights,
+def save(cur, *, contract_id=None, grantor="mindex", grantee="배치 상대방", ip_id, rights,
          file_name="batch.pdf", file_path="s3://batch/1.pdf", file_hash="sha256:batch",
          document_kind="final", source_tmpid=None):
     cur.execute(
         """
         SELECT batch_result, out_contract_id, out_history_id, constraint_name, conflict_report
         FROM save_rights_batch(
-          %s, %s, %s, %s, %s, %s, %s::jsonb,
+          %s, %s, %s, %s, %s, %s, %s, %s::jsonb,
           p_document_kind => %s::contract_document_kind,
           p_source_tmpid => %s::uuid
         )
         """,
-        (contract_id, counterparty, ip_id, file_name, file_path, file_hash,
+        (contract_id, grantor, grantee, ip_id, file_name, file_path, file_hash,
          json.dumps(rights), document_kind, source_tmpid),
     )
     return cur.fetchone()
@@ -192,7 +192,7 @@ def test_draft_contract_reserves_rights_without_becoming_confirmed(cur, ctx, mak
     )
     assert cur.fetchone()[0] == 0
 
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('후속 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '후속 상대') RETURNING id")
     other_contract_id = cur.fetchone()[0]
     conflict = save(
         cur,
@@ -259,7 +259,7 @@ def test_closing_contract_releases_reserved_rights(
     )
     assert cur.fetchone() == ("terminated", "cancelled")
 
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('예약 승계 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '예약 승계 상대') RETURNING id")
     other_contract_id = cur.fetchone()[0]
     retry = save(
         cur,
@@ -272,7 +272,7 @@ def test_closing_contract_releases_reserved_rights(
 
 def test_cancelled_contract_is_terminal(conn, cur):
     cur.execute(
-        "INSERT INTO contract (counterparty, status) VALUES ('종결 상대', 'cancelled') RETURNING id"
+        "INSERT INTO contract (grantor, grantee, status) VALUES ('mindex', '종결 상대', 'cancelled') RETURNING id"
     )
     contract_id = cur.fetchone()[0]
     with pytest.raises(psycopg2.errors.RaiseException):
@@ -286,7 +286,7 @@ def test_cancelled_contract_is_terminal(conn, cur):
 def test_save_conflict_records_report_and_leaves_contract_untouched(cur, ctx, make_grant, make_batch_row):
     make_grant(territory="KR")  # ctx 소속 contract에 기존 독점권
 
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('신규 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '신규 상대') RETURNING id")
     new_contract_id = cur.fetchone()[0]
 
     result, _out_contract, _out_history, constraint, report = save(
@@ -312,7 +312,7 @@ def test_save_conflict_records_report_and_leaves_contract_untouched(cur, ctx, ma
 
 def test_save_conflict_does_not_disturb_existing_grant(cur, ctx, make_grant, make_batch_row):
     grant_id = make_grant(territory="KR")
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('신규 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '신규 상대') RETURNING id")
     new_contract_id = cur.fetchone()[0]
 
     save(cur, contract_id=new_contract_id, ip_id=ctx["ip_id"], rights=[make_batch_row(territory="KR")])
@@ -328,7 +328,7 @@ def test_batch_is_all_or_nothing_on_partial_conflict(cur, ctx, make_grant, make_
     """배치 2건 중 1건만 충돌해도 전체가 롤백돼야 한다 — all-or-nothing."""
     make_grant(territory="KR", exploitation_mode="SVOD")  # 이것과만 충돌한다
 
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('신규 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '신규 상대') RETURNING id")
     new_contract_id = cur.fetchone()[0]
 
     result, _out_contract, _out_history, _constraint, _report = save(
@@ -349,7 +349,7 @@ def test_batch_is_all_or_nothing_on_partial_conflict(cur, ctx, make_grant, make_
 def test_new_generation_supersedes_previous_and_inherits_lineage(cur, ctx, make_batch_row):
     # ctx["contract_id"]는 픽스처가 이미 history version=1(placeholder)을
     # 만들어 뒀으므로(make_grant용), 버전 카운트가 깨끗한 새 계약을 쓴다.
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('개정판 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '개정판 상대') RETURNING id")
     contract_id = cur.fetchone()[0]
 
     r1 = save(cur, contract_id=contract_id, ip_id=ctx["ip_id"],
@@ -417,7 +417,7 @@ def test_ambiguous_natural_key_match_starts_new_lineage(cur, ctx, make_batch_row
 # ─────────────────────────────────────────────────────────────
 def test_waiver_then_resave_succeeds(cur, ctx, make_grant, make_batch_row):
     grant_id = make_grant(territory="KR")
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('신규 상대') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '신규 상대') RETURNING id")
     new_contract_id = cur.fetchone()[0]
 
     result, *_ = save(cur, contract_id=new_contract_id, ip_id=ctx["ip_id"],
@@ -496,7 +496,7 @@ def test_signing_rejects_history_from_other_contract(conn, cur, ctx, make_batch_
     cur.execute("SELECT current_history_id FROM contract WHERE id = %s", (ctx["contract_id"],))
     other_history_id = cur.fetchone()[0]
 
-    cur.execute("INSERT INTO contract (counterparty, status) VALUES ('다른 계약', 'draft') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee, status) VALUES ('mindex', '다른 계약', 'draft') RETURNING id")
     victim_id = cur.fetchone()[0]
     cur.execute("UPDATE contract SET current_history_id = %s WHERE id = %s", (other_history_id, victim_id))
 
@@ -508,7 +508,7 @@ def test_signing_rejects_history_from_other_contract(conn, cur, ctx, make_batch_
 
 def test_signing_rejects_conflicted_history(conn, cur, ctx, make_grant, make_batch_row):
     make_grant(territory="KR")
-    cur.execute("INSERT INTO contract (counterparty) VALUES ('충돌 계약') RETURNING id")
+    cur.execute("INSERT INTO contract (grantor, grantee) VALUES ('mindex', '충돌 계약') RETURNING id")
     conflicted_contract_id = cur.fetchone()[0]
     save(cur, contract_id=conflicted_contract_id, ip_id=ctx["ip_id"], rights=[make_batch_row(territory="KR")])
 

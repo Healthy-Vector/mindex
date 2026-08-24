@@ -48,7 +48,7 @@ def ctx(cur):
     content_asset_id = cur.fetchone()[0]
 
     cur.execute(
-        "INSERT INTO contract (counterparty) VALUES ('테스트 상대방') RETURNING id",
+        "INSERT INTO contract (grantor, grantee) VALUES ('mindex', '테스트 상대방') RETURNING id",
     )
     contract_id = cur.fetchone()[0]
 

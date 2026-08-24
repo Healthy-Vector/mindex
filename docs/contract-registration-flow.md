@@ -113,7 +113,7 @@ current history가 같은 계약 소속이고 `final/applied`인지 검사한다
 원본 `rights_grant` 조회는 draft 계약의 예약도 포함한다. 확정된 계약의 현재 권리만
 조회할 때는 `confirmed_rights_grant` view를 사용한다.
 
-`signed` 계약에 새 PDF를 등록할 수 있는지 여부는 앱 정책이다. DB는 개정 자체를 금지하지 않는다. `contract_version`은 없으므로 counterparty·amount 같은 계약 메타데이터 수정 감사이력이 필요하면 별도 모델을 설계해야 한다.
+`signed` 계약에 새 PDF를 등록할 수 있는지 여부는 앱 정책이다. DB는 개정 자체를 금지하지 않는다. `contract_version`은 없으므로 grantor·grantee·amount 같은 계약 메타데이터 수정 감사이력이 필요하면 별도 모델을 설계해야 한다.
 
 ## 7. 검색과 변경 로그
 

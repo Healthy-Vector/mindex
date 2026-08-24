@@ -46,7 +46,7 @@ $$;
 --
 -- D-30 — 트리거를 contract_document가 아니라 contract_history에 건다.
 -- raw_text(재청킹 대상)가 contract_document를 흡수한 contract_history로
--- 옮겨갔기 때문이다(§1.4). contract 자체(counterparty·status 등
+-- 옮겨갔기 때문이다(§1.4). contract 자체(grantor·grantee·status 등
 -- 메타데이터)가 바뀌어도 재임베딩할 내용이 없으므로, contract 트리거를
 -- 그대로 뒀다면 목적에 안 맞는 로그만 쌓였을 것이다 — 이 판단은 D-24
 -- 때부터 유지된다.
