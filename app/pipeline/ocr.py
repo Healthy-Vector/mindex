@@ -1,14 +1,13 @@
 """스캔본 페이지 OCR — PaddleOCR.
 
-⚠️⚠️ 미해결 — 네이티브 세그폴트 재현됨 (2026-08-24). 한 프로세스에서
-pypdfium2(PdfDocument)를 두 번 이상 열고 렌더링한 뒤 이 모듈로 OCR을 돌리면
-access violation으로 파이썬 프로세스 자체가 죽는다(Windows fatal exception,
-exit code 139) — 파이썬 예외가 아니라서 try/except로 못 잡는다. 딱 한 번만
-`rasterize_page()`를 호출하고 OCR을 돌리는 경로는 안전했다. 문제는 반복
-호출이다. 실서비스 워커는 문서마다 `rasterize_page()`를 부르므로 이 크래시가
-거기서도 재현되는지 아직 확정 못 했다. **OCR 다건 처리를 프로덕션에 올리기
-전에 별도 프로세스로 격리하거나 이 문제를 마저 규명할 것.**
-자세한 재현 경로: `requirements-ml.txt`의 OCR 절.
+## 과거 크래시 (해결됨, 2026-08-24)
+
+`rasterize_page()` 가 `np.asarray()` 로 pdfium 네이티브 버퍼의 뷰를 반환하면서
+반환 직전에 그 버퍼를 해제하고 있었다. 호출자가 해제된 메모리를 PaddleOCR에
+넘겨 프로세스가 죽었다. `np.array()` 복사로 고쳤다(같은 함수의 주석 참조).
+
+네이티브 크래시가 비결정적으로 보이면 환경보다 **자기 코드의 메모리 소유권**을
+먼저 볼 것 — `np.asarray`(뷰)와 `np.array`(복사)의 차이가 이런 결과를 만든다.
 
 ## 지연 import
 
@@ -128,6 +127,15 @@ logger = logging.getLogger(__name__)
 #: 확인해 보고, 안 나면 이 값을 기본으로 바꾸는 걸 권한다.
 _ENABLE_MKLDNN = os.environ.get("MINDEX_OCR_MKLDNN", "0") == "1"
 
+#: 래스터화 결과의 긴 변 상한(픽셀). 이보다 커지면 dpi를 낮춰서 맞춘다.
+#:
+#: 사용자가 올리는 PDF의 종이 크기는 우리가 정하지 않는다. A0 도면이나,
+#: 이미지를 dpi 정보 없이 감싼 PDF(뷰어가 72dpi로 가정해 종이가 몇 배로
+#: 커진다)가 들어오면 200dpi 렌더링이 수천~수만 픽셀이 되어 메모리와 처리
+#: 시간이 급증한다. PaddleOCR도 검출 단계에서 어차피 4000으로 리사이즈하므로
+#: 그보다 큰 이미지를 만들어 넘길 이유가 없다.
+MAX_RASTER_SIDE = 4000
+
 _engines: dict[str, object] = {}
 _lock = threading.Lock()
 
@@ -234,6 +242,9 @@ def rasterize_page(pdf_bytes: bytes, page_index: int, *, dpi: int = 200) -> np.n
     200dpi로 고정한 이유는 실측 근거가 아니라 업계 통상값이다 — 문서 스캐너
     기본값이 대개 200~300dpi다. 실제 이 프로젝트의 합성데이터는 전부
     digital-born이라 적정 DPI를 실측할 스캔 표본이 없다.
+
+    긴 변은 `MAX_RASTER_SIDE`로 제한한다 — A4는 여유가 있지만 사용자가 올리는
+    종이 크기는 우리가 정하지 않는다. 근거는 그 상수의 주석 참조.
     """
     import pypdfium2 as pdfium
 
@@ -241,8 +252,26 @@ def rasterize_page(pdf_bytes: bytes, page_index: int, *, dpi: int = 200) -> np.n
     try:
         page = pdf[page_index]
         try:
-            bitmap = page.render(scale=dpi / 72)
-            return np.asarray(bitmap.to_pil().convert("RGB"))
+            scale = dpi / 72
+            # 종이가 크면 scale 을 낮춰 픽셀 상한을 지킨다. dpi 를 깎는
+            # 셈이라 인식률이 조금 떨어지지만, PaddleOCR 이 어차피 검출 단계에서
+            # 4000 으로 리사이즈하므로 실질 손해는 크지 않다.
+            longest = max(page.get_width(), page.get_height()) * scale
+            if longest > MAX_RASTER_SIDE:
+                scale *= MAX_RASTER_SIDE / longest
+                logger.warning(
+                    "페이지가 너무 큽니다(%.0fpx). %ddpi -> %ddpi 로 낮춰 렌더링합니다.",
+                    longest,
+                    dpi,
+                    int(scale * 72),
+                )
+            bitmap = page.render(scale=scale)
+            # np.array(...) 로 **반드시 복사**한다. np.asarray 는 pdfium 이
+            # 할당한 네이티브 버퍼를 가리키는 뷰(OWNDATA=False)를 돌려주는데,
+            # 이 함수는 바로 아래에서 page.close()/pdf.close() 로 그 버퍼를
+            # 해제한다. 뷰를 반환하면 호출자가 해제된 메모리를 읽게 되고,
+            # PaddleOCR 이 그걸 만지는 순간 프로세스가 죽는다(실제로 겪었다).
+            return np.array(bitmap.to_pil().convert("RGB"))
         finally:
             page.close()
     finally:

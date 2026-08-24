@@ -15,7 +15,7 @@ OpenSQL은 백업·복구에 **Barman**(Python 기반 오픈소스 PostgreSQL �
 ```bash
 # 0. archive 볼륨 소유권 맞추기 (필수 — 도커 볼륨 기본 소유자는 root라
 #    컨테이너 안 postgres 계정이 쓰기 실패함. 리허설 중 실제로 걸렸던 함정)
-docker run --rm -v mindex_archive:/archive postgres:16 chown -R postgres:postgres /archive
+docker run --rm -v mindex_archive:/archive postgres:17 chown -R postgres:postgres /archive
 
 # 1. 베이스 백업
 docker exec mindex-db pg_basebackup -U mindex -D /tmp/basebackup -Fp -Xs -P
@@ -39,13 +39,13 @@ docker volume create mindex_restore_data
 docker run --rm \
   -v "$(pwd)/pitr_basebackup:/backup:ro" \
   -v mindex_restore_data:/restore \
-  postgres:16 \
+  postgres:17 \
   bash -c "cp -a /backup/. /restore/ && chown -R postgres:postgres /restore && chmod 700 /restore"
 
 # 7. 복구 목표 시점 설정 (3번에서 기록한 시각으로 교체)
 docker run --rm \
   -v mindex_restore_data:/restore \
-  postgres:16 \
+  postgres:17 \
   bash -c "touch /restore/recovery.signal && cat >> /restore/postgresql.auto.conf << 'EOF'
 restore_command = 'cp /archive/%f %p'
 recovery_target_time = '<3번에서 기록한 시각>'
@@ -57,7 +57,7 @@ docker run -d --name mindex-restore \
   -v mindex_restore_data:/var/lib/postgresql/data \
   -v mindex_archive:/archive:ro \
   -p 5433:5432 \
-  postgres:16
+  postgres:17
 docker logs -f mindex-restore   # "database system is ready to accept connections" 확인
 
 # 9. 복구 검증 — 삭제된 데이터 존재 + EXCLUDE 제약조건 재동작 확인

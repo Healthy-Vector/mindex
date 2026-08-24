@@ -6,7 +6,7 @@
 
 | 노드 | 역할 | 스펙(예정) |
 |---|---|---|
-| Node 1 | Primary — 쓰기·읽기 처리 | OpenSQL, PostgreSQL 16.8 기반 |
+| Node 1 | Primary — 쓰기·읽기 처리 | OpenSQL, PostgreSQL 17.8 기반 |
 | Node 2 | Standby (동기 복제 후보 1순위) | 동일 |
 | Node 3 | Standby (동기 복제 후보 2순위) | 동일 |
 | etcd ×3 | 클러스터 상태 저장소, 리더 선출 합의 | Patroni가 참조 |

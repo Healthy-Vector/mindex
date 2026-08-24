@@ -63,16 +63,10 @@ sentence-transformers==6.0.*
 # 꺼서 재시도까지 자동으로 하고 결과를 알려준다. 안 나면 그 환경변수를 기본
 # 켜 두는 게 맞다. app/pipeline/ocr.py 의 `_ENABLE_MKLDNN` 참조.
 #
-# ⚠️⚠️ 미해결 — 네이티브 세그폴트가 비결정적으로 재현됨 (2026-08-24)
-#   PaddleOCR 실제 추론 호출이 이 환경(Windows, paddle CPU)에서 가끔
-#   access violation으로 파이썬 프로세스 자체를 죽인다(Windows fatal
-#   exception, exit code 139). Python 예외가 아니라 try/except 로 못 잡는다.
-#   "이중 엔진이라서", "pypdfium2를 반복 호출해서"라는 가설을 둘 다 세워
-#   검증했는데 둘 다 반증됐다 — 단일 엔진 호출도 죽었고, pypdfium2를 두 번
-#   호출한 뒤에도 성공한 적이 있다. 독립 스크립트로는 여러 번 안정적으로
-#   성공했지만 pytest 프로세스 안에서는 비결정적으로 죽거나 응답 없이
-#   멈췄다. 원인 미확정 — 상세: app/pipeline/ocr.py 모듈 docstring,
-#   tests/test_ocr.py.
-#
-#   **OCR을 별도 프로세스로 격리하기 전까지는 스캔본 다건 처리를
-#   프로덕션에 올리지 말 것.**
+# ✅ 해결됨 — 과거의 네이티브 세그폴트 (2026-08-24)
+#   PaddleOCR 추론이 access violation(0xC0000005)으로 프로세스를 죽이던
+#   문제가 있었다. 원인은 paddle 이 아니라 app/pipeline/ocr.py 의
+#   rasterize_page() 가 np.asarray() 로 pdfium 네이티브 버퍼를 가리키는
+#   뷰를 반환하고, 반환 직전에 그 버퍼를 해제한 use-after-free 였다.
+#   np.array() 로 복사하도록 고쳐 해결했다(동일 입력 6회 크래시 -> 6회 통과).
+#   상세와 반증된 가설 목록: app/pipeline/ocr.py 모듈 docstring.
