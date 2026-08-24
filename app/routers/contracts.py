@@ -138,9 +138,9 @@ from app.errors import NotFound  # noqa: E402
 from app.services.territory import end_inclusive_from_upper  # noqa: E402
 from app.schemas.detail import (  # noqa: E402
     Authority,
+    ContentAssetRef,
     ContractDetail,
     HistoryRow,
-    IpBrief,
     RightRow,
 )
 
@@ -198,9 +198,11 @@ def get_contract(
     rights = [
         RightRow(
             rights_grant_id=r["id"], lineage_id=r["lineage_id"],
-            content_asset_id=r["content_asset_id"],
-            ip_id=r["ip_id"], ip_title=r["ip_title"], ip_kind=r["ip_kind"],
-            content_asset_title=r["asset_title"], scope_type=r["scope_type"],
+            content_asset=ContentAssetRef(
+                content_asset_id=r["content_asset_id"],
+                ip_id=r["ip_id"], ip_title=r["ip_title"], ip_kind=r["ip_kind"],
+                scope_type=r["scope_type"], title=r["asset_title"],
+            ),
             territory=r["territory"],
             rights_type=r["rights_type"], period_start=r["lo"],
             period_end=end_inclusive_from_upper(r["hi"]), exclusivity=r["exclusivity"],
@@ -210,13 +212,6 @@ def get_contract(
         )
         for r in rrows
     ]
-    # 계약에 걸린 IP 목록(중복 제거, 등장 순서 보존)
-    ips: list[IpBrief] = []
-    _seen_ip: set[int] = set()
-    for r in rrows:
-        if r["ip_id"] is not None and r["ip_id"] not in _seen_ip:
-            _seen_ip.add(r["ip_id"])
-            ips.append(IpBrief(ip_id=r["ip_id"], title=r["ip_title"], kind=r["ip_kind"]))
 
     hrows = db.execute(
         text(
@@ -266,7 +261,6 @@ def get_contract(
         service_title=None,
         grantor=team_name,
         authority=Authority(),
-        ips=ips,
         rights=rights,
         history=history,
     )

@@ -1,6 +1,8 @@
-"""8번 GET /contracts/{id} 상세 스키마 (지시서 §6 8번).
+"""8번 GET /contracts/{id} 상세 스키마 (지시서 §6 8번 · API 설계서 §8).
 
 정상/충돌 계약의 응답 형태가 같다. authority 는 전 필드 null 고정(§11-1).
+rights[].contentAsset 는 설계서 형태의 객체 { contentAssetId, ipId, ipTitle, scopeType, title }.
+(ipTitle 은 화면에서 IP명을 별도 호출 없이 표시하기 위한 확장)
 """
 from __future__ import annotations
 
@@ -10,24 +12,21 @@ from typing import Any, Optional
 from app.schemas.common import CamelModel
 
 
-class IpBrief(CamelModel):
-    """계약에 걸린 IP 요약 (상단 표시용)."""
+class ContentAssetRef(CamelModel):
+    """권리 대상 — 설계서 §8 rights[].contentAsset."""
 
-    ip_id: int
-    title: str
-    kind: Optional[str] = None
+    content_asset_id: int
+    ip_id: Optional[int] = None
+    ip_title: Optional[str] = None   # 화면 IP명 표시용(설계서 확장)
+    ip_kind: Optional[str] = None
+    scope_type: Optional[str] = None
+    title: Optional[str] = None      # 작품(content_asset) 제목
 
 
 class RightRow(CamelModel):
     rights_grant_id: int
     lineage_id: Optional[int] = None
-    content_asset_id: int
-    # IP·작품 정보(화면 표시용) — content_asset → ip 조인 결과
-    ip_id: Optional[int] = None
-    ip_title: Optional[str] = None
-    ip_kind: Optional[str] = None
-    content_asset_title: Optional[str] = None
-    scope_type: Optional[str] = None
+    content_asset: ContentAssetRef
     territory: str
     rights_type: str
     period_start: date
@@ -72,6 +71,5 @@ class ContractDetail(CamelModel):
     service_title: Optional[str] = None  # §11-2 → null
     grantor: Optional[str] = None        # §11-4 → team.name
     authority: Authority = Authority()   # §11-1 → 전 필드 null
-    ips: list[IpBrief] = []              # 계약에 걸린 IP 목록(중복 제거)
     rights: list[RightRow] = []
     history: list[HistoryRow] = []
