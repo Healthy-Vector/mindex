@@ -183,9 +183,20 @@ FIELD_SPECS: dict[str, dict] = {
     },
     "payment": {
         "positive": [
-            (r"계약대가|契約対価|총 계약대가|Licen[cs]e Fee|total consideration", 3.5),
+            (
+                r"계약대가|이용대가|이용 대가|契約対価|利用対価"
+                r"|Licen[cs]e Fee|(?:total )?consideration",
+                3.5,
+            ),
             (r"지급통화|支払通貨|payment currency", 3.0),
-            (r"[\d,]{4,}(?:\.\d{2})?\s*(?:KRW|USD|JPY|원|円)", 3.0),
+            # ISO 통화코드는 앞에 몇 자리가 오든 뜻이 분명하다. 무상 계약의
+            # `0 USD` 를 잡으려면 자릿수 하한을 두면 안 된다.
+            (r"\b\d[\d,]*(?:\.\d{2})?\s*(?:KRW|USD|JPY)\b", 3.0),
+            # 반면 `원`·`円` 은 흔한 글자라 짧은 숫자와 붙으면 오탐이 난다
+            # (`별지 1 원본`). 여기에만 자릿수 하한을 남긴다.
+            (r"[\d,]{4,}(?:\.\d{2})?\s*(?:원|円)", 3.0),
+            # 무상도 지급 조건이다. 금액 0원 계약이 실제로 86건 중 3건 있다.
+            (r"무상|無償|royalty[- ]free|free of charge|no monetary payment", 3.0),
             (r"지급한다|支払う|shall pay", 1.5),
             (r"영업일 이내|営業日以内|business days", 1.0),
         ],
