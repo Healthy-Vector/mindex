@@ -153,19 +153,73 @@ def check_tokenizer_fit() -> None:
 
 
 def check_ocr() -> None:
-    head("OCR (선택 — 아직 설치 전이어도 정상)")
-    pv = ver("paddlepaddle-gpu") or ver("paddlepaddle")
+    """OCR(PaddleOCR)은 의도적으로 CPU 전용이다.
+
+    처음엔 paddlepaddle-gpu로 시도했다. sm_120(Blackwell) 자체는 문제없었다
+    — get_device_capability()가 (12, 0)을 정확히 보고했고 GPU 행렬곱도
+    성공했다. 문제는 torch와 **같은 프로세스**에 있을 때였다. 두 프레임워크가
+    각자 cuDNN 9.x를 따로 번들해서 같은 이름의 DLL을 갖는데, Windows는 먼저
+    로드된 쪽을 재사용하려다 심볼을 못 찾고 죽는다. 실제로 양방향 다
+    재현했다(torch->paddle, paddle->torch 순서 모두 실패).
+
+    임베딩(torch)이 모든 청크를 타는 핫패스라 GPU를 지켰다. OCR은 스캔
+    페이지에만 도는 드문 경로라 CPU로 내려서 충돌을 없앴다. 그래서 여기서는
+    paddle의 GPU 여부를 확인하지 않는다 — CPU인 게 의도된 상태다.
+    """
+    head("OCR (PaddleOCR — 의도적으로 CPU 전용, 아래 함수 docstring 참조)")
+    pv = ver("paddlepaddle")
+    if ver("paddlepaddle-gpu"):
+        print(
+            f"{BAD} paddlepaddle-gpu가 설치돼 있다 — torch와 한 프로세스에서 "
+            f"cuDNN 심볼 충돌로 죽는다(실측 확인됨). paddlepaddle(CPU)로 교체할 것."
+        )
+        failures.append("paddlepaddle-gpu 설치됨 (torch와 충돌)")
+        return
     if pv is None:
         print(f"{WARN} paddlepaddle 미설치 — 스캔본 경로는 아직 못 돈다.")
         return
-    print(f"{OK} paddlepaddle {pv}  /  paddleocr {ver('paddleocr')}")
-    try:
-        import paddle
+    print(f"{OK} paddlepaddle {pv} (CPU)  /  paddleocr {ver('paddleocr')}")
 
-        paddle.utils.run_check()
+    # torch를 먼저 로드해서 실제 서비스 프로세스 순서를 흉내낸다. 여기서
+    # paddle import가 죽으면 GPU 빌드가 다시 섞여 들어왔다는 신호다.
+    if ver("torch"):
+        import torch  # noqa: F401
+    import paddle
+
+    print(f"     compiled with CUDA: {paddle.device.is_compiled_with_cuda()}")
+    if paddle.device.is_compiled_with_cuda():
+        print(f"{WARN} CUDA 포함 빌드다 — CPU 전용(paddlepaddle)이어야 한다.")
+
+    if ver("paddleocr") is None:
+        print(f"{WARN} paddleocr 미설치 — paddlepaddle만으로는 OCR을 못 돌린다.")
+        return
+
+    # 실제 텍스트 인식까지 — 합성 이미지 한 장으로 검증한다.
+    # enable_mkldnn=False인 이유: paddle 3.3.1의 PIR 컴파일러가 oneDNN 가속
+    # 경로의 한 연산자 속성 변환을 처리하지 못해 켜면 예외가 난다(실측 확인).
+    try:
+        import numpy as np
+        from paddleocr import PaddleOCR
+        from PIL import Image, ImageDraw
+
+        img = Image.new("RGB", (400, 100), "white")
+        ImageDraw.Draw(img).text((10, 30), "HELLO 123", fill="black")
+
+        engine = PaddleOCR(
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+            enable_mkldnn=False,
+        )
+        result = engine.predict(np.array(img))
+        texts = result[0].get("rec_texts", []) if result else []
+        if texts:
+            print(f"{OK} OCR 인식 성공: {texts}")
+        else:
+            print(f"{WARN} OCR이 아무 텍스트도 인식하지 못했다")
     except Exception as e:  # noqa: BLE001
-        print(f"{BAD} paddle GPU 점검 실패: {type(e).__name__}: {e}")
-        failures.append("paddle GPU 점검 실패")
+        print(f"{BAD} OCR 실행 실패: {type(e).__name__}: {e}")
+        failures.append("paddleocr 실행 실패")
 
 
 def check_pdf() -> None:

@@ -30,10 +30,40 @@ torch==2.13.0+cu130
 # transformers·tokenizers·safetensors·huggingface-hub는 의존성으로 따라온다.
 sentence-transformers==6.0.*
 
-# --- OCR (아직 미설치) ---
-# paddlepaddle-gpu는 PyPI 버전이 2.6.2에서 멈춰 있어(CUDA 11.8/12.0 세대)
-# sm_120에서 동작하지 않는다. 반드시 Paddle 공식 인덱스에서 받아야 한다.
-#   pip install paddlepaddle-gpu==3.3.1 \
-#       -i https://www.paddlepaddle.org.cn/packages/stable/cu130/
+# --- OCR ---
+#   pip install paddlepaddle==3.3.1
 #   pip install paddleocr==3.7.*
-# sm_120 커널 포함 여부가 실행 전까지 확정되지 않으므로 별도 단계로 둔다.
+#
+# ⚠️ 반드시 paddlepaddle(CPU)다. paddlepaddle-gpu가 아니다.
+#
+# 처음엔 paddlepaddle-gpu(cu130)로 시작했다. sm_120(Blackwell) 자체는
+# 문제없었다 — get_device_capability()가 (12, 0)을 정확히 보고했고 GPU
+# 행렬곱도 성공했다. 문제는 torch와 **같은 프로세스**에 있을 때였다.
+#
+#   import torch  -> import paddle   : paddle import 시점에 실패
+#   import paddle -> import torch    : torch import 시점에 실패
+#   OSError: [WinError 127] ... Error loading ".../cudnn/bin/cudnn_cnn64_9.dll"
+#
+# 두 프레임워크가 각자 cuDNN 9.x를 따로 번들해서 같은 파일명의 DLL을 갖는데,
+# Windows가 먼저 로드된 쪽을 재사용하려다 심볼을 못 찾고 죽는다. 양방향 다
+# 재현해서 확인했다. 임베딩(torch)이 모든 청크를 타는 핫패스라 GPU를
+# 지켰고, OCR(paddle)은 스캔 페이지에만 도는 드문 경로라 CPU로 내려
+# 충돌을 없앴다. 상세: app/pipeline/ocr.py 모듈 docstring.
+#
+# CPU에서는 enable_mkldnn=False 가 필요하다. paddle 3.3.1의 PIR 컴파일러가
+# oneDNN 가속 경로의 한 연산자 속성 변환을 못 다뤄서 켜면
+# `NotImplementedError: ConvertPirAttribute2RuntimeAttribute` 로 죽는다.
+# app.pipeline.ocr._get_engine() 이 이미 꺼서 호출한다.
+#
+# ⚠️⚠️ 미해결 — 네이티브 세그폴트 재현됨 (2026-08-24)
+#   한 프로세스에서 pypdfium2(PdfDocument 열기/렌더링)를 두 번 이상 호출한
+#   뒤 PaddleOCR을 돌리면 access violation으로 파이썬 프로세스가 죽는다
+#   (Windows fatal exception, exit code 139). Python 예외가 아니라 네이티브
+#   크래시라 try/except로 못 잡는다. 딱 한 번만 rasterize_page() 를 호출하고
+#   OCR을 돌리는 경로는 안전했다 — 문제는 반복 호출이다.
+#
+#   실서비스는 워커 프로세스가 여러 문서를 계속 처리하며 문서마다
+#   rasterize_page() 를 부른다. 이 크래시가 그 상황에서도 재현되는지는
+#   아직 확정하지 못했다(마지막 격리 실험이 응답 없이 오래 걸려 중단).
+#   **OCR을 별도 프로세스로 격리하기 전까지는 스캔본 다건 처리를
+#   프로덕션에 올리지 말 것.** app/pipeline/ocr.py 상단에도 같은 경고가 있다.

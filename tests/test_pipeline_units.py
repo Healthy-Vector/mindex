@@ -6,10 +6,13 @@ torch·pdfplumber 없이 도는 부분만 다룬다. ML 의존성은 requirement
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from app.pipeline.chunk import MAX_TOKENS, build_chunks, estimate_tokens
+from app.pipeline.extract import Page, _guess_lang_hint
 from app.pipeline.normalize import count_cjk_compatibility, normalize_text
+from app.pipeline.ocr import _reading_order
 from app.pipeline.route import PageSignals, TextSource, route
 from app.pipeline.segment import Clause, ClauseKind, detect_language, segment, strip_noise
 
@@ -186,3 +189,64 @@ def test_chunk_id는_같은_입력에_같은_값():
     b = build_chunks([clause], "ko", "deadbeef0000")
     assert [c.chunk_id for c in a] == [c.chunk_id for c in b]
     assert a[0].chunk_id.startswith("deadbeef0000-")
+
+
+# ── ocr._reading_order ─────────────────────────────────────────────────────
+# paddleocr 없이도 도는 순수 기하 로직이라 직접 테스트한다. OCR 결과의 줄바꿈
+# 위치가 여기서 정해지므로, 여기서 틀리면 뒤의 조항 분해가 통째로 어긋난다.
+def test_읽기순서_두줄을_위에서_아래로():
+    # 입력 순서를 일부러 뒤섞는다: 아래 줄이 먼저 온다
+    boxes = np.array(
+        [
+            [0, 100, 50, 120],  # 아래 줄
+            [0, 0, 50, 20],  # 위 줄
+        ]
+    )
+    assert _reading_order(boxes) == [1, 0]
+
+
+def test_읽기순서_같은_줄은_왼쪽에서_오른쪽으로():
+    boxes = np.array(
+        [
+            [100, 0, 150, 20],  # 오른쪽
+            [0, 0, 50, 20],  # 왼쪽
+        ]
+    )
+    assert _reading_order(boxes) == [1, 0]
+
+
+def test_읽기순서_빈_배열():
+    assert _reading_order(np.empty((0, 4))) == []
+
+
+def test_읽기순서_y가_살짝_어긋나도_같은_줄로_묶는다():
+    """OCR 검출 박스는 완벽히 정렬되지 않는다. 몇 픽셀 어긋나는 게 정상이다."""
+    boxes = np.array(
+        [
+            [100, 2, 150, 22],  # 오른쪽, y 살짝 아래
+            [0, 0, 50, 20],  # 왼쪽
+        ]
+    )
+    assert _reading_order(boxes) == [1, 0]
+
+
+# ── extract._guess_lang_hint ────────────────────────────────────────────────
+def _page(text: str, source: TextSource) -> Page:
+    return Page(page=1, text=text, text_source=source, signals=_sig())
+
+
+def test_언어힌트_한국어_디지털페이지가_있으면_ko():
+    pages = [_page("제1조 (목적)\n본문입니다.", TextSource.TEXT_LAYER)]
+    assert _guess_lang_hint(pages) == "ko"
+
+
+def test_언어힌트_영어_디지털페이지면_None():
+    """기본 OCR 모델이 en/ja/zh를 이미 한 모델로 처리하므로 구분이 필요 없다."""
+    pages = [_page("Article 1 (Purpose)\nBody text.", TextSource.TEXT_LAYER)]
+    assert _guess_lang_hint(pages) is None
+
+
+def test_언어힌트_디지털페이지가_없으면_None():
+    """완전 스캔 문서 — 사전 정보가 없다. ocr.run_ocr 의 신뢰도 재시도로 넘어간다."""
+    pages = [_page("", TextSource.OCR)]
+    assert _guess_lang_hint(pages) is None
