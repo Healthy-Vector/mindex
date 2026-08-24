@@ -21,7 +21,14 @@ import logging
 from app.pipeline import embed as embed_mod
 from app.pipeline.chunk import Chunk, build_chunks, chunk_stats
 from app.pipeline.extract import extract_document
-from app.pipeline.retrieval import FIELD_QUERIES, Hit, retrieve
+from app.pipeline.retrieval import (
+    DEFAULT_SEMANTIC_WEIGHT,
+    FIELD_QUERIES,
+    HYBRID_SCORER,
+    LEXICAL_SCORER,
+    Hit,
+    retrieve,
+)
 from app.pipeline.segment import segment
 from app.schemas.pipeline import (
     SCHEMA_VERSION,
@@ -72,6 +79,7 @@ def _to_field_hit(h: Hit, field_name: str) -> FieldHit:
         score=h.score,
         lexical=h.lexical,
         semantic=h.semantic,
+        semantic_norm=h.semantic_norm,
         matched_field=field_name,
         match_reasons=h.reasons,
     )
@@ -84,12 +92,13 @@ def retrieve_contract_chunks(
     embed: bool = True,
     top_k: int = 5,
     min_score: float = 0.15,
-    semantic_weight: float = 0.0,
+    semantic_weight: float = DEFAULT_SEMANTIC_WEIGHT,
 ) -> RetrievalBundle:
     """PDF 바이트 → 필드별 회수 결과 묶음.
 
     `embed=True`인데 실행 환경에 `sentence_transformers`가 없으면 임베딩 없이
     진행하고 경고만 남긴다. CI에는 ML 의존성이 없으므로 이 경로가 정상 동작이다.
+    그때는 `semantic_weight`가 무시되고 어휘 회수만 수행한다.
     """
     doc = extract_document(pdf_bytes)
     lang, full_text, clauses = segment(doc.pages)
@@ -143,7 +152,7 @@ def retrieve_contract_chunks(
             full_text_length=len(full_text),
         ),
         retrieval=RetrievalInfo(
-            scorer="hybrid" if query_vectors else "lexical-v0",
+            scorer=HYBRID_SCORER if query_vectors else LEXICAL_SCORER,
             semantic_weight=semantic_weight if query_vectors else 0.0,
             top_k=top_k,
             min_score=min_score,

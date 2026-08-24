@@ -24,7 +24,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
-SCHEMA_VERSION = "mindex.retrieval-bundle.v0.2"
+SCHEMA_VERSION = "mindex.retrieval-bundle.v0.3"
 
 #: 임베딩 차원 — DB의 `contract_chunk.embedding vector(1024)`와 맞물린다.
 EMBEDDING_DIM = 1024
@@ -128,8 +128,14 @@ class FieldHit(BaseModel):
     chunk_id: str
     score: float = Field(ge=0.0, le=1.0)
     lexical: float = Field(ge=0.0, le=1.0)
-    #: 코사인 유사도. 임베딩을 안 쓰면 None.
+    #: 질의 벡터와의 코사인 유사도(원값). 임베딩을 안 쓰면 None.
+    #:
+    #: e5 코사인은 좁은 구간에 눌려 있어(실측 0.68~0.86) 절대값에 의미가 없다.
+    #: 참고용으로만 싣고, 점수 합산에는 아래 `semantic_norm`을 쓴다.
     semantic: float | None = Field(default=None, ge=-1.0, le=1.0)
+    #: 위 값을 **문서 안에서** 0~1로 편 것. `score`는 이 값으로 계산된다.
+    #: 문서마다 다시 펴므로 문서 간 비교에는 쓸 수 없다.
+    semantic_norm: float | None = Field(default=None, ge=0.0, le=1.0)
     matched_field: str
     #: 어떤 신호가 걸렸는지. `+이용지역` / `-준거법` 형태.
     match_reasons: list[str] = Field(default_factory=list)

@@ -33,6 +33,54 @@ import re
 from dataclasses import dataclass, field
 
 LEXICAL_SCORER = "lexical-v0"
+HYBRID_SCORER = "hybrid-v1"
+
+#: 어휘와 의미를 섞는 비율. 0이면 어휘 단독, 1이면 의미 단독.
+#:
+#: 라벨 표현을 바꾼 held-out 집합(정답 556건)에서 측정해 정했다.
+#: `scripts/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
+#:
+#: 원본 코퍼스로는 정할 수 없었다. 어휘 패턴을 그 코퍼스를 보며 썼기 때문에
+#: 어휘가 실패하는 경우가 556건 중 1건뿐이라, 의미검색이 기여할 여지 자체가
+#: 없었다. 가중치 0~0.3이 완전히 같은 결과를 냈다.
+#:
+#:                    원본 @1 / @5      held-out @1 / @3 / @5
+#:   어휘 단독        85.6% / 99.8%     67.4% / 79.5% / 79.5%
+#:   의미 단독        44.6% / 96.9%     41.2% / 81.1% / 95.9%
+#:   w=0.3            —                 75.2% / 95.5% / 99.6%
+#:   w=0.5            89.2% / 99.8%     77.3% / 96.6% / 99.6%   <- 채택
+#:   w=0.7            —                 74.8% / 96.0% / 99.6%
+#:   RRF k=60         80.4% / 99.8%     59.5% / 88.1% / 89.9%
+#:
+#: 0.5가 봉우리다. 양옆(0.3·0.7)이 둘 다 낮다.
+#: RRF 가 진 것은 순위만 쓰면 **어휘가 얼마나 확신하는지**를 버리기 때문이다.
+DEFAULT_SEMANTIC_WEIGHT = 0.5
+
+
+def normalize_within_document(scores: list[float]) -> list[float]:
+    """코사인 점수를 문서 안에서 0~1로 편다.
+
+    e5 코사인은 좁은 구간에 눌려 있다(2000청크 실측 min 0.681 / 중앙 0.778 /
+    p95 0.855). 폭이 0.17뿐이라 **절대값에 의미가 없고 순서에만 의미가 있다.**
+
+    원값을 그대로 더하면 두 문제가 생긴다.
+
+    1. 어휘 점수(0~1 전 구간)와 스케일이 달라 가중치가 뜻대로 동작하지 않는다.
+    2. 의미 점수의 바닥이 0.68이라 `min_score` 컷오프와 엉킨다. 실제로
+       `semantic_weight` 0.15와 0.2 사이에서 결과가 급변했는데, 가중치가 아니라
+       `0.15 x 0.85 = 0.128 < min_score` 라는 산술이 원인이었다.
+
+    문서마다 다시 펴므로 문서 간 비교에는 쓸 수 없다. 회수는 문서 안에서만
+    하므로 문제되지 않는다.
+    """
+    if not scores:
+        return []
+    lo, hi = min(scores), max(scores)
+    if hi <= lo:
+        return [0.0] * len(scores)
+    span = hi - lo
+    return [(s - lo) / span for s in scores]
+
 
 #: 필드별 의미검색 질의. 다국어 모델이라 세 언어를 한 문자열에 섞어 둔다.
 FIELD_QUERIES: dict[str, str] = {
@@ -192,7 +240,10 @@ class Hit:
     chunk_id: str
     score: float
     lexical: float
+    #: 질의 벡터와의 코사인 유사도(원값).
     semantic: float | None
+    #: 위 값을 **문서 안에서** 0~1로 편 것. 점수 합산에는 이쪽을 쓴다.
+    semantic_norm: float | None
     reasons: list[str] = field(default_factory=list)
 
 
@@ -233,15 +284,16 @@ def retrieve(
     *,
     top_k: int = 5,
     min_score: float = 0.15,
-    semantic_weight: float = 0.0,
+    semantic_weight: float = DEFAULT_SEMANTIC_WEIGHT,
     query_vectors: dict[str, list[float]] | None = None,
 ) -> dict[str, list[Hit]]:
     """필드별로 관련 청크를 점수순으로 묶는다.
 
-    `semantic_weight`가 0이면 순수 어휘 회수다(기본값). 0보다 크면 `query_vectors`와
-    청크 임베딩의 코사인을 가중 합산한다. 가중치는 Ground Truth로 측정해서 정한다.
+    `query_vectors`가 없거나 `semantic_weight`가 0이면 순수 어휘 회수가 된다.
+    임베딩이 없는 환경(CI)에서도 이 경로로 동작한다.
 
-    색인 제외 청크(별지 제목 등)는 후보에서 빠진다.
+    색인 제외 청크(별지 제목 등)는 후보에서 빠진다. 내용 없는 조각은 의미
+    공간에서 어떤 질의와도 어중간하게 가까워 상위를 차지하기 때문이다.
     """
     pool = [c for c in chunks if c.indexable]
     out: dict[str, list[Hit]] = {}
@@ -250,28 +302,42 @@ def retrieve(
         qv = (query_vectors or {}).get(field_name)
         use_semantic = semantic_weight > 0 and qv is not None
 
+        lexical = [score_lexical(c.text, str(c.clause_kind), field_name) for c in pool]
+
+        raw_sem: list[float] | None = None
+        norm_sem: list[float] | None = None
+        if use_semantic:
+            # 양쪽 다 L2 정규화돼 있으므로 내적이 곧 코사인이다
+            raw_sem = [
+                sum(a * b for a, b in zip(c.embedding, qv, strict=True))
+                if c.embedding is not None
+                else 0.0
+                for c in pool
+            ]
+            norm_sem = normalize_within_document(raw_sem)
+
         scored: list[Hit] = []
-        for c in pool:
-            lex, reasons = score_lexical(c.text, str(c.clause_kind), field_name)
-            sem = None
-            if use_semantic and c.embedding is not None:
-                # 양쪽 다 L2 정규화돼 있으므로 내적이 곧 코사인이다
-                sem = sum(a * b for a, b in zip(c.embedding, qv, strict=True))
+        for i, c in enumerate(pool):
+            lex, reasons = lexical[i]
             total = (
                 lex
-                if sem is None
-                else (1 - semantic_weight) * lex + semantic_weight * sem
+                if norm_sem is None
+                else (1 - semantic_weight) * lex + semantic_weight * norm_sem[i]
             )
-            if total >= min_score:
-                scored.append(
-                    Hit(
-                        chunk_id=c.chunk_id,
-                        score=round(total, 4),
-                        lexical=lex,
-                        semantic=round(sem, 4) if sem is not None else None,
-                        reasons=reasons,
-                    )
+            if total < min_score:
+                continue
+            scored.append(
+                Hit(
+                    chunk_id=c.chunk_id,
+                    score=round(total, 4),
+                    lexical=lex,
+                    semantic=round(raw_sem[i], 4) if raw_sem is not None else None,
+                    semantic_norm=round(norm_sem[i], 4)
+                    if norm_sem is not None
+                    else None,
+                    reasons=reasons,
                 )
+            )
 
         scored.sort(key=lambda h: -h.score)
         out[field_name] = scored[:top_k]

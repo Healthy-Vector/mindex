@@ -44,6 +44,7 @@ from app.pipeline.chunk import build_chunks
 from app.pipeline.extract import extract_document
 from app.pipeline.retrieval import FIELD_QUERIES, retrieve
 from app.pipeline.segment import segment
+from scripts.paraphrase import count_hits, paraphrase
 
 GOLDSET = Path("eval/retrieval_goldset.json")
 KS = (1, 3, 5)
@@ -76,26 +77,49 @@ class Tally:
     extract_miss: int = 0
 
 
-def load_docs(gold: dict, limit: int | None, do_embed: bool) -> list[Doc]:
+def load_docs(
+    gold: dict, limit: int | None, do_embed: bool, rewrite: bool = False
+) -> tuple[list[Doc], int]:
+    """정답지의 계약들을 파싱해 평가 준비 상태로 만든다.
+
+    `rewrite`가 켜지면 라벨 표현을 바꾼 held-out 변형을 만든다. 청크와 정답에
+    **같은** 치환을 적용해야 회수 난이도만 달라지고 문자열 대조는 유지된다.
+    임베딩은 치환 뒤에 계산해야 벡터가 바뀐 문장을 반영한다.
+    """
     docs: list[Doc] = []
+    changed = 0
     rows = gold["contracts"][:limit] if limit else gold["contracts"]
     for row in rows:
         pdf = Path(row["pdf_path"])
         d = extract_document(pdf.read_bytes())
         lang, full_text, clauses = segment(d.pages)
         chunks = build_chunks(clauses, lang, d.file_hash)
+        answers = row["fields"]
+
+        if rewrite:
+            for c in chunks:
+                changed += count_hits(c.text)
+                # 평가 전용이라 char offset 은 맞추지 않는다. 회수 점수만 본다.
+                c.text = paraphrase(c.text)
+            full_text = paraphrase(full_text)
+            answers = {
+                f: [{**a, "text": paraphrase(a["text"])} for a in v]
+                for f, v in answers.items()
+            }
+
         if do_embed:
             embed_mod.attach_embeddings(chunks)
+
         docs.append(
             Doc(
                 contract_id=row["contract_id"],
                 chunks=chunks,
                 squashed=[squash(c.text) for c in chunks],
                 full_squashed=squash(full_text),
-                answers=row["fields"],
+                answers=answers,
             )
         )
-    return docs
+    return docs, changed
 
 
 def evaluate(docs: list[Doc], semantic_weight: float, query_vectors, min_score: float):
@@ -176,6 +200,12 @@ def main() -> int:
         metavar="W",
         help="의미 가중치를 여러 개 비교한다. 임베딩이 필요하다.",
     )
+    ap.add_argument(
+        "--paraphrase",
+        action="store_true",
+        help="라벨 표현을 바꾼 held-out 변형으로 평가한다. 어휘 패턴이 이 코퍼스에 "
+        "맞춰져 있어서, 표현이 다른 실제 계약서를 흉내내려면 이 모드가 필요하다.",
+    )
     args = ap.parse_args()
 
     if not GOLDSET.exists():
@@ -195,8 +225,10 @@ def main() -> int:
         weights, need_embed = [0.0], False
 
     t0 = time.perf_counter()
-    docs = load_docs(gold, args.limit, need_embed)
+    docs, changed = load_docs(gold, args.limit, need_embed, args.paraphrase)
     print(f"문서 {len(docs)}건 준비 {time.perf_counter() - t0:.0f}s")
+    if args.paraphrase:
+        print(f"라벨 표현 치환 {changed}곳 — held-out 변형으로 평가한다")
 
     query_vectors = None
     if need_embed:
@@ -217,10 +249,17 @@ def main() -> int:
     for f, why in gold["unevaluable_fields"].items():
         print(f"\n[측정 불가] {f} — {why}")
 
-    print(
-        "\n[주의] 어휘 패턴을 이 합성데이터 표현에 맞춰 썼으므로 위 수치는 낙관적 상한이다."
-        "\n       실제 계약서가 다른 표현을 쓰면 떨어진다. 가중치를 이 수치만 보고 정하지 말 것."
-    )
+    if args.paraphrase:
+        print(
+            "\n[held-out] 라벨 표현만 바꾸고 날짜·국가·금액 같은 내용어는 그대로 뒀다."
+            "\n           어휘가 흔들릴 때 의미검색이 얼마나 메우는지를 보는 것이 목적이다."
+        )
+    else:
+        print(
+            "\n[주의] 어휘 패턴을 이 합성데이터 표현에 맞춰 썼으므로 위 수치는 낙관적 상한이다."
+            "\n       실제 계약서가 다른 표현을 쓰면 떨어진다."
+            "\n       가중치는 --paraphrase 로 잰 값을 근거로 정한다."
+        )
     return 0
 
 
