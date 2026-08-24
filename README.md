@@ -17,7 +17,7 @@ AI는 추출만 합니다. 최종 판정은 데이터베이스가 합니다.
 
 ```bash
 cp .env.example .env          # 값 채우기
-docker compose up -d          # OpenSQL 대신 pgvector/pgvector:pg16 로 개발 (동일 PostgreSQL 16 기반)
+docker compose up -d          # OpenSQL 대신 pgvector/pgvector:0.8.1-pg17 로 개발 (동일 PostgreSQL 17 기반)
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -82,7 +82,7 @@ mindex/
 
 ## 지켜야 하는 것
 
-- **PostgreSQL 16 고정** — OpenSQL이 16.8 기반입니다. 17 사용 금지
+- **PostgreSQL 17 고정** — 실물 OpenSQL이 17.8 + pgvector 0.8.1 기반입니다(RFP v3의 "16.8 기반" 기술은 오기였습니다)
 - **PyMuPDF 금지** — AGPL 라이선스라 프로젝트 전체 라이선스가 오염됩니다. `pdfplumber` + `pypdfium2` 사용
 - **`.env`·라이선스 파일 커밋 금지** — `.gitignore` 참조
 - 라이선스: **Apache 2.0**

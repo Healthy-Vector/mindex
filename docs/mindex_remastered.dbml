@@ -1,4 +1,4 @@
-// Mindex remastered schema — PostgreSQL 16
+// Mindex remastered schema — PostgreSQL 17
 // SQL counterpart: sql/init/*.sql (2026-08-22, D-33)
 // Flow: PDF/OCR/AI extraction (staging schema) -> validate_rights_batch()
 //       -> user confirmation -> save_rights_batch() -> all-or-nothing

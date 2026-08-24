@@ -32,7 +32,7 @@ P2(데이터/보안) 실작업 담당이다. K-RIGHTS는 OpenSQL 기반 저작�
 
 ## 절대 규칙
 
-- **PostgreSQL 16 고정.** OpenSQL이 16.8 기반이다. 17 사용 금지
+- **PostgreSQL 17 고정.** 실물 OpenSQL이 17.8 + pgvector 0.8.1 기반이다(RFP v3의 "16.8 기반" 기술은 오기였다)
 - **PyMuPDF 금지.** AGPL이라 프로젝트 전체 라이선스가 오염된다. `pdfplumber` + `pypdfium2` 사용
 - **`.env`·라이선스 XML 절대 커밋 금지.** 라이선스 XML은 상용 SW 자격증명이다
 - 프로젝트 라이선스: **Apache 2.0**
