@@ -1,0 +1,116 @@
+/* components/IpForm.jsx 전용 */
+.ipform {
+  max-width: 640px;
+}
+
+/* IpManagementPage의 등록/수정 팝업 — .detail-extend-overlay(어두운 배경, 중앙 정렬) 위에 얹는다. */
+.ipform-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 80px);
+  margin: 0 20px;
+  overflow-y: auto;
+}
+
+/* 모달 제목(mx-heading-panel, 14px)과 크기가 비슷해 구분이 잘 안 됐다 — 카드 안 소제목은
+   .ipmgmt-alias-group-label과 같은 톤(작고 옅은 eyebrow 라벨)으로 낮춰 위계를 분명히 한다. */
+.ipform-section-title {
+  margin: 0 0 14px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mx-muted);
+}
+.ipform-required-mark {
+  color: var(--mx-alert-text);
+  margin-left: 2px;
+}
+.ipform-section--divider {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--mx-border-soft);
+}
+
+.ipform-field {
+  margin-bottom: 16px;
+}
+.ipform-field:last-child {
+  margin-bottom: 0;
+}
+.ipform-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mx-muted);
+  margin-bottom: 6px;
+}
+
+/* .mx-link-btn의 font:inherit(shorthand)가 소스 순서상 이 규칙을 덮어써서 16px/400으로
+   보이던 문제 — button.ipform-add-alias로 특정도를 올려 순서와 무관하게 이기도록 한다. */
+button.ipform-add-alias {
+  color: var(--mx-accent);
+  font-weight: 600;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* 별칭 한 개 = 언어·유형·텍스트·삭제를 한 줄로 보여주는 행. 페이지 전용 폼이라
+   좁은 사이드바 제약이 없어졌으므로 2줄 미니 카드 대신 표 형태의 한 줄 행으로 구성. */
+.ipform-alias-list {
+  display: flex;
+  flex-direction: column;
+}
+.ipform-alias-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mx-border-soft);
+}
+.ipform-alias-row:last-child {
+  border-bottom: none;
+}
+.ipform-alias-lang {
+  width: 96px;
+  flex-shrink: 0;
+}
+.ipform-alias-type {
+  width: 104px;
+  flex-shrink: 0;
+}
+/* 유형은 별칭 텍스트에 딸린 보조 메타데이터이므로 톤을 낮춰 시각적 위계를 준다. */
+.ipform-alias-type-input {
+  background: var(--mx-bg-tint);
+}
+.ipform-alias-text-input {
+  flex: 1;
+  min-width: 0;
+}
+.ipform-remove-alias {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: var(--mx-muted);
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ipform-remove-alias:hover {
+  background: var(--mx-alert-bg);
+  color: var(--mx-alert-text);
+}
+
+.ipform-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mx-border-soft);
+}
