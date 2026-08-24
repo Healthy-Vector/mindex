@@ -11,7 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.errors import InvalidPin, SessionExpired
+from app.errors import InvalidPin
 from app.schemas.auth import PinRequest, RefreshRequest, TokenResponse
 from app.services.session_store import issue_token, maybe_refresh, verify_pin
 from app.services.team_context import resolve_team_id

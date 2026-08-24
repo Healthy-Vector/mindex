@@ -14,7 +14,7 @@ import bcrypt
 import jwt
 
 from app.core.config import get_settings
-from app.errors import InvalidPin, SessionExpired
+from app.errors import SessionExpired
 
 
 def verify_pin(pin: str, pin_hash: str) -> bool:
