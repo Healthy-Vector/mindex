@@ -29,7 +29,7 @@ def _to_out(ip: Ip, aliases: list[IpAlias]) -> IpOut:
         id=ip.id,
         title=ip.title,
         kind=ip.kind,
-        is_active=ip.is_active,
+        activity=ip.activity,
         created_at=ip.created_at,
         updated_at=ip.updated_at,
         aliases=[
@@ -55,7 +55,7 @@ def list_ips(
     team_id = resolve_team_id(db)
     q = select(Ip).where(Ip.team_id == team_id)
     if not include_inactive:
-        q = q.where(Ip.is_active.is_(True))
+        q = q.where(Ip.activity == "active")
     all_ids = list(db.execute(q.order_by(Ip.created_at.desc())).scalars())
     total = len(all_ids)
     window = all_ids[(page - 1) * size : (page - 1) * size + size]
@@ -73,7 +73,7 @@ def create_ip(body: IpCreate, db: Session = Depends(get_db)) -> IpOut:
         if norm_key(ip.title) == key:
             raise IpDuplicate("같은 이름의 IP 가 이미 있습니다", details={"ipId": ip.id})
 
-    ip = Ip(team_id=team_id, title=body.title, kind=body.kind, is_active=True)
+    ip = Ip(team_id=team_id, title=body.title, kind=body.kind, activity="active")
     db.add(ip)
     db.flush()  # ip.id 확보
     for a in body.aliases:
@@ -98,8 +98,8 @@ def patch_ip(ip_id: int, body: IpPatch, db: Session = Depends(get_db)) -> IpOut:
         ip.title = body.title
     if body.kind is not None:
         ip.kind = body.kind
-    if body.is_active is not None:
-        ip.is_active = body.is_active
+    if body.activity is not None:
+        ip.activity = body.activity
 
     if body.aliases is not None:
         # 전체 교체 (§6 14번)
@@ -133,7 +133,7 @@ def match_ips(
 
     # title 매칭
     title_hits = db.execute(
-        select(Ip).where(Ip.team_id == team_id, Ip.is_active.is_(True))
+        select(Ip).where(Ip.team_id == team_id, Ip.activity == "active")
         .where(func.lower(Ip.title).like(like))
     ).scalars()
     matched: dict[int, str] = {ip.id: "title" for ip in title_hits}
@@ -150,7 +150,7 @@ def match_ips(
     matches: list[IpMatch] = []
     for ip_id, how in matched.items():
         ip = db.get(Ip, ip_id)
-        if ip is None or not ip.is_active:
+        if ip is None or ip.activity != "active":
             continue
         assets = db.execute(
             select(ContentAsset).where(ContentAsset.ip_id == ip_id)

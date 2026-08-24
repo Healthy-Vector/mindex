@@ -111,7 +111,7 @@ class Ip(Base):
     team_id = Column(UUID(as_uuid=True), ForeignKey(f"{SCHEMA}.team.id"), nullable=False)
     title = Column(Text, nullable=False)
     kind = Column(Text, nullable=False)
-    is_active = Column(Boolean, nullable=False, server_default="true")
+    activity = Column(Text, nullable=False, server_default="active")  # ip_activity_kind: active/deactive
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 

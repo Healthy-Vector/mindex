@@ -22,6 +22,8 @@ def upgrade() -> None:
 
     op.execute("CREATE SCHEMA IF NOT EXISTS master;")
     op.execute("CREATE SCHEMA IF NOT EXISTS staging;")
+    # 프런트 필터 전용 IP 활성/비활성 (P2-DB ip_activity_kind 정렬)
+    op.execute("CREATE TYPE master.ip_activity_kind AS ENUM ('active', 'deactive');")
 
     # --- 참조 어휘 (코드=PK, 라벨=(code,lang) 별도 테이블; 지시서 §3.1) ---
     op.execute(
@@ -90,7 +92,7 @@ def upgrade() -> None:
           team_id     uuid NOT NULL REFERENCES master.team(id),
           title       text NOT NULL,
           kind        text NOT NULL,
-          is_active   boolean NOT NULL DEFAULT true,
+          activity    master.ip_activity_kind NOT NULL DEFAULT 'active',
           created_at  timestamptz NOT NULL DEFAULT now(),
           updated_at  timestamptz NOT NULL DEFAULT now()
         );

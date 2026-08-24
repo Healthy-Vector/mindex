@@ -26,7 +26,7 @@ class IpCreate(CamelModel):
 class IpPatch(CamelModel):
     title: Optional[str] = None
     kind: Optional[str] = None
-    is_active: Optional[bool] = None
+    activity: Optional[str] = None  # 'active' | 'deactive'
     aliases: Optional[list[AliasIn]] = None  # 지정되면 전체 교체(§6 14번)
 
 
@@ -34,7 +34,7 @@ class IpOut(CamelModel):
     id: int
     title: str
     kind: str
-    is_active: bool
+    activity: str  # 'active' | 'deactive'
     aliases: list[AliasOut] = []
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
