@@ -11,6 +11,11 @@ date: 2026-08-22
 
 최종 흐름: `Task1 → RetrievalBundle → Task2 → ExtractionResult → K8s Worker → staging 저장`
 
+> 이 흐름의 바깥쪽(업로드 접수 → 큐 → 폴링 조회) API 명세는
+> [docs/api/extract-job-api.md](../api/extract-job-api.md) 에 있다.
+> `RetrievalBundle` 은 그 API에 노출되지 않는다 — 워커 안에서 `stage=OCR` 과
+> `stage=LLM` 을 잇는 프로세스 내부값이다.
+
 ---
 
 ## 1. 지금 바로 볼 것
