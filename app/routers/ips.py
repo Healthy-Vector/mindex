@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -116,3 +116,70 @@ def patch_ip(ip_id: int, body: IpPatch, db: Session = Depends(get_db)) -> IpOut:
     db.commit()
     db.refresh(ip)
     return _to_out(ip, _aliases_of(db, ip.id))
+
+
+# --- 4번 GET /ips/match (지시서 §6 4번) ---
+from app.models.master import ContentAsset, IpRelation  # noqa: E402
+from app.schemas.match import AssetRef, IpMatch, MatchResponse, RelationRef  # noqa: E402
+
+
+@router.get("/ips/match", response_model=MatchResponse)
+def match_ips(
+    q: str = Query(..., min_length=1, description="IP명 또는 별칭 검색어"),
+    db: Session = Depends(get_db),
+) -> MatchResponse:
+    team_id = resolve_team_id(db)
+    like = f"%{q.strip().lower()}%"
+
+    # title 매칭
+    title_hits = db.execute(
+        select(Ip).where(Ip.team_id == team_id, Ip.is_active.is_(True))
+        .where(func.lower(Ip.title).like(like))
+    ).scalars()
+    matched: dict[int, str] = {ip.id: "title" for ip in title_hits}
+
+    # alias 매칭 (title 로 이미 잡힌 것은 유지)
+    alias_hits = db.execute(
+        select(IpAlias.ip_id).where(
+            IpAlias.team_id == team_id, func.lower(IpAlias.alias_text).like(like)
+        )
+    ).scalars()
+    for ip_id in alias_hits:
+        matched.setdefault(ip_id, "alias")
+
+    matches: list[IpMatch] = []
+    for ip_id, how in matched.items():
+        ip = db.get(Ip, ip_id)
+        if ip is None or not ip.is_active:
+            continue
+        assets = db.execute(
+            select(ContentAsset).where(ContentAsset.ip_id == ip_id)
+            .order_by(ContentAsset.id)
+        ).scalars()
+        rels = db.execute(
+            select(IpRelation).where(IpRelation.source_ip_id == ip_id)
+        ).scalars()
+        rel_refs: list[RelationRef] = []
+        for r in rels:
+            drv = db.get(Ip, r.derived_ip_id)
+            rel_refs.append(
+                RelationRef(
+                    relation_type=r.relation_type,
+                    ip_id=r.derived_ip_id,
+                    title=drv.title if drv else "",
+                )
+            )
+        matches.append(
+            IpMatch(
+                ip_id=ip.id, title=ip.title, kind=ip.kind, matched_on=how,
+                assets=[
+                    AssetRef(
+                        id=a.id, scope_type=a.scope_type, season_no=a.season_no,
+                        episode_no=a.episode_no, edition_code=a.edition_code, title=a.title,
+                    )
+                    for a in assets
+                ],
+                relations=rel_refs,
+            )
+        )
+    return MatchResponse(matches=matches)
