@@ -47,7 +47,7 @@ DLL을 갖고 있다. Windows는 같은 파일명의 DLL이 프로세스에 이�
 바꿔 충돌 자체를 없앴다. CPU 빌드는 cuDNN을 전혀 안 건드리므로 torch와
 같은 프로세스에서 아무 순서로 import해도 문제없다(실제로 재검증함).
 
-## CPU에서 mkldnn을 꺼야 한다
+## CPU에서 mkldnn을 껐다 — 단, 이 CPU에서만 그럴 수 있다
 
 CPU로 바꾼 뒤 처음 돌렸을 때 이번엔 다른 오류가 났다.
 
@@ -55,9 +55,23 @@ CPU로 바꾼 뒤 처음 돌렸을 때 이번엔 다른 오류가 났다.
     not support [pir::ArrayAttribute<pir::DoubleAttribute>]
 
 paddle 3.3.1의 새 PIR(Program Intermediate Representation) 컴파일러가
-oneDNN(MKL-DNN) 가속 경로의 특정 연산자 속성 변환을 아직 못 다루는 것으로
-보인다. `enable_mkldnn=False`로 CPU 기본 커널을 쓰면 정상 동작한다 —
-합성 이미지로 실제 텍스트 인식까지 확인했다.
+oneDNN(MKL-DNN) 가속 경로의 특정 연산자 속성 변환을 못 다루는 것으로
+보인다. `enable_mkldnn=False`로 끄면 정상 동작한다 — 합성 이미지로 실제
+텍스트 인식까지 확인했다.
+
+**이 버그를 재현한 CPU는 Intel Core Ultra 7 255H(2026년 기준 최신 세대,
+Arrow Lake) 하나뿐이다.** oneDNN은 CPU가 지원하는 명령어 세트(AVX2·
+AVX-512·AVX-VNNI 등)에 따라 서로 다른 커널 코드 경로를 타므로, **이
+PIR-변환 버그가 이 CPU 세대의 특정 코드 경로에서만 발생하고 더 오래된
+CPU에서는 안 날 가능성이 있다.** 다른 팀원 PC에서 재현되는지 아직
+확인하지 못했다.
+
+mkldnn은 커봤을 때 CPU 추론이 유의미하게 빨라지는 최적화라서, 꺼진 채로
+그냥 두면 안 그래도 느린 CPU OCR이 필요 이상으로 느려진다. 그래서 끄는
+쪽을 코드에 박아 넣지 않고 **환경변수로 재시도할 수 있게** 했다 —
+`MINDEX_OCR_MKLDNN=1`로 켜고 `scripts/check_ml_env.py`를 돌려서 이
+환경에서도 같은 오류가 나는지 먼저 확인해 보기 바란다. 안 나면 그 값을
+기본으로 켜 두는 게 맞다.
 
 ## 언어 모델을 둘만 둔다
 
@@ -98,6 +112,7 @@ from __future__ import annotations
 
 import importlib.util
 import logging
+import os
 import threading
 
 # numpy는 requirements-ml.txt가 아니라 requirements.txt의 pgvector가 끌어온다
@@ -106,6 +121,12 @@ import threading
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+#: mkldnn(oneDNN CPU 가속)을 켤지. 기본은 끔(Intel Core Ultra 7 255H에서
+#: 재현된 버그 회피, 위 모듈 docstring 참조). 다른 CPU에서는 문제없을 수
+#: 있으니 `MINDEX_OCR_MKLDNN=1`로 켜서 `scripts/check_ml_env.py`로 먼저
+#: 확인해 보고, 안 나면 이 값을 기본으로 바꾸는 걸 권한다.
+_ENABLE_MKLDNN = os.environ.get("MINDEX_OCR_MKLDNN", "0") == "1"
 
 _engines: dict[str, object] = {}
 _lock = threading.Lock()
@@ -134,9 +155,9 @@ def _get_engine(lang: str):
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
             use_textline_orientation=False,
-            # CPU 빌드의 oneDNN 가속 경로가 PIR 컴파일러의 특정 연산자 속성을
-            # 못 다뤄서(paddle 3.3.1 실측) 끈다. 껐을 때 실제 인식이 된다.
-            enable_mkldnn=False,
+            # 기본 꺼짐 — 위 _ENABLE_MKLDNN 참조. MINDEX_OCR_MKLDNN=1로 켜서
+            # 이 환경에서도 PIR 변환 오류가 나는지 재시도해 볼 수 있다.
+            enable_mkldnn=_ENABLE_MKLDNN,
             **kwargs,
         )
         _engines[lang] = engine

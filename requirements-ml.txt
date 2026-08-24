@@ -50,20 +50,29 @@ sentence-transformers==6.0.*
 # 지켰고, OCR(paddle)은 스캔 페이지에만 도는 드문 경로라 CPU로 내려
 # 충돌을 없앴다. 상세: app/pipeline/ocr.py 모듈 docstring.
 #
-# CPU에서는 enable_mkldnn=False 가 필요하다. paddle 3.3.1의 PIR 컴파일러가
-# oneDNN 가속 경로의 한 연산자 속성 변환을 못 다뤄서 켜면
+# CPU에서는 기본적으로 enable_mkldnn=False 로 돈다. paddle 3.3.1의 PIR
+# 컴파일러가 oneDNN 가속 경로의 한 연산자 속성 변환을 못 다뤄서 켜면
 # `NotImplementedError: ConvertPirAttribute2RuntimeAttribute` 로 죽는다.
-# app.pipeline.ocr._get_engine() 이 이미 꺼서 호출한다.
 #
-# ⚠️⚠️ 미해결 — 네이티브 세그폴트 재현됨 (2026-08-24)
-#   한 프로세스에서 pypdfium2(PdfDocument 열기/렌더링)를 두 번 이상 호출한
-#   뒤 PaddleOCR을 돌리면 access violation으로 파이썬 프로세스가 죽는다
-#   (Windows fatal exception, exit code 139). Python 예외가 아니라 네이티브
-#   크래시라 try/except로 못 잡는다. 딱 한 번만 rasterize_page() 를 호출하고
-#   OCR을 돌리는 경로는 안전했다 — 문제는 반복 호출이다.
+# ⚠️ 이 버그를 재현한 CPU는 개발 PC(Intel Core Ultra 7 255H, 최신 세대)
+# 하나뿐이다. oneDNN은 CPU 명령어 세트별로 다른 코드 경로를 타므로 다른
+# CPU에서는 안 날 수 있다 — mkldnn을 켜면 CPU 추론이 유의미하게 빨라지는
+# 최적화라 꺼진 채로 방치하면 손해다. **다른 PC에서 세팅할 때는
+# `MINDEX_OCR_MKLDNN=1` 로 켜고 `python scripts/check_ml_env.py` 를 돌려서
+# 이 환경에서도 나는지 먼저 확인할 것.** 그 스크립트가 켜서 시도 -> 실패하면
+# 꺼서 재시도까지 자동으로 하고 결과를 알려준다. 안 나면 그 환경변수를 기본
+# 켜 두는 게 맞다. app/pipeline/ocr.py 의 `_ENABLE_MKLDNN` 참조.
 #
-#   실서비스는 워커 프로세스가 여러 문서를 계속 처리하며 문서마다
-#   rasterize_page() 를 부른다. 이 크래시가 그 상황에서도 재현되는지는
-#   아직 확정하지 못했다(마지막 격리 실험이 응답 없이 오래 걸려 중단).
+# ⚠️⚠️ 미해결 — 네이티브 세그폴트가 비결정적으로 재현됨 (2026-08-24)
+#   PaddleOCR 실제 추론 호출이 이 환경(Windows, paddle CPU)에서 가끔
+#   access violation으로 파이썬 프로세스 자체를 죽인다(Windows fatal
+#   exception, exit code 139). Python 예외가 아니라 try/except 로 못 잡는다.
+#   "이중 엔진이라서", "pypdfium2를 반복 호출해서"라는 가설을 둘 다 세워
+#   검증했는데 둘 다 반증됐다 — 단일 엔진 호출도 죽었고, pypdfium2를 두 번
+#   호출한 뒤에도 성공한 적이 있다. 독립 스크립트로는 여러 번 안정적으로
+#   성공했지만 pytest 프로세스 안에서는 비결정적으로 죽거나 응답 없이
+#   멈췄다. 원인 미확정 — 상세: app/pipeline/ocr.py 모듈 docstring,
+#   tests/test_ocr.py.
+#
 #   **OCR을 별도 프로세스로 격리하기 전까지는 스캔본 다건 처리를
-#   프로덕션에 올리지 말 것.** app/pipeline/ocr.py 상단에도 같은 경고가 있다.
+#   프로덕션에 올리지 말 것.**

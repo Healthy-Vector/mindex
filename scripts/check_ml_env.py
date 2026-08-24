@@ -195,31 +195,51 @@ def check_ocr() -> None:
         return
 
     # 실제 텍스트 인식까지 — 합성 이미지 한 장으로 검증한다.
-    # enable_mkldnn=False인 이유: paddle 3.3.1의 PIR 컴파일러가 oneDNN 가속
-    # 경로의 한 연산자 속성 변환을 처리하지 못해 켜면 예외가 난다(실측 확인).
-    try:
-        import numpy as np
-        from paddleocr import PaddleOCR
-        from PIL import Image, ImageDraw
+    #
+    # mkldnn(oneDNN CPU 가속)을 켠 쪽을 먼저 시도한다. 이게 정상 경로다.
+    # 개발 PC(Intel Core Ultra 7 255H)에서는 이걸 켜면 paddle 3.3.1의 PIR
+    # 컴파일러가 특정 연산자 속성 변환을 못 다뤄 예외가 났다. oneDNN은 CPU
+    # 명령어 세트(AVX2/AVX-512/AVX-VNNI 등)별로 다른 코드 경로를 타므로,
+    # 이 버그가 그 CPU 세대에만 있고 다른 CPU에서는 없을 가능성이 있다 —
+    # 그래서 여기서 실제로 먼저 켜서 확인하고, 안 되면 꺼서 재시도한다.
+    # 결과가 "켜짐"이면 app/pipeline/ocr.py를 쓸 때
+    # `MINDEX_OCR_MKLDNN=1`을 환경변수로 켜 두면 이 환경에서 더 빠르게 돈다.
+    import numpy as np
+    from paddleocr import PaddleOCR
+    from PIL import Image, ImageDraw
 
-        img = Image.new("RGB", (400, 100), "white")
-        ImageDraw.Draw(img).text((10, 30), "HELLO 123", fill="black")
+    img = Image.new("RGB", (400, 100), "white")
+    ImageDraw.Draw(img).text((10, 30), "HELLO 123", fill="black")
 
+    def _try_ocr(mkldnn: bool) -> list[str] | None:
         engine = PaddleOCR(
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
             use_textline_orientation=False,
-            enable_mkldnn=False,
+            enable_mkldnn=mkldnn,
         )
         result = engine.predict(np.array(img))
-        texts = result[0].get("rec_texts", []) if result else []
-        if texts:
-            print(f"{OK} OCR 인식 성공: {texts}")
-        else:
-            print(f"{WARN} OCR이 아무 텍스트도 인식하지 못했다")
+        return result[0].get("rec_texts", []) if result else []
+
+    try:
+        texts = _try_ocr(mkldnn=True)
+        print(f"{OK} mkldnn 켜짐(최적화) — OCR 인식 성공: {texts}")
+        print(
+            "     이 환경에서는 켜도 된다. app/pipeline/ocr.py 사용 시 "
+            "MINDEX_OCR_MKLDNN=1 을 환경변수로 설정할 것."
+        )
     except Exception as e:  # noqa: BLE001
-        print(f"{BAD} OCR 실행 실패: {type(e).__name__}: {e}")
-        failures.append("paddleocr 실행 실패")
+        print(f"{WARN} mkldnn 켜면 실패: {type(e).__name__}: {e}")
+        print("     개발 PC(Intel Core Ultra 7 255H)와 같은 버그로 보인다. 꺼서 재시도한다.")
+        try:
+            texts = _try_ocr(mkldnn=False)
+            if texts:
+                print(f"{OK} mkldnn 끄면 OCR 인식 성공: {texts}")
+            else:
+                print(f"{WARN} mkldnn을 꺼도 아무 텍스트도 인식하지 못했다")
+        except Exception as e2:  # noqa: BLE001
+            print(f"{BAD} mkldnn을 꺼도 OCR 실행 실패: {type(e2).__name__}: {e2}")
+            failures.append("paddleocr 실행 실패 (mkldnn on/off 둘 다)")
 
 
 def check_pdf() -> None:
