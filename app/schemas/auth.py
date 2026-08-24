@@ -16,7 +16,3 @@ class TokenResponse(CamelModel):
     token: str
     expires_at: datetime
     team_id: str
-
-
-class RefreshRequest(CamelModel):
-    token: str

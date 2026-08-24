@@ -47,17 +47,3 @@ def decode_token(token: str) -> dict:
         raise SessionExpired("세션이 만료되었습니다") from ex
     except jwt.InvalidTokenError as ex:
         raise SessionExpired("세션이 유효하지 않습니다") from ex
-
-
-def maybe_refresh(token: str) -> Optional[tuple[str, datetime]]:
-    """만료 임박·경과 시각 기준 1분 스로틀로만 재발급. 아니면 None.
-
-    매 요청 재발급하면 토큰이 계속 바뀌어 프론트가 저장을 못 한다(§4.7).
-    """
-    s = get_settings()
-    payload = decode_token(token)
-    iat = payload.get("iat", 0)
-    now = int(datetime.now(timezone.utc).timestamp())
-    if now - iat < s.session_refresh_throttle_seconds:
-        return None
-    return issue_token(payload["sub"])
