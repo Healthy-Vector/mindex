@@ -2,7 +2,7 @@
 
 **P3 파싱 → LLM 추출·정규화 담당자 인계 문서**
 
-status: `DRAFT v0.3`
+status: `DRAFT v0.4`
 date: 2026-08-22
 
 `retrieve_contract_chunks(pdf_bytes) -> RetrievalBundle` — PDF를 파싱·분해하고
@@ -61,7 +61,7 @@ PYTHONPATH=. python scripts/make_handoff_samples.py
 
 ## 2. Task1 최종 출력 — `RetrievalBundle`
 
-스키마 `mindex.retrieval-bundle.v0.2`. 샘플은 `samples/*.retrieval.json`.
+스키마 `mindex.retrieval-bundle.v0.3`. 샘플은 `samples/*.retrieval.json`.
 
 **전체 구조와 필드 설명은 [samples/README.md](samples/README.md)에 있다.**
 같은 규격을 두 문서에 쓰면 반드시 갈라지므로 그쪽 하나만 유지한다.
@@ -69,7 +69,7 @@ PYTHONPATH=. python scripts/make_handoff_samples.py
 
 ```jsonc
 {
-  "schema_version": "mindex.retrieval-bundle.v0.2",
+  "schema_version": "mindex.retrieval-bundle.v0.3",
   "document":  { ... },   // 이 PDF가 무엇인가
   "retrieval": { ... },   // 어떻게 회수했는가
   "fields":    { ... },   // 필드별로 어디를 봐야 하나  <- 여기서 시작
@@ -80,7 +80,33 @@ PYTHONPATH=. python scripts/make_handoff_samples.py
 `fields`는 색인, `chunks`는 자료다. `fields["territory"][0].chunk_id`로
 `chunks[]`를 찾아 `.text`를 읽는다.
 
-### v0.1에서 바뀐 점 (받는 쪽 코드에 영향 있음)
+### v0.2 -> v0.3 (받는 쪽 코드에 영향 있음)
+
+| | v0.2 | v0.3 |
+|---|---|---|
+| 기본 scorer | `lexical-v0` (어휘 단독) | **`hybrid-v1`** (어휘 + 의미, 비중 0.5) |
+| `fields[]` 추가 필드 | — | **`semantic_norm`** |
+| `semantic` 의미 | 코사인(점수에 미사용) | 코사인 **원값**(참고용) |
+| 샘플 벡터 | 1건만 | **10건 전부** |
+
+`score = (1 - w) x lexical + w x semantic_norm`, 기본 `w = 0.5`.
+**`semantic`(원 코사인)이 아니라 `semantic_norm`이 들어간다.** e5 코사인이
+좁은 구간(실측 0.68~0.86)에 눌려 있어 절대값에 의미가 없기 때문이다.
+문서 안에서 0~1로 편 값을 쓴다.
+
+가중치 0.5는 **라벨 표현만 바꾼 held-out 집합**(정답 556건)에서 측정해 정했다.
+원본 코퍼스로는 정할 수 없었다 — 어휘 패턴을 그 코퍼스를 보며 썼기 때문에
+어휘가 실패하는 경우가 1건뿐이었다.
+
+|  | 원본 @1 / @5 | held-out @1 / @5 |
+|---|---|---|
+| 어휘 단독 | 85.6% / 99.8% | 68.0% / 80.0% |
+| 의미 단독 | 44.6% / 96.9% | 41.2% / 95.9% |
+| **w=0.5** | **89.0% / 100.0%** | **77.5% / 99.8%** |
+
+`scripts/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
+
+### v0.1 -> v0.2
 
 | | v0.1 | v0.2 |
 |---|---|---|

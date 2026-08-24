@@ -6,11 +6,15 @@
 따로 있어서 파이프라인과 형식이 갈라질 수 있었다. 이제 샘플은 **실제 코드의
 출력 그 자체**다.
 
-## 임베딩을 1건만 채우는 이유
+## 전부 임베딩을 채운다
 
-벡터를 채우면 파일이 5.9배로 커진다(청크당 약 19.4KB). 10건을 다 채우면 사람이
-JSON을 열어볼 수 없게 된다. 형식을 보여주는 목적에는 1건이면 충분하므로
-가장 단순한 계약 하나만 채우고 나머지는 `embedding: null` 로 둔다.
+한때 크기 때문에 1건만 채웠다. 기본 scorer 가 `hybrid-v1` 이 되면서 그렇게 둘
+수 없게 됐다. **점수가 임베딩에 의존하므로, 벡터를 뺀 샘플은 `score` 를 파일
+안에서 재현할 수 없다.** 받는 쪽이 형식을 확인하다가 어긋난 값을 보게 된다.
+
+전부 채우면 10건 합쳐 약 2.6MB 다. 사람이 통째로 읽기엔 크지만, 샘플이 실제
+출력과 정확히 같은 편이 낫다. 구조를 눈으로 볼 때는 `jq 'del(.chunks[].embedding)'`
+로 걷어내면 된다.
 """
 
 from __future__ import annotations
@@ -38,10 +42,6 @@ SAMPLE_IDS = [
     "CTR-KO-0006",  # OST 음악 권리처리 별지
 ]
 
-#: 벡터 형식을 보여줄 1건.
-EMBED_ID = "CTR-KO-0001"
-
-
 def main() -> int:
     rows = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if isinstance(rows, dict):
@@ -58,16 +58,14 @@ def main() -> int:
 
     for cid in SAMPLE_IDS:
         pdf = TESTDATA / by_id[cid]["pdf_path"]
-        bundle = retrieve_contract_chunks(
-            pdf.read_bytes(), file_name=pdf.name, embed=(cid == EMBED_ID)
-        )
+        bundle = retrieve_contract_chunks(pdf.read_bytes(), file_name=pdf.name)
         dest = OUT / f"{cid}.retrieval.json"
         dest.write_text(
             json.dumps(bundle.model_dump(mode="json"), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         r = bundle.retrieval
-        mark = " [벡터 포함]" if bundle.document.embedded else ""
+        mark = "" if bundle.document.embedded else "  [벡터 없음]"
         print(
             f"{cid}  {bundle.document.language}  "
             f"{bundle.document.page_count}p  조항 {r.clause_total}  "
