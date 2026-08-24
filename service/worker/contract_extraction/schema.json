@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "K-RIGHTS Rich Extraction (Notion 'ocr 파이프라인 핵심 내용 추출 field' v0.2 기반)",
+  "type": "object",
+  "required": ["schema_version", "document", "contract"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["k-rights.contract-extraction.v0.1"] },
+    "document": {
+      "type": "object",
+      "required": ["language"],
+      "additionalProperties": false,
+      "properties": {
+        "language": { "type": "string", "enum": ["KO", "EN", "JP"] }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": ["contract_title", "agreement_type", "agreement_date", "parties", "rights_grants", "payments", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "contract_title":  { "$ref": "#/$defs/fieldResult" },
+        "agreement_type": {
+          "type": "object",
+          "required": ["field_status", "value", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status":   { "$ref": "#/$defs/fieldStatus" },
+            "value":          { "type": ["string", "null"], "enum": ["DIRECT_LICENSE", "SUBLICENSE", null] },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "agreement_date": {
+          "type": "object",
+          "required": ["field_status", "value", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status":   { "$ref": "#/$defs/fieldStatus" },
+            "value":          { "type": ["string", "null"], "description": "YYYY-MM-DD" },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "parties": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/party" }
+        },
+        "rights_grants": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/rightsGrant" }
+        },
+        "payments": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/payment" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "fieldStatus": {
+      "type": "string",
+      "enum": ["PRESENT_EXPLICIT", "PRESENT_DERIVED", "UNRESOLVED", "ABSENT", "EXTERNAL_REFERENCE"]
+    },
+    "fieldResult": {
+      "type": "object",
+      "required": ["field_status", "value", "raw_expression"],
+      "additionalProperties": false,
+      "properties": {
+        "field_status":   { "$ref": "#/$defs/fieldStatus" },
+        "value":          { "type": ["string", "null"] },
+        "raw_expression": { "type": ["string", "null"] }
+      }
+    },
+    "party": {
+      "type": "object",
+      "required": ["role", "name", "field_status", "raw_expression"],
+      "additionalProperties": false,
+      "properties": {
+        "role":           { "type": ["string", "null"], "enum": ["GRANTOR", "GRANTEE", null] },
+        "name":           { "type": ["string", "null"] },
+        "field_status":   { "$ref": "#/$defs/fieldStatus" },
+        "raw_expression": { "type": ["string", "null"] }
+      }
+    },
+    "rightsGrant": {
+      "type": "object",
+      "required": ["grant_ref", "content", "legal_right", "exploitation_mode", "territory",
+                   "license_period", "exclusivity", "authority_constraints", "scope_modifiers"],
+      "additionalProperties": false,
+      "properties": {
+        "grant_ref": { "type": "string" },
+        "content": {
+          "type": "object",
+          "required": ["field_status", "subjects", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status": { "$ref": "#/$defs/fieldStatus" },
+            "subjects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["subject_type", "title", "scope_type", "relationship_type"],
+                "additionalProperties": false,
+                "properties": {
+                  "subject_type": { "type": "string", "enum": ["CONTENT", "RELATED_ASSET"] },
+                  "title":        { "type": ["string", "null"] },
+                  "scope_type":   { "type": "string", "enum": ["SERIES", "SEASON", "EPISODE", "EDIT", "MANIFESTATION", "OST_MASTER", "UNSPECIFIED"] },
+                  "relationship_type": { "type": ["string", "null"], "enum": ["OST_OF", "REMAKE_OF", "FORMAT_OF", "SEQUEL_OF", null] }
+                }
+              }
+            },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "legal_right": {
+          "type": "object",
+          "required": ["field_status", "values", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status": { "$ref": "#/$defs/fieldStatus" },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["REPRODUCTION", "DISTRIBUTION", "PUBLIC_TRANSMISSION", "BROADCASTING",
+                         "INTERACTIVE_TRANSMISSION", "DIGITAL_AUDIO_TRANSMISSION", "PERFORMANCE",
+                         "EXHIBITION", "RENTAL", "DERIVATIVE_WORK_CREATION", "ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION"]
+              }
+            },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "exploitation_mode": {
+          "type": "object",
+          "required": ["field_status", "values", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status": { "$ref": "#/$defs/fieldStatus" },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["SVOD", "AVOD", "TVOD", "TV_LINEAR", "THEATRICAL", "MUSIC_STREAMING",
+                         "ON_DEMAND_AUDIOVISUAL", "DIGITAL_DISTRIBUTION_UNSPECIFIED"]
+              }
+            },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "territory": {
+          "type": "object",
+          "required": ["field_status", "values", "excluded_values", "definitions", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status": { "$ref": "#/$defs/fieldStatus" },
+            "values": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["KR", "JP", "US", "SG", "TW", "ASIA", "APAC", "WORLDWIDE"] }
+            },
+            "excluded_values": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["KR", "JP", "US", "SG", "TW", "ASIA", "APAC", "WORLDWIDE"] }
+            },
+            "definitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["term", "members"],
+                "additionalProperties": false,
+                "properties": {
+                  "term":    { "type": "string" },
+                  "members": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "license_period": {
+          "type": "object",
+          "required": ["field_status", "start", "end", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status":   { "$ref": "#/$defs/fieldStatus" },
+            "start":          { "type": ["string", "null"], "description": "YYYY-MM-DD" },
+            "end":            { "type": ["string", "null"], "description": "YYYY-MM-DD" },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "exclusivity": {
+          "type": "object",
+          "required": ["field_status", "value", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status":   { "$ref": "#/$defs/fieldStatus" },
+            "value":          { "type": ["string", "null"], "enum": ["EXCLUSIVE", "NON_EXCLUSIVE", null] },
+            "raw_expression": { "type": ["string", "null"] }
+          }
+        },
+        "authority_constraints": {
+          "type": "object",
+          "required": ["field_status", "may_sublicense", "allowed_recipient_types", "target_recipient_type", "raw_expression"],
+          "additionalProperties": false,
+          "properties": {
+            "field_status":     { "$ref": "#/$defs/fieldStatus" },
+            "may_sublicense":   { "type": ["boolean", "null"] },
+            "allowed_recipient_types": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["AFFILIATE", "NON_AFFILIATE", "OTT_PLATFORM", "PLATFORM"] }
+            },
+            "target_recipient_type": { "type": ["string", "null"], "enum": ["AFFILIATE", "NON_AFFILIATE", "OTT_PLATFORM", "PLATFORM", null] },
+            "raw_expression":   { "type": ["string", "null"] }
+          }
+        },
+        "scope_modifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["modifier_type", "dimension", "field_status", "values", "raw_expression"],
+            "additionalProperties": false,
+            "properties": {
+              "modifier_type": {
+                "type": "string",
+                "enum": ["RESERVED_RIGHTS", "CARVE_OUT", "HOLDBACK", "DEFINITION",
+                         "CONSENT_REQUIRED", "CONSENT_STATUS", "IDENTITY_EVIDENCE",
+                         "PREFERENTIAL_NEGOTIATION", "THIRD_PARTY_CLEARANCE"]
+              },
+              "dimension":      { "type": ["string", "null"] },
+              "field_status":   { "$ref": "#/$defs/fieldStatus" },
+              "values":         { "type": "array", "items": { "type": "string" } },
+              "raw_expression": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "required": ["payment_ref", "amount", "currency"],
+      "additionalProperties": false,
+      "properties": {
+        "payment_ref": { "type": "string" },
+        "amount":      { "type": ["string", "null"], "description": "소수점 문자열, 예: 300000.00" },
+        "currency":    { "type": ["string", "null"], "description": "ISO 4217, 예: KRW/USD/JPY" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["evidence_ref", "labels", "targets", "text", "section"],
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ref": { "type": "string" },
+        "labels":       { "type": "array", "items": { "type": "string" } },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["target_type", "target_ref", "field"],
+            "additionalProperties": false,
+            "properties": {
+              "target_type": { "type": "string", "enum": ["RIGHTS_GRANT_FIELD", "PAYMENT", "CONTRACT_FIELD"] },
+              "target_ref":  { "type": "string" },
+              "field":       { "type": "string" }
+            }
+          }
+        },
+        "text":       { "type": "string", "description": "계약서 exact text" },
+        "section":    { "type": ["string", "null"], "description": "조항 번호·제목 또는 별지" },
+        "page_start": { "type": ["integer", "null"] },
+        "page_end":   { "type": ["integer", "null"] },
+        "start_char": { "type": ["integer", "null"], "description": "canonical text 기준 offset, UTF-8/LF/코드포인트, start 포함" },
+        "end_char":   { "type": ["integer", "null"], "description": "end 미포함" }
+      }
+    }
+  }
+}

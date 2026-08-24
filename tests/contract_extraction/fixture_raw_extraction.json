@@ -1,0 +1,113 @@
+{
+  "schema_version": "k-rights.contract-extraction.v0.1",
+  "document": { "language": "KO" },
+  "contract": {
+    "contract_title": {
+      "field_status": "PRESENT_EXPLICIT",
+      "value": "콘텐츠 이용허락 계약서",
+      "raw_expression": "콘텐츠 이용허락 계약서"
+    },
+    "agreement_type": {
+      "field_status": "PRESENT_DERIVED",
+      "value": "DIRECT_LICENSE",
+      "raw_expression": "본 계약은 갑이 보유한 본 콘텐츠의 전송권을 을에게이용허락함에 있어"
+    },
+    "agreement_date": {
+      "field_status": "PRESENT_EXPLICIT",
+      "value": "2025-12-15",
+      "raw_expression": "2025년12월15일"
+    },
+    "parties": [
+      {
+        "role": "GRANTOR",
+        "name": "한빛스튜디오 주식회사",
+        "field_status": "PRESENT_EXPLICIT",
+        "raw_expression": "갑:한빛스튜디오 주식화사"
+      },
+      {
+        "role": "GRANTEE",
+        "name": "Bridge Contents",
+        "field_status": "PRESENT_EXPLICIT",
+        "raw_expression": "을:Bridge Contents"
+      }
+    ],
+    "rights_grants": [
+      {
+        "grant_ref": "grant-1",
+        "content": {
+          "field_status": "PRESENT_EXPLICIT",
+          "subjects": [
+            { "subject_type": "CONTENT", "title": "겨울의 신호", "scope_type": "SEASON", "relationship_type": null }
+          ],
+          "raw_expression": "겨울의 신호 시즌1 전 회차"
+        },
+        "legal_right": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": ["INTERACTIVE_TRANSMISSION"],
+          "raw_expression": "전송권"
+        },
+        "exploitation_mode": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": ["SVOD"],
+          "raw_expression": "구독형 주문형 비디오(SVOD) 서비스"
+        },
+        "territory": {
+          "field_status": "PRESENT_EXPLICIT",
+          "values": ["JP"],
+          "excluded_values": [],
+          "definitions": [],
+          "raw_expression": "일본"
+        },
+        "license_period": {
+          "field_status": "PRESENT_EXPLICIT",
+          "start": "2026-01-01",
+          "end": "2027-12-31",
+          "raw_expression": "2026년1월1일부터\n2027년12월 31일까지"
+        },
+        "exclusivity": {
+          "field_status": "PRESENT_EXPLICIT",
+          "value": "EXCLUSIVE",
+          "raw_expression": "독점"
+        },
+        "authority_constraints": {
+          "field_status": "PRESENT_EXPLICIT",
+          "may_sublicense": false,
+          "allowed_recipient_types": [],
+          "target_recipient_type": null,
+          "raw_expression": "을은 갑의 사전 서면 동의 없이 본 계약상 권리를\n제3자에게 재허락할 수 없다."
+        },
+        "scope_modifiers": []
+      }
+    ],
+    "payments": [
+      { "payment_ref": "payment-1", "amount": "300000000.00", "currency": "KRW" }
+    ],
+    "evidence": [
+      {
+        "evidence_ref": "evidence-1",
+        "labels": ["TERRITORY", "EXPLOITATION_MODE", "EXCLUSIVITY"],
+        "targets": [
+          { "target_type": "RIGHTS_GRANT_FIELD", "target_ref": "grant-1", "field": "territory" },
+          { "target_type": "RIGHTS_GRANT_FIELD", "target_ref": "grant-1", "field": "exploitation_mode" }
+        ],
+        "text": "2.허락 지역:일본\n3:이용 형태: 구독형 주문형 비디오(SVOD) 서비스\n4.독점여부:독점"
+      },
+      {
+        "evidence_ref": "evidence-2",
+        "labels": ["PAYMENT"],
+        "targets": [
+          { "target_type": "PAYMENT", "target_ref": "payment-1", "field": "amount_currency" }
+        ],
+        "text": "을은 갑에게 이용료로 금 삼억원(W300,000,000)을 지급한다:"
+      },
+      {
+        "evidence_ref": "evidence-3",
+        "labels": ["AUTHORITY"],
+        "targets": [
+          { "target_type": "RIGHTS_GRANT_FIELD", "target_ref": "grant-9", "field": "authority_constraints" }
+        ],
+        "text": "이 문장은 원문에 없는 환각이다"
+      }
+    ]
+  }
+}
