@@ -12,7 +12,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..", "..")))
 
-from service.worker.contract_extraction.service import run_extraction
+from service.worker.contract_extraction.service import run_extraction  # noqa: E402
 from tests.contract_extraction.mock_retrieval import retrieve_contract_chunks  # noqa: E402
 
 
