@@ -19,10 +19,14 @@ PYTHONPATH=. .venv/Scripts/python scripts/ocr_pipeline/<script>.py
 | 스크립트 | 하는 일 | 언제 쓰나 |
 |---|---|---|
 | `check_ml_env.py` | 실행 환경 진단 | **새 PC 세팅 직후 제일 먼저** |
+| `run_e2e.py` | **전건 end-to-end 실행** | **PR 전 · 파이프라인을 건드린 뒤** |
 | `build_goldset.py` | 회수 정답지 생성 | 원본 Evidence가 바뀌었을 때 |
 | `paraphrase.py` | held-out 집합 생성 | `eval_retrieval.py` 가 내부에서 호출 |
 | `eval_retrieval.py` | 회수 품질 측정 | 청킹·스코어러를 건드린 뒤 |
 | `make_handoff_samples.py` | Task2 인계 샘플 생성 | 규격이 바뀌었을 때 |
+
+`run_e2e.py` 와 `eval_retrieval.py` 는 목적이 다르다. 전자는 **끝까지 도는가**
+(규격 위반·예외·성능), 후자는 **얼마나 잘 찾는가**(정답지 대조)를 본다.
 
 ---
 
@@ -52,7 +56,43 @@ python scripts/ocr_pipeline/check_ml_env.py
 > mkldnn 버그는 개발 PC(Intel Core Ultra 7 255H) 한 대에서만 재현됐다.
 > 안 나는 환경이면 켜 두는 게 맞다 — CPU OCR이 유의미하게 빨라진다.
 
-## 2. `build_goldset.py` — 회수 정답지
+## 2. `run_e2e.py` — 전건 end-to-end
+
+```bash
+python scripts/ocr_pipeline/run_e2e.py               # 86건, 임베딩 포함
+python scripts/ocr_pipeline/run_e2e.py --no-embed    # ML 없이 (CI 경로)
+python scripts/ocr_pipeline/run_e2e.py --limit 10    # 앞 10건만
+python scripts/ocr_pipeline/run_e2e.py --json out.json
+```
+
+건별 규격 검증은 `retrieve_contract_chunks` 가 pydantic 모델을 돌려주는 시점에
+이미 끝나 있다. 이 스크립트는 그 위에 **코퍼스 전체에 걸친 불변조건**을 얹는다
+— 한 건씩 보면 안 보이고 86건을 모아야 드러나는 것들이다.
+
+| 검사 | 왜 |
+|---|---|
+| `chunk_id` 충돌 | 문서해시 앞 12자 + 순번이다. 겹치면 `contract_chunk` 조인 키가 깨진다 |
+| `file_hash` 중복 | 같은 PDF가 두 번 들어 있으면 평가 수치가 부풀려진다 |
+| `UNSEGMENTED` | 조항을 하나도 못 찾은 문서. 회수가 사실상 불가능하다 |
+| 빈 회수 | 어떤 필드도 못 건진 계약. 추출이 시작을 못 한다 |
+
+모델 로딩(20.6초)은 첫 계약 처리 시간에서 떼어 낸다. 안 그러면 1건이 90초대,
+나머지가 0.6초대로 찍혀 평균이 무의미해진다. 실제 워커도 상주 싱글턴으로 한 번만
+로딩하므로 이렇게 재는 쪽이 현실에 가깝다.
+
+**2026-08-25 실측 (v0.4)**
+
+```
+성공 86/86건   처리 62.9초 (건당 평균 0.73초, 모델 로딩 20.6초 별도)
+페이지 446   조항 1825   청크 1827(색인 1804, 회수 1127)
+텍스트 경로  {'TEXT_LAYER': 446}
+코퍼스 불변조건 통과
+```
+
+합성데이터가 전부 digital-born 이라 **OCR 경로는 한 번도 안 탄다.**
+스캔본 검증은 `tests/test_ocr.py` 가 담당한다.
+
+## 3. `build_goldset.py` — 회수 정답지
 
 `testdata/k-rights/annotations/` 의 Evidence 781건에서 회수 정답 556건을 뽑아
 `eval/retrieval_goldset.json` 에 쓴다.
@@ -67,7 +107,7 @@ python scripts/ocr_pipeline/build_goldset.py
 `parties` 는 정답 라벨이 0건이라 **측정 불가**로 명시해 둔다. 조용히 0%로
 집계되면 결함처럼 보인다.
 
-## 3. `paraphrase.py` — held-out 집합
+## 4. `paraphrase.py` — held-out 집합
 
 정답지의 질의를 **라벨 표현만 바꿔** 다시 쓴다 (`이용지역` → `서비스 대상 권역`).
 날짜·국가·금액 같은 내용어는 건드리지 않는다.
@@ -76,13 +116,13 @@ python scripts/ocr_pipeline/build_goldset.py
 
 > [!note] 왜 이게 필요했나
 > 원본 코퍼스로는 hybrid 가중치를 정할 수 없었다. 어휘 패턴을 그 코퍼스를
-> **보면서** 썼기 때문에 어휘 단독으로도 556건 중 1건만 실패했다.
-> 표현을 바꾸자 68.0%까지 떨어지면서 비로소 의미 검색의 기여가 보였다.
+> **보면서** 썼기 때문에 어휘 단독으로 @5 556건을 다 맞힌다.
+> 표현을 바꾸자 80.0%까지 떨어지면서 비로소 의미 검색의 기여가 보였다.
 
 문자 사이마다 `\s*` 를 넣어 매칭한다. PDF가 단어 중간에서 줄을 바꾸기 때문이다
 — CJK도 예외가 아니다 (`利用\n方法`).
 
-## 4. `eval_retrieval.py` — 회수 품질 측정
+## 5. `eval_retrieval.py` — 회수 품질 측정
 
 ```bash
 python scripts/ocr_pipeline/eval_retrieval.py              # 원본 코퍼스
@@ -110,7 +150,7 @@ python scripts/ocr_pipeline/eval_retrieval.py --paraphrase # held-out
 
 GPU + `requirements-ml.txt` 가 필요하다. CI에서는 안 돈다.
 
-## 5. `make_handoff_samples.py` — Task2 인계 샘플
+## 6. `make_handoff_samples.py` — Task2 인계 샘플
 
 ```bash
 PYTHONPATH=. python scripts/ocr_pipeline/make_handoff_samples.py
