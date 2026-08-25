@@ -263,7 +263,6 @@ Table staging.extract_job {
 Table staging.extract_result {
   tmpid      UUID [pk, ref: - staging.extract_job.tmpid, note: 'ON DELETE CASCADE']
   payload    JSONB [not null]
-  confidence NUMERIC(4,3)
   created_at TIMESTAMPTZ [not null, default: `now()`]
 }
 

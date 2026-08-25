@@ -40,7 +40,6 @@ CREATE INDEX idx_extract_job_status_created ON staging.extract_job (status, crea
 CREATE TABLE staging.extract_result (
     tmpid      uuid PRIMARY KEY REFERENCES staging.extract_job(tmpid) ON DELETE CASCADE,
     payload    jsonb NOT NULL,        -- AI 추출 결과 원본. status='DONE'과 함께 커밋
-    confidence numeric(4,3),
     created_at timestamptz NOT NULL DEFAULT now()
 );
 

@@ -117,4 +117,8 @@ INSERT INTO schema_meta (version, note) VALUES
      'staging_confirm_api/staging_cleanup, 07_staging_roles.sql) 스키마 레벨로 이식'),
     ('2026-08-23.1',
      'ip.activity 컬럼 추가(ip_activity_kind ENUM: active/deactive, DEFAULT active). '
-     '프런트 목록 필터 전용 플래그 — EXCLUDE/트리거/판정 로직 어디에도 관여하지 않는다');
+     '프런트 목록 필터 전용 플래그 — EXCLUDE/트리거/판정 로직 어디에도 관여하지 않는다'),
+    ('2026-08-25.1',
+     'staging.extract_result.confidence 컬럼 삭제. 어떤 SQL 함수·롤 GRANT도 이 '
+     '컬럼을 참조하지 않았고, 대표 confidence를 별도 기록하지 않는 확정 저장 '
+     '경로로 이미 정리됐다(feat/contract-extraction-worker PR #8)');

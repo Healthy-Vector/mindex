@@ -55,7 +55,6 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 |---|---|
 | `tmpid` (PK, FK → `staging.extract_job`) | |
 | `payload` | AI 추출 결과 원본. `status='DONE'`과 한 트랜잭션으로 커밋 |
-| `confidence` | |
 | `created_at` | |
 
 화면은 이 `payload`를 읽어 사용자에게 보여준다. 사용자가 고친 값은 여기 다시 쓰지 않는다 — 확정 전 값은 화면이 들고 있다가 확정 시점에 한 번에 넘어간다.
