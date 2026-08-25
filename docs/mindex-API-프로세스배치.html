@@ -129,7 +129,7 @@ table.dt td:nth-child(2){color:#7b8794;white-space:nowrap}
 <button class="api p4" data-api="13" type="button"><span class="l"><span class="no">13</span><span class="m m-post">POST</span><code>/ips</code></span><span class="d">신규 IP 즉석 등록</span><span class="caret">상세 ›</span></button>
 <button class="api p4" data-api="16" type="button"><span class="l"><span class="no">16</span><span class="m m-get">GET</span><code>/refs</code></span><span class="d">법적 권리 · 이용형태 · 국가 드롭다운</span><span class="caret">상세 ›</span></button></div></div></div>
 <div class="step"><div class="num">④</div><div class="body"><div class="hd"><h3>검증</h3><span class="own o-p4">P4</span></div><p class="memo"><code>public</code> 스키마의 <code>validate_rights_batch()</code> 실행 → 결과만 받고 되돌림</p><div class="apis"><button class="api p4" data-api="5" type="button"><span class="l"><span class="no">5</span><span class="m m-post">POST</span><code>/contracts/verify</code></span><span class="d">실제 저장 경로로 판정 후 롤백</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">⑤</div><div class="body"><div class="hd"><h3>충돌 리포트</h3><span class="own o-p4">P4</span></div><p class="memo">별도 호출 없음. ④ 응답에 상대 계약·겹친 기간·근거가 이미 들어 있음</p><div class="apis"><button class="api p4dim" data-api="5" type="button"><span class="l"><span class="no">5</span><span class="m m-post">POST</span><code>/contracts/verify</code></span><span class="d">응답의 conflicts[] 를 그대로 렌더</span><span class="caret">상세 ›</span></button></div></div></div>
+<div class="step"><div class="num">⑤</div><div class="body"><div class="hd"><h3>충돌 리포트</h3><span class="own o-p4">P4</span></div><p class="memo">별도 호출 없음. ④ 응답에 상대 계약·겹친 기간·근거가 이미 들어 있음</p><div class="apis"><button class="api p4dim" data-api="5" type="button"><span class="l"><span class="no">5</span><span class="m m-post">POST</span><code>/contracts/verify</code></span><span class="d">응답의 conflictReport.conflicts[] 를 렌더</span><span class="caret">상세 ›</span></button></div></div></div>
 <div class="step"><div class="num">⑥</div><div class="body"><div class="hd"><h3>확정 저장</h3><span class="own o-p4">P4</span></div><p class="memo"><code>save_rights_batch()</code> 실행. APPLIED·CONFLICTED 모두 커밋</p><div class="apis"><button class="api p4" data-api="6" type="button"><span class="l"><span class="no">6</span><span class="m m-post">POST</span><code>/contracts</code></span><span class="d">한 트랜잭션 · 중복 확정 차단</span><span class="caret">상세 ›</span></button></div></div></div>
     <div class="foot">④ 검증과 ⑥ 확정 저장은 <b>같은 DB 판정 경로</b>를 씁니다.
       충돌 시 권리 행은 만들지 않고 <code>contract_history.status='conflicted'</code>와 <code>conflict_report</code>를 커밋합니다.
@@ -237,11 +237,13 @@ Object.assign(PANELS, {
 <h3 class="dtitle"><span class="no big">4</span>IP 매칭 후보</h3>
 <div class="dmeta"><span class="tag own-p4">P4</span><span class="tag open">PIN 세션 불필요</span></div>
 <div class="dwhere"><b>프로세스 위치</b><div>③ 결과 확인·수정 — 업로드 화면의 IP 매칭 패널</div></div>
-<h4 class="dh">API 역할</h4><ul class="dul"><li>활성 IP의 대표명과 별칭을 검색하고, 선택 직후 필요한 작품 내부 범위를 함께 반환합니다.</li><li><code>ip_relation</code>은 현재 P2-DB에 미구현이므로 <code>relations</code>는 빈 배열입니다.</li></ul>
-<h4 class="dh">payload</h4><p class="dnote">쿼리 <code>q</code> 필수, 1자 이상</p>
+<h4 class="dh">API 역할</h4><ul class="dul"><li>OCR 추출 제목으로 활성 IP의 대표명과 별칭을 검색하고, 선택 직후 필요한 작품 내부 범위를 함께 반환합니다.</li><li><code>pg_trgm</code> 유사도와 양방향 부분 일치 점수로 정렬하므로 <code>겨울왕국 시즌2</code>에서 <code>겨울왕국</code>을 찾을 수 있습니다.</li><li><code>ip_relation</code>은 현재 P2-DB에 미구현이므로 <code>relations</code>는 빈 배열입니다.</li></ul>
+<h4 class="dh">payload</h4><p class="dnote">쿼리 <code>q</code> 필수, 선택 <code>limit=10</code>·<code>includeInactive=false</code></p>
+<h4 class="dh">사용 예시</h4><pre class="dpre">GET /api/ips/match?q=겨울왕국%20시즌2&amp;limit=10&amp;includeInactive=false</pre>
+<p class="dnote">OCR 제목을 <code>q</code>에 그대로 넣습니다. 0.4 미만 후보는 제외하며, <code>score</code>는 문자열 관련도입니다. 동점이면 대표명 일치를 별칭 일치보다 먼저 반환합니다.</p>
 <h4 class="dh">response</h4><pre class="dpre">{ &quot;matches&quot;: [{
   &quot;ipId&quot;: 12, &quot;title&quot;: &quot;겨울의 신호&quot;, &quot;kind&quot;: &quot;DRAMA&quot;,
-  &quot;matchedOn&quot;: &quot;title&quot;,
+  &quot;matchedOn&quot;: &quot;title&quot;, &quot;matchedText&quot;: &quot;겨울의 신호&quot;, &quot;score&quot;: 0.98,
   &quot;assets&quot;: [{ &quot;contentAssetId&quot;: 80, &quot;scopeType&quot;: &quot;SERIES_ALL&quot; }],
   &quot;relations&quot;: []
 }] }</pre>`,
@@ -250,7 +252,7 @@ Object.assign(PANELS, {
 <h3 class="dtitle"><span class="no big">5</span>충돌 검증</h3>
 <div class="dmeta"><span class="tag own-p4">P4</span><span class="tag open">PIN 세션 불필요 · 200</span></div>
 <div class="dwhere"><b>프로세스 위치</b><div>④ 검증 — 응답의 <code>conflictReport</code>를 ⑤ 충돌 리포트에 표시</div></div>
-<h4 class="dh">API 역할</h4><ul class="dul"><li><code>public.validate_rights_batch()</code>가 실제 INSERT 경로로 판정하고 내부 쓰기를 전부 롤백합니다.</li><li>권리는 <b>legalRight × exploitationMode</b> 2축이며, 지역 그룹은 DB에서 국가 단위로 펼쳐 검사합니다.</li></ul>
+<h4 class="dh">API 역할</h4><ul class="dul"><li><code>public.validate_rights_batch()</code>가 실제 INSERT 경로로 판정하고 내부 쓰기를 전부 롤백합니다.</li><li>권리는 <b>legalRight × exploitationMode</b> 2축이며, 지역 그룹은 DB에서 국가 단위로 펼쳐 검사합니다.</li><li><code>conflictReport</code> 내부 키도 camelCase로 반환합니다.</li></ul>
 <h4 class="dh">payload</h4><pre class="dpre">{
   &quot;contractId&quot;: null, &quot;grantor&quot;: &quot;C사&quot;, &quot;grantee&quot;: &quot;T사&quot;, &quot;ipId&quot;: 12,
   &quot;fileName&quot;: &quot;contract.pdf&quot;, &quot;filePath&quot;: &quot;contracts/...&quot;, &quot;fileHash&quot;: &quot;...&quot;,
@@ -327,12 +329,16 @@ Object.assign(PANELS, {
 <h3 class="dtitle"><span class="no big">12</span>IP 목록</h3>
 <div class="dmeta"><span class="tag own-p4">P4</span><span class="tag open">PIN 세션 불필요</span></div>
 <div class="dwhere"><b>프로세스 위치</b><div>㉮ IP 목록 조회 — UI-D-001 좌측 목록</div></div>
-<h4 class="dh">API 역할</h4><ul class="dul"><li>대표명·별칭을 검색하고 IP의 별칭·작품 자산·참조 계약 수를 페이지로 반환합니다.</li><li>삭제 대신 <code>activity=deactive</code>를 사용하며 기본 목록에서는 비활성 IP를 숨깁니다.</li></ul>
+<h4 class="dh">API 역할</h4><ul class="dul"><li>대표명·별칭을 <code>pg_trgm</code> 유사도와 양방향 부분 일치 점수로 검색하고 관련도순으로 반환합니다.</li><li><code>q</code>가 없으면 최신 등록순이며, 검색 결과에는 <code>score</code>·<code>matchedOn</code>·<code>matchedText</code>가 포함됩니다.</li><li>삭제 대신 <code>activity=deactive</code>를 사용하며 기본 목록에서는 비활성 IP를 숨깁니다.</li></ul>
 <h4 class="dh">payload</h4><p class="dnote">쿼리 <code>q</code>, <code>includeInactive=false</code>, <code>page</code>, <code>size</code></p>
+<h4 class="dh">사용 예시</h4><pre class="dpre">GET /api/ips?q=겨울왕국%20시즌2&amp;includeInactive=false&amp;page=1&amp;size=20
+GET /api/ips?page=1&amp;size=20</pre>
+<p class="dnote"><code>q</code>가 있으면 관련도순, 없으면 최신 등록순입니다. <code>matchedOn</code>과 <code>matchedText</code>로 실제 일치한 대표명·별칭을 확인합니다.</p>
 <h4 class="dh">response</h4><pre class="dpre">{ &quot;items&quot;: [{
   &quot;ipId&quot;: 12, &quot;title&quot;: &quot;겨울의 신호&quot;, &quot;kind&quot;: &quot;DRAMA&quot;,
   &quot;activity&quot;: &quot;active&quot;, &quot;aliases&quot;: [...], &quot;assets&quot;: [...],
-  &quot;contractCount&quot;: 7, &quot;createdAt&quot;: &quot;...&quot;
+  &quot;contractCount&quot;: 7, &quot;createdAt&quot;: &quot;...&quot;,
+  &quot;score&quot;: 0.98, &quot;matchedOn&quot;: &quot;title&quot;, &quot;matchedText&quot;: &quot;겨울의 신호&quot;
 }], &quot;total&quot;: 1, &quot;page&quot;: 1, &quot;size&quot;: 20 }</pre>`,
 
   "13": `<div class="dhead"><span class="m m-post">POST</span><code>/ips</code></div>

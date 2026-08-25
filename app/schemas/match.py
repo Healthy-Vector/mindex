@@ -31,6 +31,8 @@ class IpMatch(CamelModel):
     title: str
     kind: Optional[str] = None
     matched_on: str  # title / alias
+    matched_text: Optional[str] = None
+    score: Optional[float] = None
     assets: list[AssetRef] = []
     relations: list[RelationRef] = []  # ip_relation 미구현 → 항상 []
 

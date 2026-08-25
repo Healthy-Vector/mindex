@@ -7,8 +7,9 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.auth import PinRequest, TokenResponse
+from app.schemas.common import camelize_json_keys
 from app.schemas.contracts import ChunkIn, VerifyRequest
-from app.schemas.ips import AssetIn, IpOut
+from app.schemas.ips import AssetIn, IpListItem, IpOut
 from app.schemas.search import SearchRequest
 from app.services.territory import to_daterange_literal, end_inclusive_from_upper
 from app.services.ip_norm import norm_key
@@ -65,6 +66,37 @@ def test_contract_requires_nonempty_rights():
         })
 
 
+def test_conflict_report_json_keys_are_recursively_camelized():
+    report = camelize_json_keys({
+        "constraint_name": "no_exclusive_overlap",
+        "exception_detail": "detail",
+        "conflicts": [{
+            "incoming": {
+                "legal_right": "TRANSMISSION",
+                "exploitation_mode": "SVOD",
+            },
+            "existing_grant_id": 4512,
+            "existing_contract_id": 87,
+            "overlap_period": "[2027-07-01,2028-07-01)",
+            "legal_right_relation": "same",
+            "exploitation_mode_relation": "same",
+            "blocking_layer": "no_exclusive_overlap",
+        }],
+    })
+
+    assert report["constraintName"] == "no_exclusive_overlap"
+    assert report["exceptionDetail"] == "detail"
+    conflict = report["conflicts"][0]
+    assert conflict["incoming"]["legalRight"] == "TRANSMISSION"
+    assert conflict["incoming"]["exploitationMode"] == "SVOD"
+    assert conflict["existingGrantId"] == 4512
+    assert conflict["existingContractId"] == 87
+    assert conflict["overlapPeriod"] == "[2027-07-01,2028-07-01)"
+    assert conflict["legalRightRelation"] == "same"
+    assert conflict["exploitationModeRelation"] == "same"
+    assert conflict["blockingLayer"] == "no_exclusive_overlap"
+
+
 def test_chunk_page_range_is_validated_and_aliased():
     chunk = ChunkIn.model_validate({
         "chunkText": "제8조",
@@ -96,3 +128,18 @@ def test_ip_asset_scope_fields_are_validated_and_aliased():
     ).model_dump(by_alias=True, mode="json")
     assert body["ipId"] == 12
     assert body["contractCount"] == 0
+
+
+def test_ip_search_metadata_is_aliased():
+    body = IpListItem(
+        ip_id=12,
+        title="겨울왕국",
+        kind="ANIMATION",
+        activity="active",
+        score=0.98,
+        matched_on="title",
+        matched_text="겨울왕국",
+    ).model_dump(by_alias=True, mode="json")
+    assert body["score"] == 0.98
+    assert body["matchedOn"] == "title"
+    assert body["matchedText"] == "겨울왕국"

@@ -302,7 +302,7 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
 
 **③ 결과 확인·수정 단계.**
 
-업로드 화면의 IP 매칭 패널에서 씁니다. 활성 IP의 `ip.title` 과 `ip_alias` 를 검색하고, IP 선택 직후 필요한 작품 내부 범위까지 함께 반환합니다.
+업로드 화면의 IP 매칭 패널에서 씁니다. OCR이 추출한 콘텐츠 제목으로 활성 IP의 `ip.title` 과 `ip_alias` 를 검색하고, IP 선택 직후 필요한 작품 내부 범위까지 함께 반환합니다. `pg_trgm` 문자열·단어 유사도와 양방향 부분 일치 점수를 조합하므로 `겨울왕국 시즌2`로 `겨울왕국`을 찾을 수 있습니다.
 
 `ip_relation` 은 현재 P2-DB에 구현되지 않았습니다. 응답 형식은 유지하지만 `relations` 는 항상 빈 배열입니다.
 
@@ -312,7 +312,19 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
 
 |파라미터|타입|필수|설명|
 |---|---|---|---|
-|`q`|string|O|검색어. 1자 이상|
+|`q`|string|O|OCR 추출 제목 또는 검색어. 1자 이상|
+|`limit`|int|X|기본 10, 최대 100|
+|`includeInactive`|bool|X|기본 false|
+
+### 사용 예시
+
+OCR 결과의 콘텐츠 제목을 가공하지 않고 `q`에 넣습니다.
+
+```http
+GET /api/ips/match?q=겨울왕국%20시즌2&limit=10&includeInactive=false
+```
+
+검색 결과는 `score` 내림차순이며, 같은 점수에서는 대표명(`title`) 일치가 별칭(`alias`) 일치보다 먼저 나옵니다. `score`는 문자열 관련도 지표이며 계약 판정의 신뢰도가 아닙니다. 0.4 미만인 후보는 반환하지 않고, 비활성 IP까지 찾아야 할 때만 `includeInactive=true`를 사용합니다.
 
 ### response
 
@@ -322,6 +334,8 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
 |`matches[].title`|string|대표명|
 |`matches[].kind`|string·null|IP 유형|
 |`matches[].matchedOn`|enum|`title` / `alias`|
+|`matches[].matchedText`|string·null|최고 점수를 만든 대표명 또는 별칭|
+|`matches[].score`|number·null|0~1 관련도. 높은 순서로 반환|
 |`matches[].assets`|array|이 IP의 작품 내부 범위 목록|
 |`matches[].relations`|array|현재는 항상 빈 배열|
 
@@ -333,6 +347,8 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
       "title": "겨울의 신호",
       "kind": "DRAMA",
       "matchedOn": "alias",
+      "matchedText": "겨울 신호",
+      "score": 0.94,
       "assets": [
         { "contentAssetId": 30, "scopeType": "SERIES_ALL", "title": "시리즈 전체" },
         { "contentAssetId": 31, "scopeType": "SEASON", "seasonNo": 2, "title": "시즌 2" }
@@ -431,7 +447,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`batchResult`|enum|`APPLIED` / `CONFLICTED`|
 |`hasConflict`|bool|충돌 유무|
 |`constraintName`|string·null|충돌을 판정한 DB 제약|
-|`conflictReport`|object·null|P2 함수가 만든 JSON을 가공하지 않고 통과|
+|`conflictReport`|object·null|P2 함수가 만든 JSON의 내용을 유지하고 내부 키를 camelCase로 변환|
 
 ```json
 {
@@ -439,23 +455,23 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
   "hasConflict": true,
   "constraintName": "no_exclusive_overlap",
   "conflictReport": {
-    "constraint_name": "no_exclusive_overlap",
-    "exception_detail": "...",
+    "constraintName": "no_exclusive_overlap",
+    "exceptionDetail": "...",
     "conflicts": [
       {
         "incoming": {
-          "legal_right": "TRANSMISSION",
-          "exploitation_mode": "SVOD",
+          "legalRight": "TRANSMISSION",
+          "exploitationMode": "SVOD",
           "territory": "JP",
           "period": "[2027-07-01,2029-07-01)",
           "exclusivity": "exclusive"
         },
-        "existing_grant_id": 4512,
-        "existing_contract_id": 87,
-        "overlap_period": "[2027-07-01,2028-07-01)",
-        "legal_right_relation": "same",
-        "exploitation_mode_relation": "same",
-        "blocking_layer": "no_exclusive_overlap"
+        "existingGrantId": 4512,
+        "existingContractId": 87,
+        "overlapPeriod": "[2027-07-01,2028-07-01)",
+        "legalRightRelation": "same",
+        "exploitationModeRelation": "same",
+        "blockingLayer": "no_exclusive_overlap"
       }
     ]
   }
@@ -558,7 +574,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`contractHistoryId`|int|이번 업로드가 남긴 세대|
 |`hasConflict`|bool|충돌 여부|
 |`constraintName`|string·null|충돌 제약|
-|`conflictReport`|object·null|P2 함수의 충돌 JSON|
+|`conflictReport`|object·null|P2 함수의 충돌 JSON. 내부 키는 camelCase로 반환|
 
 **성공**
 
@@ -583,13 +599,13 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
   "hasConflict": true,
   "constraintName": "no_exclusive_overlap",
   "conflictReport": {
-    "constraint_name": "no_exclusive_overlap",
+    "constraintName": "no_exclusive_overlap",
     "conflicts": [
       {
-        "incoming": { "legal_right": "TRANSMISSION", "exploitation_mode": "SVOD", "territory": "JP" },
-        "existing_grant_id": 4512,
-        "existing_contract_id": 87,
-        "blocking_layer": "no_exclusive_overlap"
+        "incoming": { "legalRight": "TRANSMISSION", "exploitationMode": "SVOD", "territory": "JP" },
+        "existingGrantId": 4512,
+        "existingContractId": 87,
+        "blockingLayer": "no_exclusive_overlap"
       }
     ]
   }
@@ -963,7 +979,7 @@ request body는 없습니다. 경로 파라미터 `id`만 사용합니다.
 
 **㉮ IP 목록 조회.** IP 관리 화면 `UI-D-001` 좌측 목록이며 계약과 독립된 마스터 데이터입니다.
 
-대표명과 별칭을 검색하며, 삭제 대신 `activity=deactive`로 비활성화합니다. 기본 목록은 비활성 IP를 숨깁니다.
+대표명과 별칭을 검색하며, 삭제 대신 `activity=deactive`로 비활성화합니다. 기본 목록은 비활성 IP를 숨깁니다. `q`가 있으면 `pg_trgm` 문자열·단어 유사도와 양방향 부분 일치 점수를 조합해 관련도 내림차순으로 반환하고, `q`가 없으면 최신 등록순으로 반환합니다.
 
 ### payload
 
@@ -971,9 +987,25 @@ request body는 없습니다. 경로 파라미터 `id`만 사용합니다.
 
 |파라미터|타입|필수|설명|
 |---|---|---|---|
-|`q`|string|X|타이틀·별칭 검색|
+|`q`|string|X|타이틀·별칭 유사도 검색. OCR 추출 제목처럼 등록명보다 긴 문자열도 가능|
 |`includeInactive`|bool|X|기본 false|
 |`page` / `size`|int|X|size 최대 100|
+
+### 사용 예시
+
+OCR 제목 또는 사용자가 입력한 문자열로 검색할 때는 `q`를 전달합니다.
+
+```http
+GET /api/ips?q=겨울왕국%20시즌2&includeInactive=false&page=1&size=20
+```
+
+전체 목록을 최신 등록순으로 조회할 때는 `q`를 생략합니다.
+
+```http
+GET /api/ips?page=1&size=20
+```
+
+`q`가 있으면 필터링과 관련도 정렬을 먼저 적용한 뒤 페이지를 나눕니다. 검색 응답의 `score`는 문자열 관련도이며, `matchedOn`과 `matchedText`로 대표명과 별칭 중 어느 값이 검색에 걸렸는지 확인할 수 있습니다. 0.4 미만인 후보는 반환하지 않습니다.
 
 ### response
 
@@ -989,6 +1021,9 @@ request body는 없습니다. 경로 파라미터 `id`만 사용합니다.
 |`items[].assets`|array|작품 내부 범위 목록|
 |`items[].contractCount`|int|이 IP를 참조하는 계약 수|
 |`items[].createdAt`|datetime·null|등록 시각|
+|`items[].score`|number·null|`q` 검색 관련도 0~1. `q`가 없으면 null|
+|`items[].matchedOn`|enum·null|최고 점수 대상 `title` / `alias`|
+|`items[].matchedText`|string·null|최고 점수를 만든 대표명 또는 별칭|
 
 ```json
 {
@@ -1014,7 +1049,10 @@ request body는 없습니다. 경로 파라미터 `id`만 사용합니다.
         }
       ],
       "contractCount": 7,
-      "createdAt": "2026-08-19T10:22:00+09:00"
+      "createdAt": "2026-08-19T10:22:00+09:00",
+      "score": 0.98,
+      "matchedOn": "title",
+      "matchedText": "겨울의 신호"
     }
   ],
   "total": 24,

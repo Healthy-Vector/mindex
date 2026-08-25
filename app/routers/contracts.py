@@ -1,7 +1,7 @@
 """계약 라우터 — 5·6·7·8·9·11 (P2-DB 정렬).
 
 판정은 DB 함수(validate_rights_batch/save_rights_batch)가 한다. 충돌은 에러가
-아니라 정상 응답이며(§4.3), conflict_report(P2 형태)를 그대로 통과시킨다.
+아니라 정상 응답이며(§4.3), conflict_report 내용은 유지하고 키를 camelCase로 반환한다.
 team_id 는 도메인에 전파되지 않는다(단일사 온프렘).
 """
 from __future__ import annotations
@@ -25,6 +25,7 @@ from app.schemas.contracts import (
     VerifyRequest,
     VerifyResponse,
 )
+from app.schemas.common import camelize_json_keys
 from app.schemas.detail import (
     Authority,
     ContentAssetRef,
@@ -149,13 +150,14 @@ def get_contract(
         HistoryRow(
             history_id=h["id"], version=h["version"], document_kind=h["document_kind"],
             status=h["status"], file_name=h["file_name"], uploaded_at=h["uploaded_at"],
-            is_current=(h["id"] == cur_id), conflict_report=h["conflict_report"],
+            is_current=(h["id"] == cur_id),
+            conflict_report=camelize_json_keys(h["conflict_report"]),
         )
         for h in histories
     ]
     latest = histories[-1] if histories else None
     has_conflict = bool(latest and latest["status"] == "conflicted")
-    conflict_report = latest["conflict_report"] if has_conflict else None
+    conflict_report = camelize_json_keys(latest["conflict_report"]) if has_conflict else None
     title = None
     if cur_id:
         cur = next((h for h in histories if h["id"] == cur_id), None)

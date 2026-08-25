@@ -76,7 +76,7 @@ class VerifyResponse(CamelModel):
     batch_result: str          # APPLIED / CONFLICTED
     has_conflict: bool
     constraint_name: Optional[str] = None
-    conflict_report: Optional[Any] = None  # P2 형태 그대로
+    conflict_report: Optional[Any] = None  # P2 내용 유지, API 키는 camelCase
 
 
 class ConfirmResponse(CamelModel):

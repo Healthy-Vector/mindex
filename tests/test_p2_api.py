@@ -38,8 +38,32 @@ def test_confirm_conflict_reports_p2_shape(client, clean_db):
     j = r2.json()
     assert j["hasConflict"] is True and j["batchResult"] == "CONFLICTED"
     rep = j["conflictReport"]
-    assert rep and "conflicts" in rep and rep["conflicts"][0]["incoming"]["legal_right"] == "TRANSMISSION"
-    assert "blocking_layer" in rep["conflicts"][0]
+    assert rep and "conflicts" in rep and rep["conflicts"][0]["incoming"]["legalRight"] == "TRANSMISSION"
+    assert "blockingLayer" in rep["conflicts"][0]
+
+
+@requires_db
+def test_ip_search_ranks_title_inside_ocr_text_first(client, conn, clean_db):
+    cur = conn.cursor()
+    cur.execute("INSERT INTO ip(title, kind) VALUES ('겨울왕국', 'ANIMATION')")
+    cur.execute("INSERT INTO ip(title, kind) VALUES ('겨울 정원', 'DRAMA')")
+    conn.commit()
+
+    response = client.get("/api/ips", params={"q": "겨울왕국 시즌2"})
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["items"][0]["title"] == "겨울왕국"
+    assert result["items"][0]["matchedOn"] == "title"
+    assert result["items"][0]["matchedText"] == "겨울왕국"
+    assert result["items"][0]["score"] >= 0.98
+
+    match_response = client.get("/api/ips/match", params={"q": "겨울왕국 시즌2"})
+    assert match_response.status_code == 200
+    match = match_response.json()["matches"][0]
+    assert match["title"] == "겨울왕국"
+    assert match["matchedOn"] == "title"
+    assert match["score"] >= 0.98
 
 
 @requires_db

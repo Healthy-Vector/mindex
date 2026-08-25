@@ -5,7 +5,8 @@
 """
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from collections.abc import Mapping
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
@@ -28,3 +29,16 @@ class Page(CamelModel, Generic[T]):
     total: int
     page: int
     size: int
+
+
+def camelize_json_keys(value: Any) -> Any:
+    """JSON 객체의 키를 재귀적으로 camelCase로 변환한다.
+
+    Pydantic alias_generator는 ``Any`` 안쪽의 JSONB 키까지 변환하지 않으므로,
+    DB JSONB를 API에 노출할 때 이 함수를 명시적으로 사용한다.
+    """
+    if isinstance(value, Mapping):
+        return {to_camel(str(key)): camelize_json_keys(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [camelize_json_keys(item) for item in value]
+    return value

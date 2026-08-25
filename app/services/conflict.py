@@ -6,10 +6,13 @@
 Python 쪽에 겹침 판정 로직을 두지 않는다. 2축(legal_right × exploitation_mode)
 nested-set span 비교, 비독점 XOR 판정, conflict_report 생성 모두 DB 함수/트리거 소관.
 
-conflict_report(jsonb)는 P2 형태 그대로 통과시킨다:
-{ constraint_name, exception_detail, conflicts:[{incoming{legal_right,exploitation_mode,
-  territory,period,exclusivity}, existing_grant_id, existing_contract_id, overlap_period,
-  legal_right_relation, exploitation_mode_relation, blocking_layer}] }
+conflict_report(jsonb)는 내용은 유지하고 API 응답 키만 camelCase로 변환한다:
+{ constraintName, exceptionDetail, conflicts:[{incoming{legalRight,exploitationMode,
+  territory,period,exclusivity}, existingGrantId, existingContractId, overlapPeriod,
+  legalRightRelation, exploitationModeRelation, blockingLayer}] }
+
+TODO: 충돌 화면 버전업 때 LLM 한 줄 설명의 API·저장·UI 계약을 함께 추가한다.
+현재 응답에는 설명 필드를 추가하지 않는다.
 """
 from __future__ import annotations
 
@@ -21,6 +24,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.errors import AlreadyConfirmed, ExtractNotReady, NotFound, ValidationFailed
+from app.schemas.common import camelize_json_keys
 from app.services.territory import expand_territories, to_daterange_literal
 
 
@@ -132,7 +136,7 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
         "batch_result": row["batch_result"],
         "has_conflict": row["batch_result"] == "CONFLICTED",
         "constraint_name": row["constraint_name"],
-        "conflict_report": row["conflict_report"],
+        "conflict_report": camelize_json_keys(row["conflict_report"]),
     }
 
 
@@ -199,7 +203,7 @@ def save_batch(db: Session, req) -> dict[str, Any]:
         "contract_history_id": row["out_history_id"],
         "has_conflict": row["batch_result"] == "CONFLICTED",
         "constraint_name": row["constraint_name"],
-        "conflict_report": row["conflict_report"],
+        "conflict_report": camelize_json_keys(row["conflict_report"]),
     }
 
 

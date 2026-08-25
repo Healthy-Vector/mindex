@@ -66,3 +66,11 @@ class IpOut(CamelModel):
     assets: list[AssetOut] = Field(default_factory=list)
     contract_count: int = 0
     created_at: Optional[datetime] = None
+
+
+class IpListItem(IpOut):
+    """12번 목록 항목. q 검색 시에만 관련도 정보가 채워진다."""
+
+    score: Optional[float] = None
+    matched_on: Optional[Literal["title", "alias"]] = None
+    matched_text: Optional[str] = None

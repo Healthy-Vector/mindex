@@ -85,29 +85,29 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 ```json
 {
-  "constraint_name": "no_exclusive_overlap",
-  "exception_detail": "...",
+  "constraintName": "no_exclusive_overlap",
+  "exceptionDetail": "...",
   "conflicts": [
     {
       "incoming": {
-        "legal_right": "TRANSMISSION",
-        "exploitation_mode": "SVOD",
+        "legalRight": "TRANSMISSION",
+        "exploitationMode": "SVOD",
         "territory": "KR",
         "period": "[2027-01-01,2028-01-01)",
         "exclusivity": "exclusive"
       },
-      "existing_grant_id": 5100,
-      "existing_contract_id": 101,
-      "overlap_period": "[2027-06-01,2028-01-01)",
-      "legal_right_relation": "same",
-      "exploitation_mode_relation": "same",
-      "blocking_layer": "no_exclusive_overlap"
+      "existingGrantId": 5100,
+      "existingContractId": 101,
+      "overlapPeriod": "[2027-06-01,2028-01-01)",
+      "legalRightRelation": "same",
+      "exploitationModeRelation": "same",
+      "blockingLayer": "no_exclusive_overlap"
     }
   ]
 }
 ```
 
-API는 이 JSON을 가공하지 않고 `conflictReport`로 통과시킨다. 7번은 최신 세대 상태로 `hasConflict`를 계산하고, 8번은 최신 충돌 세대의 `conflictReport`와 전체 `histories[]`를 내려준다.
+API는 이 JSON의 내용은 유지하되 내부 키를 재귀적으로 camelCase로 변환해 `conflictReport`로 반환한다. DB의 `contract_history.conflict_report` 원문은 변경하지 않는다. 7번은 최신 세대 상태로 `hasConflict`를 계산하고, 8번은 최신 충돌 세대의 `conflictReport`와 전체 `histories[]`를 내려준다.
 
 ## 4. 검증과 확정 저장
 
@@ -201,7 +201,10 @@ save_rights_batch(
 
 ### IP
 
-- 12번은 `q`로 title·alias를 검색하고 `includeInactive=false`가 기본이다.
+- 12번은 `q`로 title·alias를 검색한다. `q`가 있으면 `pg_trgm`의 문자열·단어 유사도와 양방향 부분 일치 점수를 조합해 관련도 내림차순으로 반환하고, 없으면 최신 등록순이다. `includeInactive=false`가 기본이다.
+- OCR 추출 제목을 사용하는 4번도 같은 검색 경로를 쓴다. 예를 들어 `겨울왕국 시즌2`는 등록 대표명 `겨울왕국`을 높은 점수로 반환한다.
+- 4번은 `GET /api/ips/match?q=겨울왕국%20시즌2&limit=10`, 12번은 `GET /api/ips?q=겨울왕국%20시즌2&page=1&size=20`처럼 호출한다. 0.4 미만 후보는 제외하며, `score`는 문자열 관련도이지 계약 판정 신뢰도가 아니다.
+- 검색 결과의 `matchedOn`은 `title | alias`, `matchedText`는 최고 점수를 만든 실제 문자열이다. 같은 점수에서는 대표명 일치를 우선한다.
 - 17번은 ID로 IP 단건을 조회하고 `aliases`, `assets`, `contractCount`를 함께 반환한다. 기존 계약 확인을 위해 `deactive` IP도 조회한다. 없는 ID는 `404 NOT_FOUND`다.
 - 13번은 중복 정규화 키를 찾으면 `409 IP_DUPLICATE`와 기존 `ipId`를 보낸다.
 - 14번은 보낸 필드만 수정한다. `aliases`를 보내면 전체 교체한다. `activity`도 이 요청의 선택 필드다.
@@ -229,7 +232,7 @@ save_rights_batch(
 
 1. 5번 호출 전후 `rights_grant` 행 수가 같다.
 2. 6번 성공은 `201/APPLIED`, 충돌은 `201/CONFLICTED`다.
-3. 충돌 응답은 P2 `conflict_report` 키를 그대로 보존한다.
+3. 충돌 응답은 P2 `conflict_report` 내용을 보존하고 내부 키를 camelCase로 반환한다.
 4. 충돌 세대에는 grant가 없고 7·8번에서 충돌을 표시할 수 있다.
 5. 8·9·10·11은 토큰 없이 `401 SESSION_EXPIRED`다.
 6. 보호 API 호출 1분 후 새 세션 헤더가 내려온다.
@@ -250,6 +253,8 @@ DB 통합 테스트는 P2 init SQL이 적용된 PostgreSQL 17에서 실행한다
 7. `extract_result.payload`의 확정 입력 병합 규칙을 P1과 필드 단위로 확정한다. 현재는 DONE·결과 존재 여부를 검증하고 사용자가 검토한 요청 본문을 저장한다.
 8. P2의 `contract.source_tmpid`는 개정 시 마지막 값으로 덮어써 과거 tmpid 재사용을 영구 차단하지 못한다. `contract_history.source_tmpid UNIQUE` 또는 별도 consumed ledger를 P2 스키마에 추가한다.
 9. staging 처리 목록의 filename이 필요하면 `pdf_blob` 직접 권한을 넓히지 말고 최소권한 메타데이터 view를 P2/P1과 정의한다. 현재 P4 목록은 권한 계약에 맞춰 filename을 null로 반환한다.
+10. 충돌 화면을 버전업할 때 LLM 한 줄 설명의 생성 시점, `conflictReport` 저장 키, API 응답과 UI 표시를 함께 정의한다. 현재 버전에는 설명 필드를 추가하지 않는다.
+11. OpenSQL 운영 설치에서 `pg_available_extensions`로 `pg_trgm` 패키지 포함 여부를 확인한다. 없으면 OpenSQL의 PostgreSQL 버전에 맞는 contrib 패키지를 설치한 뒤 init SQL을 적용한다.
 
 ## 9. 금지 사항
 

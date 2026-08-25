@@ -18,9 +18,10 @@ from app.core.config import get_settings
 from app.core.db import get_db
 from app.errors import IpDuplicate, NotFound, ValidationFailed
 from app.schemas.common import Page
-from app.schemas.ips import AliasOut, AssetOut, IpCreate, IpOut, IpPatch
+from app.schemas.ips import AliasOut, AssetOut, IpCreate, IpListItem, IpOut, IpPatch
 from app.schemas.match import AssetRef, IpMatch, MatchResponse
 from app.services.ip_norm import norm_key
+from app.services.ip_search import search_ip_rows
 
 router = APIRouter()
 
@@ -66,33 +67,29 @@ def _ip_out(db: Session, row) -> IpOut:
     )
 
 
-@router.get("/ips", response_model=Page[IpOut])
+@router.get("/ips", response_model=Page[IpListItem])
 def list_ips(
     q: Optional[str] = Query(default=None),
-    include_inactive: bool = Query(default=False),
+    include_inactive: bool = Query(default=False, alias="includeInactive"),
     page: int = Query(default=1, ge=1),
     size: Optional[int] = Query(default=None, ge=1, le=100),
     db: Session = Depends(get_db),
-) -> Page[IpOut]:
+) -> Page[IpListItem]:
     s = get_settings()
     size = size or s.page_size_default
-    where = "" if include_inactive else "WHERE activity='active'"
-    rows = db.execute(
-        text(f"SELECT id, title, kind, activity, created_at FROM ip {where} ORDER BY created_at DESC")
-    ).mappings().all()
-    if q and q.strip():
-        key = norm_key(q)
-        matched_ids = set()
-        for row in rows:
-            if key in norm_key(row["title"]):
-                matched_ids.add(row["id"])
-        for alias in db.execute(text("SELECT ip_id, alias_text FROM ip_alias")).mappings():
-            if key in norm_key(alias["alias_text"]):
-                matched_ids.add(alias["ip_id"])
-        rows = [row for row in rows if row["id"] in matched_ids]
-    total = len(rows)
-    window = rows[(page - 1) * size : (page - 1) * size + size]
-    return Page[IpOut](items=[_ip_out(db, r) for r in window], total=total, page=page, size=size)
+    rows, total = search_ip_rows(
+        db, q, include_inactive=include_inactive, page=page, size=size
+    )
+    items = [
+        IpListItem(
+            **_ip_out(db, row).model_dump(),
+            score=round(float(row["score"]), 4) if row["score"] is not None else None,
+            matched_on=row["matched_on"],
+            matched_text=row["matched_text"],
+        )
+        for row in rows
+    ]
+    return Page[IpListItem](items=items, total=total, page=page, size=size)
 
 
 @router.post("/ips", response_model=IpOut, status_code=201)
@@ -178,35 +175,29 @@ def patch_ip(ip_id: int, body: IpPatch, db: Session = Depends(get_db)) -> IpOut:
 
 
 @router.get("/ips/match", response_model=MatchResponse)
-def match_ips(q: str = Query(..., min_length=1), db: Session = Depends(get_db)) -> MatchResponse:
-    like = f"%{q.strip().lower()}%"
-    matched: dict[int, str] = {}
-    for (i,) in db.execute(
-        text("SELECT id FROM ip WHERE activity='active' AND lower(title) LIKE :q"), {"q": like}
-    ):
-        matched[i] = "title"
-    for (i,) in db.execute(
-        text("SELECT DISTINCT ip_id FROM ip_alias WHERE lower(alias_text) LIKE :q"), {"q": like}
-    ):
-        matched.setdefault(i, "alias")
-
+def match_ips(
+    q: str = Query(..., min_length=1),
+    limit: int = Query(default=10, ge=1, le=100),
+    include_inactive: bool = Query(default=False, alias="includeInactive"),
+    db: Session = Depends(get_db),
+) -> MatchResponse:
+    rows, _ = search_ip_rows(
+        db, q, include_inactive=include_inactive, page=1, size=limit
+    )
     matches: list[IpMatch] = []
-    for ip_id, how in matched.items():
-        ip = db.execute(
-            text("SELECT id, title, kind, activity FROM ip WHERE id=:i"), {"i": ip_id}
-        ).mappings().first()
-        if ip is None or ip["activity"] != "active":
-            continue
+    for ip in rows:
         assets = db.execute(
             text(
                 "SELECT id, scope_type, season_no, episode_no, edition_code, title "
                 "FROM content_asset WHERE ip_id=:i ORDER BY id"
             ),
-            {"i": ip_id},
+            {"i": ip["id"]},
         ).mappings().all()
         matches.append(
             IpMatch(
-                ip_id=ip["id"], title=ip["title"], kind=ip["kind"], matched_on=how,
+                ip_id=ip["id"], title=ip["title"], kind=ip["kind"],
+                matched_on=ip["matched_on"], matched_text=ip["matched_text"],
+                score=round(float(ip["score"]), 4),
                 assets=[AssetRef(content_asset_id=a["id"], **{k: v for k, v in a.items() if k != "id"}) for a in assets],
                 relations=[],  # ip_relation 미구현
             )
