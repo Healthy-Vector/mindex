@@ -26,6 +26,10 @@ langchain-core==1.5.*
 openai==1.*
 anthropic==0.*
 
+# --- 인증 (P4 PIN 세션) ---
+bcrypt==4.*
+PyJWT==2.*
+
 # --- 유틸 ---
 python-dotenv==1.*
 httpx==0.27.*

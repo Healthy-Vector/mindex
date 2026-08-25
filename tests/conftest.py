@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 
 import psycopg2
@@ -17,10 +18,42 @@ import pytest
 from app.core.config import get_settings
 
 
+def _dsn():
+    url = os.getenv("TEST_DATABASE_URL")
+    if not url:
+        try:
+            url = get_settings().database_url
+        except Exception:  # noqa: BLE001
+            return None
+    if not url:
+        return None
+    return url.replace("postgresql+psycopg2", "postgresql").replace(
+        "postgresql+psycopg", "postgresql"
+    )
+
+
+def _db_available() -> bool:
+    dsn = _dsn()
+    if not dsn:
+        return False
+    try:
+        connection = psycopg2.connect(dsn, connect_timeout=2)
+        connection.close()
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+requires_db = pytest.mark.skipif(
+    not _db_available(), reason="P2-DB 적용 PostgreSQL 필요"
+)
+
+
 @pytest.fixture
 def conn():
-    settings = get_settings()
-    dsn = settings.database_url.replace("postgresql+psycopg2", "postgresql")
+    dsn = _dsn()
+    if not dsn or not _db_available():
+        pytest.skip("P2-DB 적용 PostgreSQL 필요")
     connection = psycopg2.connect(dsn)
     connection.autocommit = False
     yield connection
@@ -173,3 +206,121 @@ def make_staging_job(cur):
         return tmpid
 
     return _make
+
+
+_MASTER = [
+    "rights_grant",
+    "contract_chunk",
+    "contract_history",
+    "contract",
+    "content_asset",
+    "ip_alias",
+    "ip",
+    "team",
+]
+_STAGING = ["extract_result", "extract_job", "pdf_blob"]
+
+
+@pytest.fixture
+def clean_db(conn):
+    """API 통합 테스트용 초기 데이터와 단일 팀을 만든다."""
+    cur = conn.cursor()
+    cur.execute(
+        "TRUNCATE "
+        + ", ".join(_MASTER)
+        + ", "
+        + ", ".join(f"staging.{table}" for table in _STAGING)
+        + " RESTART IDENTITY CASCADE"
+    )
+    import bcrypt
+
+    pin_hash = bcrypt.hashpw(b"1234", bcrypt.gensalt()).decode()
+    cur.execute(
+        "INSERT INTO team(name, pin_hash) VALUES ('T', %s) RETURNING id",
+        (pin_hash,),
+    )
+    team_id = cur.fetchone()[0]
+    cur.execute(
+        "INSERT INTO ip(title, kind) VALUES ('겨울의 신호', 'DRAMA') RETURNING id"
+    )
+    ip_id = cur.fetchone()[0]
+    cur.execute(
+        "SELECT id FROM content_asset WHERE ip_id=%s ORDER BY id LIMIT 1", (ip_id,)
+    )
+    asset_id = cur.fetchone()[0]
+    conn.commit()
+    return {"team_id": team_id, "ip_id": ip_id, "asset_id": asset_id}
+
+
+@pytest.fixture
+def client():
+    from fastapi.testclient import TestClient
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    from app.core.db import get_db
+    from app.main import app
+
+    engine = create_engine(_dsn(), future=True)
+    test_session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+    def _override():
+        db = test_session()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = _override
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+    engine.dispose()
+
+
+def evidence():
+    quote = {"quote": "제8조 제1항 …"}
+    return {
+        "legal_right": quote,
+        "exploitation_mode": quote,
+        "territory": quote,
+        "period": quote,
+        "exclusivity": quote,
+    }
+
+
+def body(
+    clean_db,
+    *,
+    exclusivity="exclusive",
+    territory="KR",
+    legal_right="TRANSMISSION",
+    exploitation_mode="SVOD",
+    start="2027-01-01",
+    end="2027-12-31",
+    source_tmpid=None,
+    ip_id="__seed__",
+):
+    request_body = {
+        "grantor": "C사",
+        "grantee": "T사",
+        "ipId": clean_db["ip_id"] if ip_id == "__seed__" else ip_id,
+        "fileName": "contract.pdf",
+        "filePath": "/tmp/contract.pdf",
+        "fileHash": "h" * 8,
+        "documentKind": "final",
+        "rights": [
+            {
+                "contentAssetId": clean_db["asset_id"],
+                "legalRight": legal_right,
+                "exploitationMode": exploitation_mode,
+                "territories": [territory],
+                "period": {"start": start, "end": end},
+                "exclusivity": exclusivity,
+                "evidence": evidence(),
+            }
+        ],
+    }
+    if source_tmpid:
+        request_body["sourceTmpid"] = str(source_tmpid)
+    return request_body
