@@ -1,4 +1,4 @@
-"""IP 관리 스키마 (지시서 §6 12·13·14번)."""
+"""IP 관리 스키마 (P2-DB 정렬: team_id 없음, activity enum)."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -9,8 +9,8 @@ from app.schemas.common import CamelModel
 
 class AliasIn(CamelModel):
     alias_text: str
-    lang: str
-    alias_type: str  # OFFICIAL / ABBR / ROMANIZED / MISSPELL
+    lang: Optional[str] = None
+    alias_type: str = "title"  # title / OFFICIAL / ABBR / ROMANIZED / MISSPELL 등
 
 
 class AliasOut(AliasIn):
@@ -19,7 +19,7 @@ class AliasOut(AliasIn):
 
 class IpCreate(CamelModel):
     title: str
-    kind: str  # TV_OTT_SERIES / FILM / ANIMATION / MOBILE_APP / GAME_ENGINE / RELATED_ASSET
+    kind: Optional[str] = None  # '드라마' · '영화'
     aliases: list[AliasIn] = []
 
 
@@ -27,14 +27,13 @@ class IpPatch(CamelModel):
     title: Optional[str] = None
     kind: Optional[str] = None
     activity: Optional[str] = None  # 'active' | 'deactive'
-    aliases: Optional[list[AliasIn]] = None  # 지정되면 전체 교체(§6 14번)
+    aliases: Optional[list[AliasIn]] = None  # 지정되면 전체 교체
 
 
 class IpOut(CamelModel):
     id: int
     title: str
-    kind: str
-    activity: str  # 'active' | 'deactive'
+    kind: Optional[str] = None
+    activity: str
     aliases: list[AliasOut] = []
     created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None

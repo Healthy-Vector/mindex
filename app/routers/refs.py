@@ -1,7 +1,7 @@
-"""16번 GET /refs — 참조 어휘 (지시서 §6 16번).
+"""16번 GET /refs — 참조 어휘 (P2-DB 정렬).
 
-types 로 필요한 것만 고른다. territoryGroup 에는 countries[] 를 반드시 포함.
-응답은 캐시 가능(Cache-Control: max-age=3600).
+2축 판정: legal_right(법적 권리) · exploitation_mode(사업적 이용형태) 를 함께 내려준다.
+territoryGroup 에는 countries[] 포함. 응답 캐시 가능(max-age=3600).
 """
 from __future__ import annotations
 
@@ -12,17 +12,23 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.schemas.refs import CodeLabel, ConflictCodeRef, RefsResponse, TerritoryGroupRef
+from app.schemas.refs import (
+    CountryRef,
+    ReasonCodeRef,
+    RefsResponse,
+    TaxonomyNode,
+    TerritoryGroupRef,
+)
 
 router = APIRouter()
 
-_ALL = {"country", "territoryGroup", "rightsType", "conflictCode"}
+_ALL = {"legalRight", "exploitationMode", "country", "territoryGroup", "reasonCode"}
 
 
 @router.get("/refs", response_model=RefsResponse, response_model_exclude_none=True)
 def get_refs(
     response: Response,
-    types: Optional[str] = Query(default=None, description="쉼표구분: country,territoryGroup,rightsType,conflictCode"),
+    types: Optional[str] = Query(default=None),
     lang: str = Query(default="ko"),
     db: Session = Depends(get_db),
 ) -> RefsResponse:
@@ -30,60 +36,54 @@ def get_refs(
     response.headers["Cache-Control"] = "max-age=3600"
     out = RefsResponse()
 
+    if "legalRight" in wanted:
+        rows = db.execute(
+            text("SELECT code, parent_code, name_ko, note FROM legal_right ORDER BY lft")
+        ).mappings().all()
+        out.legal_rights = [TaxonomyNode(**r) for r in rows]
+
+    if "exploitationMode" in wanted:
+        rows = db.execute(
+            text("SELECT code, parent_code, name_ko, note FROM exploitation_mode ORDER BY lft")
+        ).mappings().all()
+        out.exploitation_modes = [TaxonomyNode(**r) for r in rows]
+
     if "country" in wanted:
         rows = db.execute(
             text(
-                "SELECT c.code, l.label FROM master.country c "
-                "LEFT JOIN master.country_label l ON l.code=c.code AND l.lang=:lang "
+                "SELECT c.code, l.label, c.in_scope FROM country c "
+                "LEFT JOIN country_label l ON l.country_code=c.code AND l.lang=:lang "
                 "ORDER BY c.code"
             ),
             {"lang": lang},
-        ).all()
-        out.countries = [CodeLabel(code=r[0], label=r[1]) for r in rows]
+        ).mappings().all()
+        out.countries = [CountryRef(code=r["code"], label=r["label"], in_scope=r["in_scope"]) for r in rows]
 
     if "territoryGroup" in wanted:
         groups = db.execute(
             text(
-                "SELECT g.code, l.label FROM master.territory_group g "
-                "LEFT JOIN master.territory_group_label l ON l.code=g.code AND l.lang=:lang "
+                "SELECT g.code, l.label FROM territory_group g "
+                "LEFT JOIN territory_group_label l ON l.group_code=g.code AND l.lang=:lang "
                 "ORDER BY g.code"
             ),
             {"lang": lang},
-        ).all()
-        tg: list[TerritoryGroupRef] = []
-        for code, label in groups:
+        ).mappings().all()
+        tg = []
+        for g in groups:
             ccs = db.execute(
-                text(
-                    "SELECT country_code FROM master.territory_group_country "
-                    "WHERE group_code=:g ORDER BY country_code"
-                ),
-                {"g": code},
-            ).all()
-            tg.append(TerritoryGroupRef(code=code, label=label, countries=[c[0] for c in ccs]))
+                text("SELECT country_code FROM territory_group_member WHERE group_code=:g ORDER BY country_code"),
+                {"g": g["code"]},
+            ).scalars().all()
+            tg.append(TerritoryGroupRef(code=g["code"], label=g["label"], countries=list(ccs)))
         out.territory_groups = tg
 
-    if "rightsType" in wanted:
+    if "reasonCode" in wanted:
         rows = db.execute(
             text(
-                "SELECT r.code, l.label FROM master.rights_type_ref r "
-                "LEFT JOIN master.rights_type_label l ON l.code=r.code AND l.lang=:lang "
-                "ORDER BY r.code"
-            ),
-            {"lang": lang},
-        ).all()
-        out.rights_types = [CodeLabel(code=r[0], label=r[1]) for r in rows]
-
-    if "conflictCode" in wanted:
-        rows = db.execute(
-            text(
-                "SELECT c.code, c.severity, t.template FROM master.conflict_code c "
-                "LEFT JOIN master.conflict_code_template t ON t.code=c.code AND t.lang=:lang "
-                "ORDER BY c.code"
-            ),
-            {"lang": lang},
-        ).all()
-        out.conflict_codes = [
-            ConflictCodeRef(code=r[0], severity=r[1], template=r[2]) for r in rows
-        ]
+                "SELECT code, category, result_type, severity, name_ko, template_ko, template_en "
+                "FROM reason_code WHERE active ORDER BY severity DESC, code"
+            )
+        ).mappings().all()
+        out.reason_codes = [ReasonCodeRef(**r) for r in rows]
 
     return out

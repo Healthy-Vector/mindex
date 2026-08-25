@@ -1,10 +1,8 @@
-"""팀 컨텍스트 해석 (MVP).
+"""팀 컨텍스트 (P2-DB 정렬).
 
-12~16번은 세션 없이 동작한다(§4.7). 그러나 행에는 team_id 가 필요하다.
-MVP 는 단일 팀 운영을 가정하고, 세션이 없을 때는 첫 팀을 사용한다.
-세션이 있으면(8·9·10·11) 토큰의 sub(team_id)를 우선한다.
-
-미확정(§11): 다중 팀 환경의 팀 선택 규칙. 확정 전까지 단일 팀 가정.
+P2-DB 에서 team 은 PIN 관리 전용 테이블이고, team_id 를 도메인 테이블로
+전파하지 않는다(단일사 온프렘, D-29/D-30). 따라서 이 헬퍼는 1번 PIN 인증에서만
+쓰이며, 지정이 없으면 단일 팀을 반환한다.
 """
 from __future__ import annotations
 
@@ -18,10 +16,8 @@ from app.errors import NotFound
 
 def resolve_team_id(db: Session, team_hint: Optional[str] = None) -> str:
     if team_hint:
-        return team_hint
-    row = db.execute(
-        text("SELECT id FROM master.team ORDER BY created_at LIMIT 1")
-    ).first()
+        return str(team_hint)
+    row = db.execute(text("SELECT id FROM team ORDER BY id LIMIT 1")).first()
     if not row:
-        raise NotFound("등록된 팀이 없습니다. 먼저 팀을 생성하십시오.")
+        raise NotFound("등록된 팀이 없습니다.")
     return str(row[0])

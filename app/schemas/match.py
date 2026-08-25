@@ -1,7 +1,8 @@
-"""4번 GET /ips/match 응답 (지시서 §6 4번).
+"""4번 GET /ips/match 응답 (P2-DB 정렬).
 
-assets = 작품 내부 범위(content_asset), relations = 별도 IP(OST·리메이크 등, ip_relation).
-한 응답에 함께 실어 드롭다운이 한 박자 늦게 채워지지 않게 한다.
+assets = content_asset(작품 내부 범위). relations = 별도 IP(OST·리메이크 등).
+P2-DB 에는 ip_relation 테이블이 아직 없어 relations 는 빈 배열이다(§11-0: OST 는
+별도 IP + ip_relation 로 확정 예정, 미구현).
 """
 from __future__ import annotations
 
@@ -28,10 +29,10 @@ class RelationRef(CamelModel):
 class IpMatch(CamelModel):
     ip_id: int
     title: str
-    kind: str
+    kind: Optional[str] = None
     matched_on: str  # title / alias
     assets: list[AssetRef] = []
-    relations: list[RelationRef] = []
+    relations: list[RelationRef] = []  # ip_relation 미구현 → 항상 []
 
 
 class MatchResponse(CamelModel):

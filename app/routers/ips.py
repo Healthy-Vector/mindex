@@ -1,46 +1,42 @@
-"""IP 관리 — 12번 GET /ips · 13번 POST /ips · 14번 PATCH /ips/{id} (지시서 §6).
+"""IP 관리 — 12·13·14·4 (P2-DB 정렬: public 스키마, team_id 없음).
 
-- 삭제 엔드포인트 없음. isActive=false 로 감춘다.
-- 13번 중복: 정규화 키 일치 시 409 IP_DUPLICATE + 기존 ipId.
-- 14번 aliases 는 전체 교체(부분 병합 아님).
+- 삭제 없음. activity='deactive' 로 감춘다.
+- 13 중복: 정규화 키 일치 시 409 IP_DUPLICATE + 기존 ipId.
+- 14 aliases 전체 교체.
+- 4 relations: ip_relation 미구현 → 빈 배열.
 """
 from __future__ import annotations
 
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
 from app.core.config import get_settings
+from app.core.db import get_db
 from app.errors import IpDuplicate, NotFound
-from app.models.master import Ip, IpAlias
 from app.schemas.common import Page
 from app.schemas.ips import AliasOut, IpCreate, IpOut, IpPatch
+from app.schemas.match import AssetRef, IpMatch, MatchResponse
 from app.services.ip_norm import norm_key
-from app.services.team_context import resolve_team_id
 
 router = APIRouter()
 
 
-def _to_out(ip: Ip, aliases: list[IpAlias]) -> IpOut:
+def _aliases(db: Session, ip_id: int) -> list[AliasOut]:
+    rows = db.execute(
+        text("SELECT id, alias_text, lang, alias_type FROM ip_alias WHERE ip_id=:i ORDER BY id"),
+        {"i": ip_id},
+    ).mappings().all()
+    return [AliasOut(id=r["id"], alias_text=r["alias_text"], lang=r["lang"], alias_type=r["alias_type"]) for r in rows]
+
+
+def _ip_out(db: Session, row) -> IpOut:
     return IpOut(
-        id=ip.id,
-        title=ip.title,
-        kind=ip.kind,
-        activity=ip.activity,
-        created_at=ip.created_at,
-        updated_at=ip.updated_at,
-        aliases=[
-            AliasOut(id=a.id, alias_text=a.alias_text, lang=a.lang, alias_type=a.alias_type)
-            for a in aliases
-        ],
+        id=row["id"], title=row["title"], kind=row["kind"], activity=row["activity"],
+        created_at=row["created_at"], aliases=_aliases(db, row["id"]),
     )
-
-
-def _aliases_of(db: Session, ip_id: int) -> list[IpAlias]:
-    return list(db.execute(select(IpAlias).where(IpAlias.ip_id == ip_id)).scalars())
 
 
 @router.get("/ips", response_model=Page[IpOut])
@@ -52,134 +48,97 @@ def list_ips(
 ) -> Page[IpOut]:
     s = get_settings()
     size = size or s.page_size_default
-    team_id = resolve_team_id(db)
-    q = select(Ip).where(Ip.team_id == team_id)
-    if not include_inactive:
-        q = q.where(Ip.activity == "active")
-    all_ids = list(db.execute(q.order_by(Ip.created_at.desc())).scalars())
-    total = len(all_ids)
-    window = all_ids[(page - 1) * size : (page - 1) * size + size]
-    items = [_to_out(ip, _aliases_of(db, ip.id)) for ip in window]
-    return Page[IpOut](items=items, total=total, page=page, size=size)
+    where = "" if include_inactive else "WHERE activity='active'"
+    rows = db.execute(
+        text(f"SELECT id, title, kind, activity, created_at FROM ip {where} ORDER BY created_at DESC")
+    ).mappings().all()
+    total = len(rows)
+    window = rows[(page - 1) * size : (page - 1) * size + size]
+    return Page[IpOut](items=[_ip_out(db, r) for r in window], total=total, page=page, size=size)
 
 
 @router.post("/ips", response_model=IpOut, status_code=201)
 def create_ip(body: IpCreate, db: Session = Depends(get_db)) -> IpOut:
-    team_id = resolve_team_id(db)
     key = norm_key(body.title)
-    # 정규화 키 중복 검사 (같은 팀 범위)
-    existing = db.execute(select(Ip).where(Ip.team_id == team_id)).scalars()
-    for ip in existing:
-        if norm_key(ip.title) == key:
-            raise IpDuplicate("같은 이름의 IP 가 이미 있습니다", details={"ipId": ip.id})
-
-    ip = Ip(team_id=team_id, title=body.title, kind=body.kind, activity="active")
-    db.add(ip)
-    db.flush()  # ip.id 확보
+    for r in db.execute(text("SELECT id, title FROM ip")).mappings().all():
+        if norm_key(r["title"]) == key:
+            raise IpDuplicate("같은 이름의 IP 가 이미 있습니다", details={"ipId": r["id"]})
+    ip_id = db.execute(
+        text("INSERT INTO ip(title, kind) VALUES (:t,:k) RETURNING id"),
+        {"t": body.title, "k": body.kind},
+    ).scalar_one()  # 트리거가 기본 content_asset 자동 생성
     for a in body.aliases:
-        db.add(
-            IpAlias(
-                team_id=team_id, ip_id=ip.id, alias_text=a.alias_text,
-                lang=a.lang, alias_type=a.alias_type,
-            )
+        db.execute(
+            text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
+            {"i": ip_id, "t": a.alias_text, "l": a.lang, "ty": a.alias_type},
         )
     db.commit()
-    db.refresh(ip)
-    return _to_out(ip, _aliases_of(db, ip.id))
+    row = db.execute(
+        text("SELECT id, title, kind, activity, created_at FROM ip WHERE id=:i"), {"i": ip_id}
+    ).mappings().first()
+    return _ip_out(db, row)
 
 
 @router.patch("/ips/{ip_id}", response_model=IpOut)
 def patch_ip(ip_id: int, body: IpPatch, db: Session = Depends(get_db)) -> IpOut:
-    ip = db.get(Ip, ip_id)
-    if ip is None:
+    exists = db.execute(text("SELECT 1 FROM ip WHERE id=:i"), {"i": ip_id}).first()
+    if exists is None:
         raise NotFound("IP 를 찾을 수 없습니다")
-
+    sets, params = [], {"i": ip_id}
     if body.title is not None:
-        ip.title = body.title
+        sets.append("title=:t"); params["t"] = body.title
     if body.kind is not None:
-        ip.kind = body.kind
+        sets.append("kind=:k"); params["k"] = body.kind
     if body.activity is not None:
-        ip.activity = body.activity
-
-    if body.aliases is not None:
-        # 전체 교체 (§6 14번)
-        for a in _aliases_of(db, ip.id):
-            db.delete(a)
-        db.flush()
+        sets.append("activity=CAST(:a AS ip_activity_kind)"); params["a"] = body.activity
+    if sets:
+        db.execute(text(f"UPDATE ip SET {', '.join(sets)} WHERE id=:i"), params)
+    if body.aliases is not None:  # 전체 교체
+        db.execute(text("DELETE FROM ip_alias WHERE ip_id=:i"), {"i": ip_id})
         for a in body.aliases:
-            db.add(
-                IpAlias(
-                    team_id=ip.team_id, ip_id=ip.id, alias_text=a.alias_text,
-                    lang=a.lang, alias_type=a.alias_type,
-                )
+            db.execute(
+                text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
+                {"i": ip_id, "t": a.alias_text, "l": a.lang, "ty": a.alias_type},
             )
     db.commit()
-    db.refresh(ip)
-    return _to_out(ip, _aliases_of(db, ip.id))
-
-
-# --- 4번 GET /ips/match (지시서 §6 4번) ---
-from app.models.master import ContentAsset, IpRelation  # noqa: E402
-from app.schemas.match import AssetRef, IpMatch, MatchResponse, RelationRef  # noqa: E402
+    row = db.execute(
+        text("SELECT id, title, kind, activity, created_at FROM ip WHERE id=:i"), {"i": ip_id}
+    ).mappings().first()
+    return _ip_out(db, row)
 
 
 @router.get("/ips/match", response_model=MatchResponse)
-def match_ips(
-    q: str = Query(..., min_length=1, description="IP명 또는 별칭 검색어"),
-    db: Session = Depends(get_db),
-) -> MatchResponse:
-    team_id = resolve_team_id(db)
+def match_ips(q: str = Query(..., min_length=1), db: Session = Depends(get_db)) -> MatchResponse:
     like = f"%{q.strip().lower()}%"
-
-    # title 매칭
-    title_hits = db.execute(
-        select(Ip).where(Ip.team_id == team_id, Ip.activity == "active")
-        .where(func.lower(Ip.title).like(like))
-    ).scalars()
-    matched: dict[int, str] = {ip.id: "title" for ip in title_hits}
-
-    # alias 매칭 (title 로 이미 잡힌 것은 유지)
-    alias_hits = db.execute(
-        select(IpAlias.ip_id).where(
-            IpAlias.team_id == team_id, func.lower(IpAlias.alias_text).like(like)
-        )
-    ).scalars()
-    for ip_id in alias_hits:
-        matched.setdefault(ip_id, "alias")
+    matched: dict[int, str] = {}
+    for (i,) in db.execute(
+        text("SELECT id FROM ip WHERE activity='active' AND lower(title) LIKE :q"), {"q": like}
+    ):
+        matched[i] = "title"
+    for (i,) in db.execute(
+        text("SELECT DISTINCT ip_id FROM ip_alias WHERE lower(alias_text) LIKE :q"), {"q": like}
+    ):
+        matched.setdefault(i, "alias")
 
     matches: list[IpMatch] = []
     for ip_id, how in matched.items():
-        ip = db.get(Ip, ip_id)
-        if ip is None or ip.activity != "active":
+        ip = db.execute(
+            text("SELECT id, title, kind, activity FROM ip WHERE id=:i"), {"i": ip_id}
+        ).mappings().first()
+        if ip is None or ip["activity"] != "active":
             continue
         assets = db.execute(
-            select(ContentAsset).where(ContentAsset.ip_id == ip_id)
-            .order_by(ContentAsset.id)
-        ).scalars()
-        rels = db.execute(
-            select(IpRelation).where(IpRelation.source_ip_id == ip_id)
-        ).scalars()
-        rel_refs: list[RelationRef] = []
-        for r in rels:
-            drv = db.get(Ip, r.derived_ip_id)
-            rel_refs.append(
-                RelationRef(
-                    relation_type=r.relation_type,
-                    ip_id=r.derived_ip_id,
-                    title=drv.title if drv else "",
-                )
-            )
+            text(
+                "SELECT id, scope_type, season_no, episode_no, edition_code, title "
+                "FROM content_asset WHERE ip_id=:i ORDER BY id"
+            ),
+            {"i": ip_id},
+        ).mappings().all()
         matches.append(
             IpMatch(
-                ip_id=ip.id, title=ip.title, kind=ip.kind, matched_on=how,
-                assets=[
-                    AssetRef(
-                        id=a.id, scope_type=a.scope_type, season_no=a.season_no,
-                        episode_no=a.episode_no, edition_code=a.edition_code, title=a.title,
-                    )
-                    for a in assets
-                ],
-                relations=rel_refs,
+                ip_id=ip["id"], title=ip["title"], kind=ip["kind"], matched_on=how,
+                assets=[AssetRef(**a) for a in assets],
+                relations=[],  # ip_relation 미구현
             )
         )
     return MatchResponse(matches=matches)

@@ -1,4 +1,4 @@
-"""10번 GET /rights/{lineageId}/history 스키마 (지시서 §6 10번)."""
+"""10번 GET /rights/{lineageId}/history 스키마 (P2-DB 정렬: 2축)."""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -11,15 +11,16 @@ class RightGeneration(CamelModel):
     rights_grant_id: int
     contract_id: int
     territory: str
-    rights_type: str
+    legal_right: str
+    exploitation_mode: str
     period_start: date
-    period_end: Optional[date] = None  # 포함 개념
+    period_end: Optional[date] = None
     exclusivity: str
     status: str
     created_at: Optional[datetime] = None
     terminated_at: Optional[datetime] = None
     terminated_reason: Optional[str] = None
-    changed_fields: list[str] = []  # 직전 세대와 비교(서버 계산)
+    changed_fields: list[str] = []
 
 
 class RightsHistoryResponse(CamelModel):

@@ -1,4 +1,4 @@
-"""15번 POST /search 스키마 (지시서 §6 15번)."""
+"""15번 POST /search 스키마 (P2-DB 정렬: 2축)."""
 from __future__ import annotations
 
 from datetime import date
@@ -8,10 +8,11 @@ from app.schemas.common import CamelModel
 
 
 class SearchFilters(CamelModel):
+    legal_rights: Optional[list[str]] = None
+    exploitation_modes: Optional[list[str]] = None
     territories: Optional[list[str]] = None
-    rights_types: Optional[list[str]] = None
     exclusivity: Optional[str] = None
-    period: Optional[dict[str, date]] = None  # {start, end(포함)}
+    period: Optional[dict[str, date]] = None
 
 
 class SearchRequest(CamelModel):
@@ -26,11 +27,11 @@ class SearchResult(CamelModel):
     title: Optional[str] = None
     counterparty: Optional[str] = None
     status: Optional[str] = None
-    score: Optional[float] = None  # 코사인 유사도(벡터 랭킹 시)
+    score: Optional[float] = None
 
 
 class SearchResponse(CamelModel):
-    interpreted: dict[str, Any]  # "시스템이 이렇게 이해했다" — 그대로 실어 보냄
+    interpreted: dict[str, Any]
     results: list[SearchResult]
     total: int
     page: int

@@ -1,78 +1,70 @@
-"""자연어 질의 해석 (지시서 §6 15번 1단계).
+"""자연어 질의 해석 (P2-DB 정렬, §6 15번 1단계).
 
-지역·기간·권리유형·독점여부를 추출한다. 휴리스틱이며, filters(사용자 지정)가
-있으면 그쪽이 우선한다(2단계). 값 목록은 참조 어휘에서 읽어 매칭한다.
+2축(legal_right · exploitation_mode) + 지역 + 기간 + 독점여부를 추출한다.
+filters(사용자 지정)가 있으면 그쪽이 우선(2단계).
 """
 from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-_YEAR = re.compile(r"(19|20)\d{2}")
-
+_YEAR = re.compile(r"(?:19|20)\d{2}")
 _EXCL = [
-    ("non_exclusive", ["비독점", "논익스", "non-exclusive", "nonexclusive", "non exclusive"]),
+    ("non_exclusive", ["비독점", "non-exclusive", "nonexclusive", "non exclusive"]),
     ("sole", ["단독", "sole"]),
     ("exclusive", ["독점", "exclusive"]),
 ]
+
+
+def _match_taxonomy(db: Session, table: str, low: str) -> list[str]:
+    hits: list[str] = []
+    for code, name in db.execute(text(f"SELECT code, name_ko FROM {table}")):
+        if code.lower() in low or (name and name.lower() in low):
+            if code not in hits:
+                hits.append(code)
+    return hits
 
 
 def interpret(db: Session, query: str) -> dict[str, Any]:
     q = query or ""
     low = q.lower()
 
-    # 지역: 국가 코드 · 국가명(라벨) · 그룹명
+    legal_rights = _match_taxonomy(db, "legal_right", low)
+    exploitation_modes = _match_taxonomy(db, "exploitation_mode", low)
+
     territories: list[str] = []
-    for code, label in db.execute(
-        text("SELECT code, label FROM master.country_label")
-    ).all():
-        if label and label.lower() in low:
-            if code not in territories:
-                territories.append(code)
+    for code, label in db.execute(text("SELECT country_code, label FROM country_label")):
+        if label and label.lower() in low and code not in territories:
+            territories.append(code)
     for token in re.findall(r"\b[A-Z]{2}\b", q):
-        if db.execute(
-            text("SELECT 1 FROM master.country WHERE code=:c"), {"c": token}
-        ).first():
+        if db.execute(text("SELECT 1 FROM country WHERE code=:c"), {"c": token}).first():
             if token not in territories:
                 territories.append(token)
     groups: list[str] = []
-    for (code,) in db.execute(text("SELECT code FROM master.territory_group")).all():
+    for (code,) in db.execute(text("SELECT code FROM territory_group")):
         if code.lower() in low:
             groups.append(code)
 
-    # 권리유형: 코드 · 라벨
-    rights_types: list[str] = []
-    for code, label in db.execute(
-        text("SELECT r.code, l.label FROM master.rights_type_ref r "
-             "LEFT JOIN master.rights_type_label l ON l.code=r.code")
-    ).all():
-        if code.lower() in low or (label and label.lower() in low):
-            if code not in rights_types:
-                rights_types.append(code)
-
-    # 독점여부 (더 구체적인 것부터)
-    exclusivity: Optional[str] = None
+    exclusivity = None
     for val, kws in _EXCL:
         if any(k in low for k in kws):
             exclusivity = val
             break
 
-    # 기간: 연도 2개 이상이면 [min년-01-01, max년-12-31]
     years = sorted({int(m.group(0)) for m in _YEAR.finditer(q)})
     period = None
     if years:
-        start = date(years[0], 1, 1)
-        end = date(years[-1], 12, 31)
-        period = {"start": start, "end": end}
+        period = {"start": date(years[0], 1, 1), "end": date(years[-1], 12, 31)}
 
     return {
+        "legalRights": legal_rights,
+        "exploitationModes": exploitation_modes,
         "territories": territories,
         "territoryGroups": groups,
-        "rightsTypes": rights_types,
         "exclusivity": exclusivity,
         "period": period,
     }
