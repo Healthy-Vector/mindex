@@ -1,0 +1,464 @@
+// Revised DBML for mindex contract-management service
+// Flow: PDF upload -> AI extraction -> DB conflict probe -> AI commentary
+//       -> user approve/reject -> approved rights_grant -> final contract registration
+// Database target: PostgreSQL
+
+Project mindex {
+  database_type: 'PostgreSQL'
+  Note: '''
+  핵심 설계 원칙
+  1. contract = 하나의 계약 업무 건(case)
+  2. contract_document = 해당 계약 건에 업로드된 PDF/문서 버전
+  3. rights_grant_candidate = AI가 PDF에서 추출한 미확정 권리 후보
+  4. conflict_result = DB가 결정론적으로 계산한 충돌 사실 + AI 첨언 분리 저장
+  5. rights_grant = 사용자가 승인한 권리 데이터의 Single Source of Truth
+  6. contract.status = final 인 계약만 최종 계약 목록으로 조회
+  7. 충돌이 존재해도 승인된 conflict_resolution(합의/waiver 등)이 있으면 최종화 가능
+  8. 최종 INSERT/UPDATE 시 PostgreSQL EXCLUDE constraint로 race condition까지 방어
+  '''
+}
+
+// =========================
+// ENUMS
+// =========================
+
+Enum rights_type_kind {
+  SVOD
+  AVOD
+  TVOD
+  TV_LINEAR
+  THEATRICAL
+}
+
+Enum exclusivity_kind {
+  exclusive
+  sole
+  non_exclusive
+}
+
+Enum contract_status {
+  draft       [note: '계약 건 생성/문서 업로드 전후']
+  review      [note: 'AI 분석 및 사용자 검토 중']
+  approved    [note: '1차 승인 완료. 최종 계약 등록 전']
+  final       [note: '최종 계약으로 등록 완료']
+  rejected    [note: '사용자가 계약 진행을 파기/거절']
+  terminated  [note: '최종 계약 이후 해지/종료']
+}
+
+Enum document_status {
+  uploaded
+  parsing
+  parsed
+  review
+  approved
+  rejected
+  final
+  failed
+}
+
+Enum candidate_status {
+  pending
+  approved
+  rejected
+}
+
+Enum rights_grant_status {
+  approved    [note: '사용자가 승인했으나 계약 건이 아직 final이 아닐 수 있음']
+  final       [note: '최종 계약에 포함된 유효 권리']
+  terminated
+}
+
+Enum conflict_status {
+  detected    [note: 'DB 규칙상 충돌 존재']
+  resolved    [note: '수정 또는 합의로 해결됨']
+  waived      [note: '명시적 예외 승인']
+}
+
+Enum resolution_type {
+  amended             [note: '계약/문서 수정으로 충돌 해소']
+  waiver              [note: '권리자 등의 포기/예외 승인']
+  mutual_agreement    [note: '당사자 간 중복/충돌 허용 합의']
+  manual_override     [note: '권한 있는 사용자의 예외 승인']
+}
+
+Enum resolution_status {
+  pending
+  approved
+  rejected
+}
+
+// =========================
+// TENANT / REFERENCE DATA
+// =========================
+
+Table tenant {
+  id UUID [pk, default: `gen_random_uuid()`]
+  name TEXT [not null]
+  access_key_hash TEXT [not null, note: 'API key bcrypt hash']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+}
+
+Table country {
+  code CHAR(2) [pk, note: 'ISO 3166-1 alpha-2']
+  name_ko TEXT [not null]
+  name_en TEXT [not null]
+  in_scope BOOLEAN [not null, default: false]
+}
+
+Table territory_group {
+  code TEXT [pk, note: 'WORLDWIDE/APAC/SEA/NA 등']
+  name_ko TEXT [not null]
+  note TEXT
+}
+
+Table territory_group_member {
+  group_code TEXT [pk]
+  country_code CHAR(2) [pk]
+}
+
+Table conflict_code {
+  code TEXT [pk, note: '예: EXCLUSIVE_PERIOD_OVERLAP']
+  template_ko TEXT [not null, note: 'AI 첨언 생성 시 사용할 기본 설명']
+  template_en TEXT [not null]
+}
+
+Table statutory_right {
+  code TEXT [pk]
+  jurisdiction CHAR(2) [not null]
+  name_local TEXT [not null]
+  name_ko TEXT [not null]
+  parent_code TEXT [note: '자기참조 상위 권리']
+  note TEXT
+}
+
+Table right_mapping {
+  rights_type rights_type_kind [pk]
+  jurisdiction CHAR(2) [pk]
+  statutory_code TEXT [pk]
+  advisory TEXT
+}
+
+// =========================
+// BUSINESS ROOT
+// =========================
+
+Table ip {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  title_ko TEXT
+  title_en TEXT
+  title_ja TEXT
+  kind TEXT [note: '드라마/영화 등']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    (id, tenant_id) [unique, name: 'uq_ip_tenant']
+  }
+}
+
+Table contract {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  counterparty TEXT [not null, note: '계약 상대방']
+  signed_date DATE [note: '실제 체결일. 초안 단계에서는 NULL 가능']
+  lang CHAR(2) [note: 'ko/en/ja']
+  amount NUMERIC
+  currency CHAR(4) [note: 'KRW/USD/JPY 등']
+  status contract_status [not null, default: `'draft'`]
+  final_document_id BIGINT [note: '최종 계약으로 채택된 contract_document.id. final 상태에서 필수']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+  updated_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    (id, tenant_id) [unique, name: 'uq_contract_tenant']
+    status [name: 'idx_contract_status']
+  }
+}
+
+// 같은 계약 건에 수정 PDF를 여러 번 올릴 수 있다.
+Table contract_document {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null]
+  version INT [not null, note: '계약 건 내부 문서 버전. UNIQUE(contract_id, version)']
+  file_name TEXT [not null]
+  storage_key TEXT [not null, note: 'S3/Object Storage key. PDF binary 자체는 DB에 저장하지 않음']
+  file_hash TEXT [not null, note: 'SHA-256 권장. 동일 파일 재업로드 탐지']
+  mime_type TEXT [not null, default: `'application/pdf'`]
+  status document_status [not null, default: `'uploaded'`]
+  raw_text TEXT [note: 'PDF 파싱 원문. 민감정보 암호화 정책 적용 대상']
+  uploaded_by TEXT
+  uploaded_at TIMESTAMPTZ [not null, default: `now()`]
+  parsed_at TIMESTAMPTZ
+
+  Indexes {
+    (contract_id, version) [unique, name: 'uq_contract_document_version']
+    (tenant_id, file_hash) [name: 'idx_document_hash']
+    status [name: 'idx_document_status']
+  }
+}
+
+// 계약 메타데이터 변경 이력. PDF 버전은 contract_document가 담당한다.
+Table contract_version {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null]
+  version INT [not null]
+  changed_by TEXT
+  changed_at TIMESTAMPTZ [not null, default: `now()`]
+  snapshot JSONB [not null, note: '계약 메타데이터 상태 스냅샷']
+
+  Indexes {
+    (contract_id, version) [unique, name: 'uq_contract_metadata_version']
+  }
+}
+
+// =========================
+// AI EXTRACTION / REVIEW STAGING
+// =========================
+
+// AI가 문서에서 추출한 아직 미확정인 권리 후보.
+// 사용자가 승인하기 전에는 rights_grant에 넣지 않는다.
+Table rights_grant_candidate {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null]
+  document_id BIGINT [not null]
+  ip_id BIGINT [not null]
+
+  territory CHAR(2)
+  rights_type rights_type_kind
+  period DATERANGE
+  exclusivity exclusivity_kind
+
+  confidence NUMERIC(3,2) [note: 'AI 추출 신뢰도 0.00~1.00']
+  source_page INT
+  source_clause TEXT
+  source_quote TEXT
+
+  status candidate_status [not null, default: `'pending'`]
+  decided_by TEXT
+  decided_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    document_id [name: 'idx_candidate_document']
+    status [name: 'idx_candidate_review_queue']
+    (tenant_id, ip_id, territory, rights_type) [name: 'idx_candidate_probe_key']
+  }
+}
+
+// DB가 계산한 충돌 사실을 저장한다.
+// AI가 생성한 해설은 deterministic result와 분리한다.
+Table conflict_result {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  candidate_id BIGINT [not null]
+  conflicting_grant_id BIGINT [not null, note: '충돌 상대인 기존 승인/최종 rights_grant']
+  conflict_code TEXT [not null]
+  status conflict_status [not null, default: `'detected'`]
+
+  overlap_period DATERANGE [note: 'DB가 계산한 실제 겹침 기간']
+  deterministic_detail JSONB [note: '충돌 필드, 비교값 등 재현 가능한 DB 판정 결과']
+
+  ai_commentary TEXT [note: '사용자 화면에 표시하는 AI 첨언. DB 판정 사실과 분리']
+  ai_recommendation TEXT
+  ai_model TEXT
+  ai_generated_at TIMESTAMPTZ
+
+  detected_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    candidate_id [name: 'idx_conflict_candidate']
+    conflicting_grant_id [name: 'idx_conflict_existing_grant']
+    status [name: 'idx_conflict_status']
+  }
+}
+
+// 충돌이 있어도 실제 업무상 합의/waiver가 존재하면 예외적으로 최종화를 허용한다.
+Table conflict_resolution {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  conflict_result_id BIGINT [not null]
+  resolution_type resolution_type [not null]
+  status resolution_status [not null, default: `'pending'`]
+  reason TEXT [not null, note: '왜 충돌을 허용/해결하는지 감사 가능한 근거']
+  evidence_document_id BIGINT [note: '합의서/수정본 등이 현재 시스템 문서라면 연결']
+  approved_by TEXT
+  approved_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    conflict_result_id [name: 'idx_resolution_conflict']
+    status [name: 'idx_resolution_status']
+  }
+}
+
+// =========================
+// APPROVED / FINAL SOURCE OF TRUTH
+// =========================
+
+// 사용자가 후보를 승인한 시점에 생성한다.
+// 최종 계약 등록 시 status를 final로 전환한다.
+Table rights_grant {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null]
+  document_id BIGINT [not null, note: '이 권리 데이터가 확정된 근거 PDF']
+  source_candidate_id BIGINT [not null, unique, note: '어떤 AI 후보 승인으로 생성되었는지 추적']
+  ip_id BIGINT [not null]
+
+  status rights_grant_status [not null, default: `'approved'`]
+  territory CHAR(2) [not null]
+  rights_type rights_type_kind [not null]
+  period DATERANGE [not null, note: '반열림 구간 [start,end) 권장']
+  exclusivity exclusivity_kind [not null]
+
+  verified_by TEXT [not null, note: '승인 사용자']
+  verified_at TIMESTAMPTZ [not null, default: `now()`]
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    status [name: 'idx_rights_grant_status']
+    (tenant_id, ip_id, territory, rights_type) [name: 'idx_rights_grant_conflict_key']
+    document_id [name: 'idx_rights_grant_document']
+  }
+
+  Note: '''
+  PostgreSQL에서는 final/approved 권리의 충돌을 최종적으로 EXCLUDE USING gist로 방어한다.
+  예시 개념:
+    tenant_id WITH =,
+    ip_id WITH =,
+    territory WITH =,
+    rights_type WITH =,
+    period WITH &&
+  단, exclusivity 및 conflict_resolution 예외 정책은 partial condition/transaction 검증으로 구현한다.
+  애플리케이션의 사전 Conflict Probe는 사용자 설명용이고,
+  DB constraint는 동시성 race condition까지 막는 최종 무결성 장치다.
+  '''
+}
+
+// 확정 데이터의 감사 로그. staging 용도로 사용하지 않는다.
+Table rights_grant_history {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  rights_grant_id BIGINT [not null]
+  contract_id BIGINT [not null]
+  document_id BIGINT [not null]
+  event_type TEXT [not null, note: 'approved/finalized/updated/terminated']
+
+  status_at_event rights_grant_status [not null]
+  territory CHAR(2) [not null]
+  rights_type rights_type_kind [not null]
+  period DATERANGE [not null]
+  exclusivity exclusivity_kind [not null]
+
+  changed_by TEXT
+  change_reason TEXT
+  snapshot JSONB [note: '필요 시 당시 전체 row 스냅샷']
+  recorded_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    rights_grant_id [name: 'idx_history_grant']
+    event_type [name: 'idx_history_event']
+  }
+}
+
+// =========================
+// RAG / SEARCH
+// =========================
+
+// PDF 버전별 chunk여야 수정 전/후 계약문서가 섞이지 않는다.
+Table contract_chunk {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null]
+  document_id BIGINT [not null]
+  clause_no TEXT [note: '제8조 등']
+  chunk_text TEXT [not null]
+  lang CHAR(2)
+  page INT
+  embedding vector(1024) [note: 'multilingual-e5-large 등']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    document_id [name: 'idx_chunk_document']
+    embedding [name: 'idx_contract_chunk_embedding']
+  }
+}
+
+// =========================
+// CDC / OPERATION
+// =========================
+
+Table change_log {
+  id BIGSERIAL [pk]
+  tenant_id UUID
+  table_name TEXT [not null]
+  row_id BIGINT [not null]
+  op CHAR(1) [not null, note: 'I/U/D']
+  processed_at TIMESTAMPTZ
+  attempts INT [not null, default: 0]
+  last_error TEXT
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    processed_at [name: 'idx_change_log_pending']
+  }
+}
+
+Table schema_meta {
+  version TEXT [not null]
+  applied_at TIMESTAMPTZ [not null, default: `now()`]
+  note TEXT
+}
+
+// =========================
+// RELATIONSHIPS
+// =========================
+
+Ref: ip.tenant_id > tenant.id
+Ref: contract.tenant_id > tenant.id
+Ref: contract_document.tenant_id > tenant.id
+Ref: contract_version.tenant_id > tenant.id
+Ref: rights_grant_candidate.tenant_id > tenant.id
+Ref: conflict_result.tenant_id > tenant.id
+Ref: conflict_resolution.tenant_id > tenant.id
+Ref: rights_grant.tenant_id > tenant.id
+Ref: rights_grant_history.tenant_id > tenant.id
+Ref: contract_chunk.tenant_id > tenant.id
+
+Ref: contract_document.contract_id > contract.id
+Ref: contract_version.contract_id > contract.id
+Ref: rights_grant_candidate.contract_id > contract.id
+Ref: rights_grant_candidate.document_id > contract_document.id
+Ref: rights_grant_candidate.ip_id > ip.id
+
+Ref: conflict_result.candidate_id > rights_grant_candidate.id
+Ref: conflict_result.conflicting_grant_id > rights_grant.id
+Ref: conflict_result.conflict_code > conflict_code.code
+Ref: conflict_resolution.conflict_result_id > conflict_result.id
+Ref: conflict_resolution.evidence_document_id > contract_document.id
+
+Ref: rights_grant.contract_id > contract.id
+Ref: rights_grant.document_id > contract_document.id
+Ref: rights_grant.source_candidate_id > rights_grant_candidate.id
+Ref: rights_grant.ip_id > ip.id
+
+Ref: rights_grant_history.rights_grant_id > rights_grant.id
+Ref: rights_grant_history.contract_id > contract.id
+Ref: rights_grant_history.document_id > contract_document.id
+
+Ref: contract_chunk.contract_id > contract.id
+Ref: contract_chunk.document_id > contract_document.id
+
+Ref: contract.final_document_id > contract_document.id
+
+Ref: territory_group_member.group_code > territory_group.code
+Ref: territory_group_member.country_code > country.code
+Ref: right_mapping.statutory_code > statutory_right.code
+Ref: right_mapping.jurisdiction > country.code
+Ref: statutory_right.jurisdiction > country.code
+Ref: statutory_right.parent_code > statutory_right.code
+Ref: rights_grant_candidate.territory > country.code
+Ref: rights_grant.territory > country.code

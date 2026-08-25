@@ -1,0 +1,193 @@
+// Converted from erd-editor JSON -> DBML for dbdiagram.io
+// Database: mindex
+
+Table tenant {
+  id UUID [pk, default: `gen_random_uuid()`, note: '지금까지 각 테이블에 UUID로만 떠돌던 tenant_id를 공식화 (D-20)']
+  name TEXT [not null]
+  access_key_hash TEXT [not null, note: '팀 공유 API 키. bcrypt 해시만 허용 (CHECK access_key_hash_is_bcrypt)']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+}
+
+Table country {
+  code CHAR(2) [pk, note: 'ISO 2자리']
+  name_ko TEXT [not null]
+  name_en TEXT [not null]
+  in_scope BOOLEAN [not null, default: false, note: 'WORLDWIDE 전개 대상 8개국 여부']
+}
+
+Table territory_group {
+  code TEXT [pk, note: '\'WORLDWIDE\',\'APAC\',\'SEA\',\'NA\'']
+  name_ko TEXT [not null]
+  note TEXT
+}
+
+Table territory_group_member {
+  group_code TEXT [pk, note: 'FK territory_group, ON DELETE CASCADE']
+  country_code CHAR(2) [pk, note: 'FK country']
+}
+
+Table conflict_code {
+  code TEXT [pk, note: 'EXCLUDE/트리거의 constraint_name과 동일']
+  template_ko TEXT [not null, note: 'AI가 첨언하는 기반 문구']
+  template_en TEXT [not null]
+}
+
+Table statutory_right {
+  code TEXT [pk, note: '\'KR_BROADCAST\' 등']
+  jurisdiction CHAR(2) [not null, note: 'FK country']
+  name_local TEXT [not null]
+  name_ko TEXT [not null]
+  parent_code TEXT [note: '자기참조 — 상위-하위 포함관계']
+  note TEXT
+}
+
+Table right_mapping {
+  rights_type rights_type_kind [pk, note: 'PK 일부']
+  jurisdiction CHAR(2) [pk, note: 'PK 일부, FK country']
+  statutory_code TEXT [pk, note: 'PK 일부, FK statutory_right']
+  advisory TEXT [note: '경고 문구. NULL이면 자문 없음']
+}
+
+Table content {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null, note: '테넌트 격리 키 (SER-002). UNIQUE(id,tenant_id) — 복합 FK 참조 대상 (D-09)']
+  title_ko TEXT [note: '다국어 제목이 같은 IP를 가리킨다 (JA-C02)']
+  title_en TEXT
+  title_ja TEXT
+  kind TEXT [note: '\'드라마\'·\'영화\'']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+}
+
+Table contract {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null, note: 'UNIQUE(id,tenant_id) — 복합 FK 참조 대상 (D-09)']
+  counterparty TEXT [not null, note: '계약 당사자']
+  signed_date DATE [note: '체결일']
+  lang CHAR(2) [note: '\'ko\'·\'en\'·\'ja\'']
+  version INT [not null, default: 1, note: '문서 버전 (SFR-006)']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+  raw_text TEXT [note: '계약 원문 — SER-006 암호화 대상 (D-14, 미적용)']
+  amount NUMERIC [note: '계약 금액 — SER-006 암호화 대상 (D-14, 미적용)']
+}
+
+Table contract_version {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null, note: 'FK contract, ON DELETE CASCADE']
+  version INT [not null, note: 'UNIQUE(contract_id, version)']
+  changed_by TEXT
+  changed_at TIMESTAMPTZ [not null, default: `now()`]
+  snapshot JSONB [not null, note: '변경 시점의 계약 필드 전체']
+}
+
+Table rights_grant {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null, note: '복합 FK (id,tenant_id) 일부 — 테넌트 불일치 DB가 거부 (D-09)']
+  contract_id BIGINT [not null, note: 'FK (contract_id,tenant_id), ON DELETE CASCADE']
+  content_id BIGINT [not null, note: 'FK (content_id,tenant_id)']
+  status rights_grant_status [not null, default: `'draft'`, note: 'D-17 draft/review/provisional/complete/terminated. 판정 대상은 provisional·complete뿐']
+  territory CHAR(2) [note: 'D-17 nullable. FK country. review 상태는 NULL 허용']
+  rights_type rights_type_kind [note: 'D-13 SVOD/AVOD/TVOD/TV_LINEAR/THEATRICAL. nullable(D-17)']
+  period DATERANGE [note: '반열림 구간. nullable(D-17)']
+  exclusivity exclusivity_kind [note: 'D-04 exclusive/sole/non_exclusive. nullable(D-17)']
+  review_reason review_reason_kind [note: 'D-17 status=\'review\'일 때만 값 존재 (구 D-16)']
+  confidence NUMERIC(3,2) [note: 'AI 추출 신뢰도 (SFR-004)']
+  verified_by TEXT
+  verified_at TIMESTAMPTZ
+  source_page INT [note: 'Evidence Anchoring (SFR-003, P-3)']
+  source_clause TEXT
+  source_quote TEXT [note: '인용 조항 — SER-006 암호화 대상 (D-14, 미적용)']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    status [name: 'rights_grant_review_queue']
+  }
+}
+
+Table rights_grant_history {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null]
+  contract_id BIGINT [not null, note: 'FK (contract_id,tenant_id), ON DELETE CASCADE']
+  content_id BIGINT [not null, note: 'FK (content_id,tenant_id)']
+  rights_grant_id BIGINT [note: 'FK rights_grant. 등록 전이면 NULL']
+  event_type TEXT [not null, note: 'parsed/registered/status_changed/terminated']
+  source_history_id BIGINT [note: '자기참조 — registered 행이 가리키는 원본 parsed 행']
+  status_at_event rights_grant_status [not null, note: '이벤트 시점의 rights_grant.status 스냅샷']
+  territory CHAR(2) [note: 'rights_grant 스냅샷 컬럼']
+  rights_type rights_type_kind
+  period DATERANGE
+  exclusivity exclusivity_kind
+  confidence NUMERIC(3,2)
+  source_page INT
+  source_clause TEXT
+  source_quote TEXT
+  conflict_code TEXT [note: 'FK conflict_code. probe 결과, 충돌 없으면 NULL']
+  conflict_report JSONB [note: 'D-21 상대 계약·겹침 기간·근거 조항·AI 첨언을 담은 JSON. 화면이 그대로 렌더링']
+  recorded_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    rights_grant_id [name: 'rights_grant_history_by_grant']
+    event_type [name: 'rights_grant_history_pending']
+    source_history_id [name: 'rights_grant_history_by_source']
+  }
+}
+
+Table contract_chunk {
+  id BIGSERIAL [pk]
+  tenant_id UUID [not null, note: '복합 FK (id,tenant_id) 일부 (D-09)']
+  contract_id BIGINT [not null, note: 'ON DELETE CASCADE']
+  clause_no TEXT [note: '\'제8조\'']
+  chunk_text TEXT [not null]
+  lang CHAR(2) [note: '한/영/일']
+  page INT
+  embedding vector(1024) [note: 'multilingual-e5-large. 암호화 제외(계층2로 보호, D-14)']
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    embedding [name: 'contract_chunk_embedding']
+  }
+}
+
+Table change_log {
+  id BIGSERIAL [pk]
+  tenant_id UUID [note: '트리거가 NEW.tenant_id를 함께 기록']
+  table_name TEXT [not null]
+  row_id BIGINT [not null, note: 'FK 없음. table_name+row_id로 대상 지시']
+  op CHAR(1) [not null, note: 'I/U/D']
+  processed_at TIMESTAMPTZ [note: 'NULL이면 미처리']
+  attempts INT [not null, default: 0, note: '재시도 횟수']
+  last_error TEXT
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+
+  Indexes {
+    processed_at [name: 'change_log_pending']
+  }
+}
+
+Table schema_meta {
+  version TEXT [not null]
+  applied_at TIMESTAMPTZ [not null, default: `now()`]
+  note TEXT
+}
+
+// ----- Relationships -----
+Ref: content.tenant_id > tenant.id
+Ref: contract.tenant_id > tenant.id
+Ref: contract_version.tenant_id > tenant.id
+Ref: rights_grant.tenant_id > tenant.id
+Ref: rights_grant_history.tenant_id > tenant.id
+Ref: contract_chunk.tenant_id > tenant.id
+Ref: contract_version.contract_id > contract.id
+Ref: rights_grant.contract_id > contract.id
+Ref: rights_grant.content_id > content.id
+Ref: contract_chunk.contract_id > contract.id
+Ref: rights_grant_history.contract_id > contract.id
+Ref: rights_grant_history.content_id > content.id
+Ref: rights_grant_history.rights_grant_id > rights_grant.id
+Ref: rights_grant_history.conflict_code > conflict_code.code
+Ref: territory_group_member.group_code > territory_group.code
+Ref: territory_group_member.country_code > country.code
+Ref: right_mapping.statutory_code > statutory_right.code
+Ref: right_mapping.jurisdiction > country.code
+Ref: statutory_right.jurisdiction > country.code
+Ref: rights_grant.territory > country.code

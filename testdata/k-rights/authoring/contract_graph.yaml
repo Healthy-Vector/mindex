@@ -1,0 +1,498 @@
+status: REVIEWED
+version: 0.5
+phase: B
+
+# Phase B records document relationships only. RightsGrant values, parties,
+# territory and period values are fixed in later phases.
+summary:
+  scenario_count: 72
+  target_contract_count: 72
+  supporting_contract_count: 14
+  unique_contract_count: 86
+  unique_contracts_by_language:
+    KO: 29
+    EN: 29
+    JP: 28
+
+id_policy:
+  target_contracts: "CTR-{LANG}-0001..0024 in source scenario order"
+  supporting_contracts: "CTR-{LANG}-9001.. for contracts not targeted by another scenario"
+  reuse_rule: "A target contract may be reused as an EXISTING contract by later scenarios."
+
+vocabularies:
+  scenario_role:
+    TARGET: Contract currently being evaluated in the Scenario.
+    EXISTING: Previously registered contract compared with the Target.
+    UPSTREAM: Contract from which the Target grantor derives its authority.
+  agreement_type:
+    DIRECT_LICENSE: Direct permission from a rights owner or other direct grantor.
+    SUBLICENSE: Downstream permission granted under authority received from an upstream agreement.
+    ASSIGNMENT: Transfer of ownership in all or part of the relevant rights.
+    AMENDMENT: Document modifying an existing agreement rather than creating a standalone grant.
+    UNRESOLVED: Agreement type cannot be determined from the available metadata.
+
+# agreement_type belongs to the Contract and does not change when the same
+# Contract is TARGET in one Scenario and EXISTING in another.
+contract_metadata:
+  default:
+    agreement_type: DIRECT_LICENSE
+  overrides:
+    CTR-JP-0005: {agreement_type: SUBLICENSE}
+    CTR-KO-0015: {agreement_type: SUBLICENSE}
+    CTR-KO-0016: {agreement_type: SUBLICENSE}
+    CTR-EN-0016: {agreement_type: SUBLICENSE}
+    CTR-EN-0017: {agreement_type: SUBLICENSE}
+    CTR-EN-0020: {agreement_type: SUBLICENSE}
+    CTR-EN-0023: {agreement_type: SUBLICENSE}
+
+review_items:
+  - review_id: GRAPH-REVIEW-001
+    status: REVIEWED
+    topic: robustness_normal_hard_negative_mapping
+    resolution: >-
+      RB-KO01 -> KO-B01, RB-EN01 -> JP-B02 and RB-JP02 -> EN-B01 are approved
+      as NORMAL hard negatives. See the Phase B Decision Note and Scenario
+      Revision Notes for expected-result semantics.
+  - review_id: GRAPH-REVIEW-002
+    status: REVIEWED
+    topic: shared_contract_scope_constraints
+    resolution: >-
+      Controlled Contract reuse is retained. Shared scope constraints are
+      validation invariants for later metadata, while C007-C012 diversify six
+      standalone Scenario families without changing the 86-Contract graph.
+      Dataset splits must be grouped by Contract/Content family.
+
+supporting_contracts:
+  - contract_id: CTR-EN-9001
+    language: EN
+    used_by_scenarios: [EN-N05]
+    purpose: Existing original-content agreement reserving remake rights to the producer.
+  - contract_id: CTR-JP-9001
+    language: JP
+    used_by_scenarios: [JP-N05]
+    purpose: Upstream agreement permitting the target sublicense within scope.
+  - contract_id: CTR-KO-9001
+    language: KO
+    used_by_scenarios: [KO-C07]
+    purpose: Upstream TVOD authority held by the distributor.
+  - contract_id: CTR-KO-9002
+    language: KO
+    used_by_scenarios: [KO-C07]
+    purpose: Existing exclusive SVOD agreement held by the broadcaster.
+  - contract_id: CTR-KO-9003
+    language: KO
+    used_by_scenarios: [KO-C08]
+    purpose: Upstream Japan-only SVOD authority.
+  - contract_id: CTR-EN-9002
+    language: EN
+    used_by_scenarios: [EN-C08]
+    purpose: Upstream agreement limiting sublicenses to affiliates.
+  - contract_id: CTR-EN-9003
+    language: EN
+    used_by_scenarios: [EN-C09]
+    purpose: Upstream agreement whose license period ends before the target sublicense.
+  - contract_id: CTR-EN-9004
+    language: EN
+    used_by_scenarios: [EN-C10]
+    purpose: Existing theatrical agreement containing the release-date and holdback schedule.
+  - contract_id: CTR-JP-9002
+    language: JP
+    used_by_scenarios: [JP-C07]
+    purpose: Existing exclusive remake, format and adaptation grant evidenced in a schedule.
+  - contract_id: CTR-JP-9003
+    language: JP
+    used_by_scenarios: [JP-C09, RB-KO04, RB-JP03]
+    purpose: Existing Season 1 SVOD grant with Episode 5 carved out.
+  - contract_id: CTR-KO-9004
+    language: KO
+    used_by_scenarios: [KO-R02]
+    purpose: Existing agreement using the unresolved Korean content title.
+  - contract_id: CTR-EN-9005
+    language: EN
+    used_by_scenarios: [EN-R02, RB-EN03]
+    purpose: Upstream agreement requiring prior written consent for sublicensing.
+  - contract_id: CTR-JP-9004
+    language: JP
+    used_by_scenarios: [JP-R02]
+    purpose: Existing agreement with unresolved generic secondary-use language.
+  - contract_id: CTR-KO-9005
+    language: KO
+    used_by_scenarios: [KO-W01]
+    purpose: Existing broadcast agreement containing a first-negotiation obligation.
+
+scenarios:
+  # Normal 16
+  - scenario_id: KO-N01
+    target_contract_id: CTR-KO-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0001: TARGET}
+  - scenario_id: KO-N02
+    target_contract_id: CTR-KO-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0002: TARGET}
+  - scenario_id: KO-N03
+    target_contract_id: CTR-KO-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0003: TARGET}
+  - scenario_id: KO-N04
+    target_contract_id: CTR-KO-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0004: TARGET}
+  - scenario_id: EN-N01
+    target_contract_id: CTR-EN-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0001: TARGET}
+  - scenario_id: EN-N02
+    target_contract_id: CTR-EN-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0002: TARGET}
+  - scenario_id: EN-N03
+    target_contract_id: CTR-EN-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0003: TARGET}
+  - scenario_id: EN-N04
+    target_contract_id: CTR-EN-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0004: TARGET}
+  - scenario_id: JP-N01
+    target_contract_id: CTR-JP-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0001: TARGET}
+  - scenario_id: JP-N02
+    target_contract_id: CTR-JP-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0002: TARGET}
+  - scenario_id: JP-N03
+    target_contract_id: CTR-JP-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0003: TARGET}
+  - scenario_id: JP-N04
+    target_contract_id: CTR-JP-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0004: TARGET}
+  - scenario_id: KO-N05
+    target_contract_id: CTR-KO-0005
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0005: TARGET}
+  - scenario_id: KO-N06
+    target_contract_id: CTR-KO-0006
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0006: TARGET}
+  - scenario_id: EN-N05
+    target_contract_id: CTR-EN-0005
+    reference_contract_ids: [CTR-EN-9001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0005: TARGET, CTR-EN-9001: EXISTING}
+  - scenario_id: JP-N05
+    target_contract_id: CTR-JP-0005
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-JP-9001]
+    scenario_roles: {CTR-JP-0005: TARGET, CTR-JP-9001: UPSTREAM}
+
+  # Normal Boundary 8
+  - scenario_id: KO-B01
+    target_contract_id: CTR-KO-0007
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0007: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: KO-B02
+    target_contract_id: CTR-KO-0008
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0008: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: EN-B01
+    target_contract_id: CTR-EN-0006
+    reference_contract_ids: [CTR-EN-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0006: TARGET, CTR-EN-0004: EXISTING}
+  - scenario_id: EN-B02
+    target_contract_id: CTR-EN-0007
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0007: TARGET, CTR-JP-0003: EXISTING}
+  - scenario_id: JP-B01
+    target_contract_id: CTR-JP-0006
+    reference_contract_ids: [CTR-JP-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0006: TARGET, CTR-JP-0002: EXISTING}
+  - scenario_id: JP-B02
+    target_contract_id: CTR-JP-0007
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0007: TARGET, CTR-JP-0004: EXISTING}
+  - scenario_id: EN-B03
+    target_contract_id: CTR-EN-0008
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0008: TARGET, CTR-KO-0005: EXISTING}
+  - scenario_id: JP-B03
+    target_contract_id: CTR-JP-0008
+    reference_contract_ids: [CTR-KO-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0008: TARGET, CTR-KO-0004: EXISTING}
+
+  # Conflict L1 6
+  - scenario_id: KO-C01
+    target_contract_id: CTR-KO-0009
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0009: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: EN-C01
+    target_contract_id: CTR-EN-0009
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0009: TARGET, CTR-EN-0002: EXISTING}
+  - scenario_id: JP-C01
+    target_contract_id: CTR-JP-0009
+    reference_contract_ids: [CTR-JP-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0009: TARGET, CTR-JP-0002: EXISTING}
+  - scenario_id: KO-C04
+    target_contract_id: CTR-KO-0010
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0010: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: EN-C04
+    target_contract_id: CTR-EN-0010
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0010: TARGET, CTR-JP-0003: EXISTING}
+  - scenario_id: JP-C04
+    target_contract_id: CTR-JP-0010
+    reference_contract_ids: [CTR-EN-0005]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0010: TARGET, CTR-EN-0005: EXISTING}
+
+  # Conflict L2 10
+  - scenario_id: EN-C02
+    target_contract_id: CTR-EN-0011
+    reference_contract_ids: [CTR-EN-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0011: TARGET, CTR-EN-0001: EXISTING}
+  - scenario_id: KO-C02
+    target_contract_id: CTR-KO-0011
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0011: TARGET, CTR-KO-0003: EXISTING}
+  - scenario_id: JP-C02
+    target_contract_id: CTR-JP-0011
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0011: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: KO-C05
+    target_contract_id: CTR-KO-0012
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0012: TARGET, CTR-KO-0003: EXISTING}
+  - scenario_id: KO-C06
+    target_contract_id: CTR-KO-0013
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0013: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: EN-C05
+    target_contract_id: CTR-EN-0012
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0012: TARGET, CTR-KO-0003: EXISTING}
+  - scenario_id: EN-C06
+    target_contract_id: CTR-EN-0013
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0013: TARGET, CTR-KO-0005: EXISTING}
+  - scenario_id: EN-C07
+    target_contract_id: CTR-EN-0014
+    reference_contract_ids: [CTR-EN-0003, CTR-JP-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0014: TARGET, CTR-EN-0003: EXISTING, CTR-JP-0003: EXISTING}
+  - scenario_id: JP-C05
+    target_contract_id: CTR-JP-0012
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0012: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: JP-C06
+    target_contract_id: CTR-JP-0013
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0013: TARGET, CTR-JP-0004: EXISTING}
+
+  # Conflict L3 12
+  - scenario_id: EN-C03
+    target_contract_id: CTR-EN-0015
+    reference_contract_ids: [CTR-EN-0004, CTR-JP-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0015: TARGET, CTR-EN-0004: EXISTING, CTR-JP-0004: EXISTING}
+  - scenario_id: KO-C03
+    target_contract_id: CTR-KO-0014
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0014: TARGET, CTR-EN-0002: EXISTING}
+  - scenario_id: JP-C03
+    target_contract_id: CTR-JP-0014
+    reference_contract_ids: [CTR-JP-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0014: TARGET, CTR-JP-0001: EXISTING}
+  - scenario_id: KO-C07
+    target_contract_id: CTR-KO-0015
+    reference_contract_ids: [CTR-KO-9002]
+    upstream_contract_ids: [CTR-KO-9001]
+    scenario_roles: {CTR-KO-0015: TARGET, CTR-KO-9002: EXISTING, CTR-KO-9001: UPSTREAM}
+  - scenario_id: KO-C08
+    target_contract_id: CTR-KO-0016
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-KO-9003]
+    scenario_roles: {CTR-KO-0016: TARGET, CTR-KO-9003: UPSTREAM}
+  - scenario_id: KO-C09
+    target_contract_id: CTR-KO-0017
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0017: TARGET, CTR-EN-0002: EXISTING}
+  - scenario_id: EN-C08
+    target_contract_id: CTR-EN-0016
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9002]
+    scenario_roles: {CTR-EN-0016: TARGET, CTR-EN-9002: UPSTREAM}
+  - scenario_id: EN-C09
+    target_contract_id: CTR-EN-0017
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9003]
+    scenario_roles: {CTR-EN-0017: TARGET, CTR-EN-9003: UPSTREAM}
+  - scenario_id: EN-C10
+    target_contract_id: CTR-EN-0018
+    reference_contract_ids: [CTR-EN-9004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0018: TARGET, CTR-EN-9004: EXISTING}
+  - scenario_id: JP-C07
+    target_contract_id: CTR-JP-0015
+    reference_contract_ids: [CTR-JP-9002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0015: TARGET, CTR-JP-9002: EXISTING}
+  - scenario_id: JP-C08
+    target_contract_id: CTR-JP-0016
+    reference_contract_ids: [CTR-KO-0006]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0016: TARGET, CTR-KO-0006: EXISTING}
+  - scenario_id: JP-C09
+    target_contract_id: CTR-JP-0017
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0017: TARGET, CTR-JP-9003: EXISTING}
+
+  # Review Required 6
+  - scenario_id: KO-R01
+    target_contract_id: CTR-KO-0018
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0018: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: EN-R01
+    target_contract_id: CTR-EN-0019
+    reference_contract_ids: [CTR-EN-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0019: TARGET, CTR-EN-0001: EXISTING}
+  - scenario_id: JP-R01
+    target_contract_id: CTR-JP-0018
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0018: TARGET, CTR-JP-0003: EXISTING}
+  - scenario_id: KO-R02
+    target_contract_id: CTR-KO-0019
+    reference_contract_ids: [CTR-KO-9004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0019: TARGET, CTR-KO-9004: EXISTING}
+  - scenario_id: EN-R02
+    target_contract_id: CTR-EN-0020
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9005]
+    scenario_roles: {CTR-EN-0020: TARGET, CTR-EN-9005: UPSTREAM}
+  - scenario_id: JP-R02
+    target_contract_id: CTR-JP-0019
+    reference_contract_ids: [CTR-JP-9004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0019: TARGET, CTR-JP-9004: EXISTING}
+
+  # Warning 2
+  - scenario_id: JP-W01
+    target_contract_id: CTR-JP-0020
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0020: TARGET}
+  - scenario_id: KO-W01
+    target_contract_id: CTR-KO-0020
+    reference_contract_ids: [CTR-KO-9005]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0020: TARGET, CTR-KO-9005: EXISTING}
+
+  # Robustness 12
+  - scenario_id: RB-KO01
+    target_contract_id: CTR-KO-0021
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0021: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: RB-KO02
+    target_contract_id: CTR-KO-0022
+    reference_contract_ids: [CTR-JP-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0022: TARGET, CTR-JP-0001: EXISTING}
+  - scenario_id: RB-KO03
+    target_contract_id: CTR-KO-0023
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0023: TARGET, CTR-EN-0002: EXISTING}
+  - scenario_id: RB-KO04
+    target_contract_id: CTR-KO-0024
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-KO-0024: TARGET, CTR-JP-9003: EXISTING}
+  - scenario_id: RB-EN01
+    target_contract_id: CTR-EN-0021
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0021: TARGET, CTR-JP-0004: EXISTING}
+  - scenario_id: RB-EN02
+    target_contract_id: CTR-EN-0022
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0022: TARGET, CTR-KO-0005: EXISTING}
+  - scenario_id: RB-EN03
+    target_contract_id: CTR-EN-0023
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9005]
+    scenario_roles: {CTR-EN-0023: TARGET, CTR-EN-9005: UPSTREAM}
+  - scenario_id: RB-EN04
+    target_contract_id: CTR-EN-0024
+    reference_contract_ids: [CTR-EN-0003, CTR-JP-0003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-EN-0024: TARGET, CTR-EN-0003: EXISTING, CTR-JP-0003: EXISTING}
+  - scenario_id: RB-JP01
+    target_contract_id: CTR-JP-0021
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0021: TARGET, CTR-KO-0001: EXISTING}
+  - scenario_id: RB-JP02
+    target_contract_id: CTR-JP-0022
+    reference_contract_ids: [CTR-EN-0004]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0022: TARGET, CTR-EN-0004: EXISTING}
+  - scenario_id: RB-JP03
+    target_contract_id: CTR-JP-0023
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0023: TARGET, CTR-JP-9003: EXISTING}
+  - scenario_id: RB-JP04
+    target_contract_id: CTR-JP-0024
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    scenario_roles: {CTR-JP-0024: TARGET}

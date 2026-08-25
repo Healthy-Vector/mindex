@@ -1,0 +1,9 @@
+# 합성데이터셋은 줄바꿈을 LF로 고정한다.
+#
+# Evidence offset 규격이 "UTF-8 / LF / Unicode code point" 기준이므로,
+# Windows에서 core.autocrlf=true 로 clone 하면 canonical Markdown이 CRLF로 펼쳐지고
+# annotations/ 의 Evidence span 781건 offset이 줄 수만큼 전부 어긋난다.
+testdata/k-rights/** text eol=lf
+
+# 데이터셋 규격·전달 문서도 동일 기준으로 맞춘다.
+docs/synthetic_data/** text eol=lf

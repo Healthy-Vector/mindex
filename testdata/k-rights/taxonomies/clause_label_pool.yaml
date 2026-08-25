@@ -1,0 +1,72 @@
+status: REVIEWED
+version: 0.4
+phase: C
+principles:
+  - labels identify clause function, not the final conflict outcome
+  - a clause may receive multiple labels when it performs multiple functions
+  - DISTRACTOR means outside the basic scope intersection, not legally irrelevant
+  - payment value extraction is limited to amount and currency even when generation metadata contains richer commercial terms
+  - template_type is document generation metadata, not a CORE or RightsGrant extraction field
+
+categories:
+  CORE:
+    definition: Minimum clause functions used to construct and evaluate a RightsGrant.
+    labels:
+      - {label_id: CONTENT, display_name: Content, field: content_id}
+      - {label_id: LICENSE_GRANT, display_name: License Grant, field: grant_id}
+      - {label_id: LEGAL_RIGHT, display_name: Legal Right, field: legal_right}
+      - {label_id: EXPLOITATION_MODE, display_name: Exploitation Mode, field: exploitation_mode}
+      - {label_id: TERRITORY, display_name: Territory, field: territory}
+      - {label_id: LICENSE_PERIOD, display_name: License Period, field: license_period}
+      - {label_id: EXCLUSIVITY, display_name: Exclusivity, field: exclusivity}
+  MODIFIER:
+    definition: Clause functions that qualify, narrow, expand, sequence or otherwise modify a grant.
+    labels:
+      - {label_id: RESERVED_RIGHTS, display_name: Reserved Rights}
+      - {label_id: CARVE_OUT, display_name: Carve-out}
+      - {label_id: HOLDBACK, display_name: Holdback}
+      - {label_id: SUBLICENSE, display_name: Sublicense}
+      - {label_id: ASSIGNMENT, display_name: Assignment}
+      - {label_id: NON_TRANSFERABLE, display_name: Non-transferable}
+      - {label_id: RENEWAL, display_name: Renewal}
+      - {label_id: PLATFORM, display_name: Platform}
+      - {label_id: LANGUAGE, display_name: Language}
+      - {label_id: FORMAT, display_name: Format}
+      - {label_id: DERIVED_RIGHTS, display_name: Derived Rights}
+      - {label_id: RELATED_ASSET, display_name: Related Asset or OST}
+      - {label_id: PREFERENTIAL_NEGOTIATION, display_name: ROFR or ROFO or ROFN}
+      - {label_id: EXCLUSIVE_WINDOW, display_name: Exclusive Window}
+      - {label_id: TERMINATION_EFFECT, display_name: Termination Effect}
+  DISTRACTOR:
+    definition: Clause functions retained for document realism but excluded from basic rights-scope intersection unless a scenario rule expressly invokes them.
+    labels:
+      - {label_id: GOVERNING_LAW, display_name: Governing Law}
+      - {label_id: DISPUTE_RESOLUTION, display_name: Dispute Resolution}
+      - {label_id: AUDIT_RIGHTS, display_name: Audit Rights}
+      - label_id: PAYMENT
+        display_name: Payment or License Fee
+        field_group: payment_extraction
+        subfields: [amount, currency]
+        multiplicity: LIST
+      - label_id: REVENUE_SHARING
+        display_name: Revenue Sharing
+        extraction: false
+        generation_metadata_path: commercial_terms.revenue_share
+      - {label_id: REPRESENTATIONS_WARRANTIES, display_name: Representations and Warranties}
+      - {label_id: INDEMNIFICATION, display_name: Indemnification}
+      - {label_id: LIMITATION_OF_LIABILITY, display_name: Limitation of Liability}
+      - {label_id: CONFIDENTIALITY, display_name: Confidentiality}
+      - {label_id: TERMINATION, display_name: Termination}
+      - {label_id: NOTICE, display_name: Notice}
+      - {label_id: DELIVERY_OBLIGATIONS, display_name: Delivery Obligations}
+      - {label_id: CREDITS, display_name: Credits}
+      - {label_id: INSURANCE, display_name: Insurance}
+      - {label_id: FORCE_MAJEURE, display_name: Force Majeure}
+      - {label_id: CHANGE_OF_CONTROL, display_name: Change of Control}
+
+labeling_policy:
+  evidence_required: Each assigned label must point to a clause span or an incorporated schedule span.
+  no_clause_inference: Do not invent a clause label merely because a scenario expects a field.
+  termination_split: TERMINATION labels the general clause; TERMINATION_EFFECT labels language that actually changes grant scope or duration.
+  commercial_projection: PAYMENT extracts only amount and currency; all other payment, FX, tax, allocation and revenue-share details remain generation instructions.
+  template_separation: No CORE label or RightsGrant extraction object contains template_type.

@@ -1,0 +1,1372 @@
+status: REVIEWED
+version: 0.3
+phase: E
+
+summary:
+  scenario_count: 72
+  master_scenario_count: 60
+  robustness_scenario_count: 12
+  expected_results: {NORMAL: 27, CONFLICT: 35, REVIEW_REQUIRED: 7, WARNING: 3}
+  languages: {KO: 24, EN: 24, JP: 24}
+  target_template_assignments: 72
+  supporting_contract_template_assignments: 14
+  supporting_contract_template_assignments_pending: 0
+  target_page_bands: {SHORT: 14, MEDIUM: 36, LONG: 16, EXTENDED: 6}
+  supporting_page_bands: {SHORT: 3, MEDIUM: 7, LONG: 3, EXTENDED: 1}
+  total_page_bands: {SHORT: 17, MEDIUM: 43, LONG: 19, EXTENDED: 7}
+
+# source_precedence의 경로는 합성데이터 워크스페이스 기준이며 이 저장소에는 없다.
+# 생성 근거 추적용 기록으로만 유지한다.
+source_precedence:
+  - scenarios/SCENARIO_REVISION_NOTES.md
+  - docs/decisions/2026-08-16-phase-b-role-and-robustness.md
+  - docs/decisions/2026-08-16-phase-b-contract-reuse-content-expansion.md
+  - specs/contract_graph.yaml
+  - references/project/K-RIGHTS_합성데이터_생성_인수인계.md
+  - references/project/시나리오_리포트_원본.md
+
+vocabularies:
+  dataset_role: [MASTER, ROBUSTNESS]
+  scenario_group: [NORMAL, BOUNDARY, CONFLICT_L1, CONFLICT_L2, CONFLICT_L3, REVIEW, WARNING, ROBUSTNESS]
+  expected_result: [NORMAL, CONFLICT, REVIEW_REQUIRED, WARNING]
+  scope_expectation: [BASELINE_NO_COMPARISON, NO_OVERLAP, AUTHORIZED_NO_CONFLICT, FULL_OVERLAP, PARTIAL_OVERLAP, AUTHORITY_EXCEEDED, MULTI_FINDING, UNRESOLVED, WARNING_ONLY]
+  content_relationship: [NOT_APPLICABLE, SAME_CONTENT, DIFFERENT_CONTENT, DISJOINT_SCOPE_SAME_CONTENT, RELATED_ASSET_OF, DERIVATIVE_RIGHT_ON_SAME_PARENT, SAME_AS_UPSTREAM, UNRESOLVED_IDENTITY, THIRD_PARTY_RELATED_RIGHT]
+
+rule_evidence_defaults:
+  R1: [CONTENT]
+  R2: [CONTENT, CARVE_OUT]
+  R3: [LEGAL_RIGHT]
+  R4: [EXPLOITATION_MODE]
+  R5: [TERRITORY, CARVE_OUT]
+  R6: [LICENSE_PERIOD]
+  R7: [EXCLUSIVITY, RESERVED_RIGHTS, CARVE_OUT, HOLDBACK]
+  R8: [LICENSE_GRANT, SUBLICENSE, ASSIGNMENT, NON_TRANSFERABLE]
+  R9: [DERIVED_RIGHTS, RELATED_ASSET]
+
+reason_codes:
+  VALID_BASELINE_GRANT: No compared contract creates a conflict under the selected scope.
+  EDIT_SCOPE_SEPARATE: Contractually identified edits do not overlap.
+  RELATED_ASSET_SCOPE_SEPARATE: Audiovisual and related-asset grants remain legally distinct.
+  DERIVATIVE_RIGHT_AVAILABLE: The relevant derivative right is expressly reserved and available.
+  AUTHORIZED_SUBLICENSE: The target sublicense remains within reviewed upstream authority.
+  TERRITORY_DISJOINT: Compared territory sets have no intersection.
+  EXPLOITATION_MODE_DISJOINT: Compared exploitation modes do not overlap.
+  PERIOD_ADJACENT_NO_OVERLAP: The target starts after the existing inclusive end date.
+  NONEXCLUSIVE_COMPATIBLE: The compared non-exclusive grants can coexist.
+  CONTENT_IDENTITY_DISTINCT: Compared canonical contents are different.
+  CONTENT_SCOPE_DISJOINT: Compared season, episode or edit scopes do not overlap.
+  TERRITORY_EXPLICITLY_EXCLUDED: An express territory carve-out removes the overlap.
+  EXCLUSIVE_RIGHT_OVERLAP: An exclusive grant is incompatible with another grant in the overlapping scope.
+  PARTIAL_TERRITORY_OVERLAP: Only part of the target territory intersects the existing grant.
+  CONTENT_SCOPE_OVERLAP: A series, season, episode or edit hierarchy creates overlap.
+  PARTIAL_GRANT_OVERLAP: Only one or some RightsGrants in a contract conflict.
+  AUTHORITY_SCOPE_EXCEEDED: The target grant exceeds upstream right, mode or territory authority.
+  AUTHORITY_PERIOD_EXCEEDED: The target grant exceeds the upstream licence period.
+  UNAUTHORIZED_SUBLICENSE: The document itself proves that the sublicense is outside permitted recipients or conditions.
+  DERIVATIVE_RIGHT_OVERLAP: The same derivative right is already granted in the relevant scope.
+  RELATED_ASSET_RIGHT_OVERLAP: A related music asset right overlaps while the audiovisual scope may remain separate.
+  HOLDBACK_VIOLATION: Exploitation starts before an operative holdback expires.
+  TERRITORY_UNRESOLVED: An unavailable territory definition prevents deterministic comparison.
+  PERIOD_UNRESOLVED: A missing date anchor prevents deterministic period calculation.
+  EXCLUSIVITY_UNRESOLVED: The operative wording does not determine exclusivity.
+  CONTENT_IDENTITY_UNRESOLVED: Available identifiers do not establish whether two titles are the same content.
+  SUBLICENSE_CONSENT_UNVERIFIED: Required consent is an unavailable external document and approval status cannot be inferred.
+  DERIVATIVE_SCOPE_UNRESOLVED: Generic secondary-use wording does not determine the derivative-right scope.
+  CROSS_BORDER_MUSIC_CLEARANCE: Third-party music clearance requires operational review before distribution.
+  PRIOR_NEGOTIATION_OBLIGATION: A negotiation priority must be checked although no current rights conflict is established.
+
+review_items:
+  - review_id: SCENARIO-MASTER-REVIEW-001
+    status: REVIEWED
+    topic: canonical_content_fill_in
+    scenario_ids: [JP-N05, JP-R02]
+    resolution: >-
+      JP-N05 uses C004 for both the target and upstream comparison because the
+      sublicense is expressly the same content and scope. JP-R02 uses C006 for
+      both sides; only the derivative-right scope remains unresolved.
+  - review_id: SCENARIO-MASTER-REVIEW-002
+    status: REVIEWED
+    topic: supporting_contract_generation_assignment
+    resolution: >-
+      All 14 supporting-only contracts have a reviewed template, page target
+      and document evidence layout. Together with the 72 targets, the
+      assignments preserve the Phase D 17/43/19/7 page-band distribution.
+
+supporting_contract_generation:
+  - {contract_id: CTR-EN-9001, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-JP-9001, status: REVIEWED, template_type: T1, target_pages: 3, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-KO-9001, status: REVIEWED, template_type: T1, target_pages: 3, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-KO-9002, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-KO-9003, status: REVIEWED, template_type: T1, target_pages: 3, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-EN-9002, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: MULTI_CLAUSE}
+  - {contract_id: CTR-EN-9003, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-EN-9004, status: REVIEWED, template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+  - {contract_id: CTR-JP-9002, status: REVIEWED, template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+  - {contract_id: CTR-JP-9003, status: REVIEWED, template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+  - {contract_id: CTR-KO-9004, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+  - {contract_id: CTR-EN-9005, status: REVIEWED, template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+  - {contract_id: CTR-JP-9004, status: REVIEWED, template_type: T1, target_pages: 4, document_evidence_layout: MULTI_CLAUSE}
+  - {contract_id: CTR-KO-9005, status: REVIEWED, template_type: T4, target_pages: 6, document_evidence_layout: MULTI_CLAUSE}
+
+scenarios:
+  - scenario_id: KO-N01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C001 일본 SVOD 권리를 2026.01~2027.12 독점 부여하는 기준계약.
+    rules: [R1, R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-KO-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-N02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C002 한국 TV_LINEAR 권리를 2026.03~2027.02 독점 부여하는 방송권 기준계약.
+    rules: [R3, R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-KO-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T2, target_pages: 5, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-N03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C003 일본·대만 AVOD 권리를 2025.10~2028.09 독점 부여하는 복수 Territory 계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-KO-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-N04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C004 미국 THEATRICAL 권리를 2026.05~2027.04 비독점 부여하는 계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C004], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-KO-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-N01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: EN
+    intent: C001 미국 SVOD 권리를 2026~2028 독점 부여하는 영어 기준계약.
+    rules: [R1, R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-EN-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-N02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: EN
+    intent: C002 일본 AVOD 권리를 2025.07~2027.06 독점 부여하는 기준계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-EN-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-N03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: EN
+    intent: C005 한국·일본 TVOD 권리를 2026~2028 독점 부여하는 계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C005], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-EN-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-N04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: EN
+    intent: C006 미국 THEATRICAL 권리를 2025~2026 독점 부여하는 기준계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-EN-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-N01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: JP
+    intent: C003 일본 SVOD 권리를 2026~2028 독점 부여하는 일본어 기준계약.
+    rules: [R1, R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-JP-0001
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-N02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: JP
+    intent: C004 일본 TV_LINEAR 권리를 2025.04~2027.03 독점 부여하는 방송계약.
+    rules: [R3, R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C004], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-JP-0002
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T2, target_pages: 5, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-N03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: JP
+    intent: C005 일본 AVOD 권리를 2025~2027 비독점 부여하는 기준계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C005], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-JP-0003
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-N04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: JP
+    intent: C006 일본·대만 THEATRICAL 권리를 2026~2027 독점 부여하는 계약.
+    rules: [R4, R5, R6, R7]
+    expected_result: NORMAL
+    reason_codes: [VALID_BASELINE_GRANT]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [], related_asset_ids: [], relationship: NOT_APPLICABLE}
+    target_contract_id: CTR-JP-0004
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-N05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C006 미국 Theatrical Cut만 독점 부여하고 Director's Cut 등은 명시적으로 유보.
+    rules: [R2, R7]
+    expected_result: NORMAL
+    reason_codes: [EDIT_SCOPE_SEPARATE]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [], related_asset_ids: [], relationship: DISJOINT_SCOPE_SAME_CONTENT}
+    target_contract_id: CTR-KO-0005
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    revision_tags: [EXPLICIT_EDIT_INCLUSION_EXCLUSION]
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-N06
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: KO
+    intent: C001 영상과 별개인 MUS001 OST Master의 일본 MUSIC_STREAMING 권리만 독점 부여.
+    rules: [R9]
+    expected_result: NORMAL
+    reason_codes: [RELATED_ASSET_SCOPE_SEPARATE]
+    scope_expectation: BASELINE_NO_COMPARISON
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [], related_asset_ids: [MUS001], relationship: RELATED_ASSET_OF}
+    target_contract_id: CTR-KO-0006
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    revision_tags: [SEPARATE_AUDIOVISUAL_AND_OST_GRANTS]
+    generation: {complexity_profile: L1, target_template_type: T6, target_pages: 7, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-N05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: EN
+    intent: C002 원 계약에서 제작사에 유보된 미국 Remake 작성권을 적법하게 부여.
+    rules: [R9]
+    expected_result: NORMAL
+    reason_codes: [DERIVATIVE_RIGHT_AVAILABLE]
+    scope_expectation: AUTHORIZED_NO_CONFLICT
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: DERIVATIVE_RIGHT_ON_SAME_PARENT}
+    target_contract_id: CTR-EN-0005
+    reference_contract_ids: [CTR-EN-9001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-N05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: NORMAL
+    language: JP
+    intent: 원 계약에서 허용된 범위와 동일한 일본 SVOD 권리를 플랫폼에 재허락.
+    rules: [R8]
+    expected_result: NORMAL
+    reason_codes: [AUTHORIZED_SUBLICENSE]
+    scope_expectation: AUTHORIZED_NO_CONFLICT
+    expected_finding_count: 0
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C004], comparison_content_ids: [C004], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-JP-0005
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-JP-9001]
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-B01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: KO
+    intent: C001 SVOD와 기간은 기존과 같지만 Target Territory는 KR, Existing은 JP.
+    rules: [R5]
+    expected_result: NORMAL
+    reason_codes: [TERRITORY_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0007
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-B02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: KO
+    intent: C001 JP 계약이지만 Target은 THEATRICAL, Existing은 SVOD.
+    rules: [R4]
+    expected_result: NORMAL
+    reason_codes: [EXPLOITATION_MODE_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0008
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-B01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: EN
+    intent: C006 미국 극장권 Target이 Existing 종료 다음 날인 2027-01-01 시작.
+    rules: [R6]
+    expected_result: NORMAL
+    reason_codes: [PERIOD_ADJACENT_NO_OVERLAP]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0006
+    reference_contract_ids: [CTR-EN-0004]
+    upstream_contract_ids: []
+    revision_tags: [INCLUSIVE_DATE_BOUNDARY]
+    generation: {complexity_profile: L2, target_template_type: T3, target_pages: 3, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-B02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: EN
+    intent: C005 일본 AVOD를 Existing과 Target 모두 비독점으로 부여.
+    rules: [R7]
+    expected_result: NORMAL
+    reason_codes: [NONEXCLUSIVE_COMPATIBLE]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C005], comparison_content_ids: [C005], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0007
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T3, target_pages: 3, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-B01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: JP
+    intent: 기존 C004 일본 TV 계약과 조건은 같지만 Target Content는 C006.
+    rules: [R1]
+    expected_result: NORMAL
+    reason_codes: [CONTENT_IDENTITY_DISTINCT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C004], related_asset_ids: [], relationship: DIFFERENT_CONTENT}
+    target_contract_id: CTR-JP-0006
+    reference_contract_ids: [CTR-JP-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-B02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: JP
+    intent: C006 Target Territory KR+SG와 Existing JP+TW가 비중첩.
+    rules: [R5]
+    expected_result: NORMAL
+    reason_codes: [TERRITORY_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0007
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-B03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: EN
+    intent: C006 Director's Cut Target과 Existing Theatrical Cut only 범위가 비중첩.
+    rules: [R2]
+    expected_result: NORMAL
+    reason_codes: [CONTENT_SCOPE_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: DISJOINT_SCOPE_SAME_CONTENT}
+    target_contract_id: CTR-EN-0008
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    revision_tags: [EXPLICIT_EDIT_INCLUSION_EXCLUSION]
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-B03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: BOUNDARY
+    language: JP
+    intent: C004 Worldwide except US 극장권과 Existing US 극장권은 명시적 제외로 비중첩.
+    rules: [R5, R7]
+    expected_result: NORMAL
+    reason_codes: [TERRITORY_EXPLICITLY_EXCLUDED]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C004], comparison_content_ids: [C004], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0008
+    reference_contract_ids: [CTR-KO-0004]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-C01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: KO
+    intent: C001 일본 SVOD 독점권을 기존 기간과 겹치게 다른 유통사에 재부여.
+    rules: [R4, R5, R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0009
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-C01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: EN
+    intent: C002 일본 AVOD 독점권을 기존 기간과 겹치게 다른 플랫폼에 부여.
+    rules: [R4, R5, R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0009
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-C01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: JP
+    intent: C004 일본 TV_LINEAR 독점권을 다른 방송사에 중복 부여.
+    rules: [R3, R5, R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C004], comparison_content_ids: [C004], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0009
+    reference_contract_ids: [CTR-JP-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: KO-C04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: KO
+    intent: 기존 C001 JP SVOD Exclusive 범위에 신규 Non-exclusive SVOD를 부여.
+    rules: [R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0010
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-C04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: EN
+    intent: 살아 있는 C005 JP AVOD 비독점권과 양립 불가능한 완전 독점권을 신규 부여.
+    rules: [R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C005], comparison_content_ids: [C005], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0010
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T3, target_pages: 3, document_evidence_layout: LOCAL}
+
+  - scenario_id: JP-C04
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L1
+    language: JP
+    intent: C002 US Remake 독점권이 이미 존재하는데 동일 Remake 작성권을 다시 부여.
+    rules: [R9]
+    expected_result: CONFLICT
+    reason_codes: [DERIVATIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: DERIVATIVE_RIGHT_ON_SAME_PARENT}
+    target_contract_id: CTR-JP-0010
+    reference_contract_ids: [CTR-EN-0005]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L1, target_template_type: T1, target_pages: 4, document_evidence_layout: LOCAL}
+
+  - scenario_id: EN-C02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: EN
+    intent: USA·Subscription VOD·sole and exclusive 표현을 정규화하면 C001 기존 계약과 중첩.
+    rules: [R1, R4, R5, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0011
+    reference_contract_ids: [CTR-EN-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-C02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: KO
+    intent: C003 Target JP+SG와 Existing JP+TW에서 JP만 교집합.
+    rules: [R5]
+    expected_result: CONFLICT
+    reason_codes: [PARTIAL_TERRITORY_OVERLAP, EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0011
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-C02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: JP
+    intent: 冬のシグナル·日本·定額制動画配信権·独占을 정규화하면 C001 기존 계약과 중첩.
+    rules: [R1, R4, R5, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0011
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-C05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: KO
+    intent: C003 Whole Series JP AVOD 독점 범위가 신규 Season 2를 포함.
+    rules: [R2]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0012
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-C06
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: KO
+    intent: 계약 Definitions 또는 Schedule에서 Japan을 포함하도록 정의한 Asia SVOD 독점권이 C001 기존 JP 권리와 중첩.
+    rules: [R5]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0013
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    revision_tags: [CONTRACT_DEFINED_ASIA_MEMBERSHIP]
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-C05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: EN
+    intent: C003 Whole Series 독점 범위가 신규 Season 1 Episode 3를 포함.
+    rules: [R2]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0012
+    reference_contract_ids: [CTR-KO-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-C06
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: EN
+    intent: C006 all cuts, versions and edits 미국 극장권이 Existing 특정 Edit를 포함.
+    rules: [R2]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0013
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-C07
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: EN
+    intent: 계약 정의에서 SVOD·AVOD·TVOD를 열거한 broad on-demand C005 일본 독점권이 기존 세부권리와 중첩.
+    rules: [R3, R4, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C005], comparison_content_ids: [C005], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0014
+    reference_contract_ids: [CTR-EN-0003, CTR-JP-0003]
+    upstream_contract_ids: []
+    revision_tags: [CONTRACT_DEFINED_BROAD_VOD_INCLUSION]
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: JP-C05
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: JP
+    intent: 自動公衆送信による定額制配信을 legal right와 SVOD mode로 분리 정규화하면 C001 기존 권리와 중첩.
+    rules: [R3, R4]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0012
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T2, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-C06
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L2
+    language: JP
+    intent: C006 극장계약의 180일 SVOD Holdback 중 개봉 90일 후 Target SVOD가 시작.
+    rules: [R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [HOLDBACK_VIOLATION]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0013
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: EN-C03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: EN
+    intent: C006 Worldwide THEATRICAL 독점권이 Existing US 및 JP+TW 계약과 동시에 중첩.
+    rules: [R5, R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: MULTI_FINDING
+    expected_finding_count: 2
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0015
+    reference_contract_ids: [CTR-EN-0004, CTR-JP-0004]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: KO-C03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: KO
+    intent: C002 일본 SVOD·AVOD·TV_LINEAR 복수 Grant 중 AVOD Grant만 Existing과 충돌.
+    rules: [R4, R7]
+    expected_result: CONFLICT
+    reason_codes: [PARTIAL_GRANT_OVERLAP, EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0014
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T4, target_pages: 8, document_evidence_layout: MULTI_GRANT}
+
+  - scenario_id: JP-C03
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: JP
+    intent: C003 효력발생일 2027-01-01과 3년 상대기간을 결합하면 2027~2029로 Existing과 중첩.
+    rules: [R6]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0014
+    reference_contract_ids: [CTR-JP-0001]
+    upstream_contract_ids: []
+    revision_tags: [INCLUSIVE_DATE_BOUNDARY, EFFECTIVE_DATE_PLUS_DURATION]
+    generation: {complexity_profile: L3, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: KO-C07
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: KO
+    intent: C007 TVOD upstream 권한만 가진 배급사가 Existing SVOD Exclusive 범위에 SVOD sublicense를 부여.
+    rules: [R3, R4, R7, R8]
+    expected_result: CONFLICT
+    reason_codes: [AUTHORITY_SCOPE_EXCEEDED, EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: MULTI_FINDING
+    expected_finding_count: 2
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C007], comparison_content_ids: [C007], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-KO-0015
+    reference_contract_ids: [CTR-KO-9002]
+    upstream_contract_ids: [CTR-KO-9001]
+    revision_tags: [UPSTREAM_TVOD_EXISTING_SVOD_TARGET_SVOD]
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: KO-C08
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: KO
+    intent: C001 Japan-only SVOD upstream 권한으로 Asia SVOD sublicense를 부여.
+    rules: [R5, R8]
+    expected_result: CONFLICT
+    reason_codes: [AUTHORITY_SCOPE_EXCEEDED]
+    scope_expectation: AUTHORITY_EXCEEDED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-KO-0016
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-KO-9003]
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: KO-C09
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: KO
+    intent: C002 Japan all digital grant에서 SVOD만 Reserved한 뒤 남는 AVOD가 Existing 독점과 충돌.
+    rules: [R4, R7]
+    expected_result: CONFLICT
+    reason_codes: [PARTIAL_GRANT_OVERLAP, EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0017
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T4, target_pages: 8, document_evidence_layout: MULTI_GRANT}
+
+  - scenario_id: EN-C08
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: EN
+    intent: C008 upstream이 sublicensing을 Affiliates로 제한하지만 Target은 비계열 제3자에게 재허락.
+    rules: [R8]
+    expected_result: CONFLICT
+    reason_codes: [UNAUTHORIZED_SUBLICENSE]
+    scope_expectation: AUTHORITY_EXCEEDED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C008], comparison_content_ids: [C008], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-EN-0016
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9002]
+    revision_tags: [TEXT_PROVES_NON_AFFILIATE_VIOLATION, NO_ABSENT_CONSENT_INFERENCE]
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: EN-C09
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: EN
+    intent: C009 upstream 2026~2027보다 긴 2027~2029 sublicense에서 2028~2029만 권한초과.
+    rules: [R6, R8]
+    expected_result: CONFLICT
+    reason_codes: [AUTHORITY_PERIOD_EXCEEDED]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C009], comparison_content_ids: [C009], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-EN-0017
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9003]
+    revision_tags: [CONFLICT_SCOPE_EXCESS_PERIOD_ONLY]
+    generation: {complexity_profile: L3, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: EN-C10
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: EN
+    intent: C010 Release Date와 180일 Holdback을 Schedule에서 계산하면 Target SVOD가 종료 전 시작.
+    rules: [R6, R7]
+    expected_result: CONFLICT
+    reason_codes: [HOLDBACK_VIOLATION]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C010], comparison_content_ids: [C010], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0018
+    reference_contract_ids: [CTR-EN-9004]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: JP-C07
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: JP
+    intent: C002 기존 Schedule의 Remake·Format·Adaptation 독점권과 신규 US Remake 작성권이 중첩.
+    rules: [R9]
+    expected_result: CONFLICT
+    reason_codes: [DERIVATIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: DERIVATIVE_RIGHT_ON_SAME_PARENT}
+    target_contract_id: CTR-JP-0015
+    reference_contract_ids: [CTR-JP-9002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: JP-C08
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: JP
+    intent: C001 영상계약에 포함된 MUS001 OST standalone digital right만 Existing 음악 스트리밍권과 충돌.
+    rules: [R9]
+    expected_result: CONFLICT
+    reason_codes: [RELATED_ASSET_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [MUS001], relationship: RELATED_ASSET_OF}
+    target_contract_id: CTR-JP-0016
+    reference_contract_ids: [CTR-KO-0006]
+    upstream_contract_ids: []
+    revision_tags: [SEPARATE_AUDIOVISUAL_AND_OST_GRANTS]
+    generation: {complexity_profile: L3, target_template_type: T6, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: JP-C09
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: CONFLICT_L3
+    language: JP
+    intent: C003 Season 1 전체 JP SVOD 비교에서 E05 carve-out은 정상이고 나머지 Episodes만 충돌.
+    rules: [R2, R7]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_EXPLICIT, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0017
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: KO-R01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: KO
+    intent: 별도 합의된 Asia-Pacific 국가목록 Schedule이 없어 C001 Territory를 확정할 수 없음.
+    rules: [R5]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [TERRITORY_UNRESOLVED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0018
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    review_expectations: {territory: EXTERNAL_REFERENCE}
+    generation: {complexity_profile: REVIEW, target_template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: EN-R01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: EN
+    intent: first commercial release부터 3년이지만 Release Date가 없어 C001 기간 계산 불가.
+    rules: [R6]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [PERIOD_UNRESOLVED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0019
+    reference_contract_ids: [CTR-EN-0001]
+    upstream_contract_ids: []
+    review_expectations: {release_date: ABSENT, license_period: UNRESOLVED}
+    generation: {complexity_profile: REVIEW, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: JP-R01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: JP
+    intent: C005 Content·Territory·AVOD·Period는 명확하지만 실제 배타성을 확정할 문구 또는 참조정보가 부족.
+    rules: [R7]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [EXCLUSIVITY_UNRESOLVED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C005], comparison_content_ids: [C005], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0018
+    reference_contract_ids: [CTR-JP-0003]
+    upstream_contract_ids: []
+    review_expectations: {exclusivity: UNRESOLVED}
+    revision_tags: [AMBIGUOUS_OPERATIVE_EXCLUSIVITY_NOT_KEYWORD_ABSENCE]
+    generation: {complexity_profile: REVIEW, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-R02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: KO
+    intent: 봄날의 기억과 Spring Memories의 제작연도·부제 정보가 달라 동일 Content인지 확정 불가.
+    rules: [R1]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [CONTENT_IDENTITY_UNRESOLVED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: UNRESOLVED, target_content_ids: [], comparison_content_ids: [], related_asset_ids: [], relationship: UNRESOLVED_IDENTITY, raw_titles: [봄날의 기억, Spring Memories]}
+    target_contract_id: CTR-KO-0019
+    reference_contract_ids: [CTR-KO-9004]
+    upstream_contract_ids: []
+    review_expectations: {content_id: UNRESOLVED}
+    generation: {complexity_profile: REVIEW, target_template_type: T1, target_pages: 4, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: EN-R02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: EN
+    intent: C012 prior written consent 조건이 있으나 consent document가 evidence set에 없음.
+    rules: [R8]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [SUBLICENSE_CONSENT_UNVERIFIED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C012], comparison_content_ids: [C012], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-EN-0020
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9005]
+    review_expectations: {sublicense_consent: EXTERNAL_REFERENCE, must_not_infer_unapproved: true}
+    generation: {complexity_profile: REVIEW, target_template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: JP-R02
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: REVIEW
+    language: JP
+    intent: 二次利用に関する権利만으로 Remake·Format·Sequel 세부범위를 확정할 수 없음.
+    rules: [R9]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [DERIVATIVE_SCOPE_UNRESOLVED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0019
+    reference_contract_ids: [CTR-JP-9004]
+    upstream_contract_ids: []
+    review_expectations: {derivative_right_scope: UNRESOLVED}
+    generation: {complexity_profile: REVIEW, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: JP-W01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: WARNING
+    language: JP
+    intent: C011 일본 TV/VOD 유통에서 제3자 삽입음악 권리처리를 별도로 확인해야 함.
+    rules: [R9]
+    expected_result: WARNING
+    reason_codes: [CROSS_BORDER_MUSIC_CLEARANCE]
+    scope_expectation: WARNING_ONLY
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C011], comparison_content_ids: [], related_asset_ids: [], relationship: THIRD_PARTY_RELATED_RIGHT}
+    target_contract_id: CTR-JP-0020
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    warning_requirements: [THIRD_PARTY_MUSIC_CLEARANCE, CUE_SHEET_REVIEW]
+    generation: {complexity_profile: WARNING, target_template_type: T6, target_pages: 7, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: KO-W01
+    status: REVIEWED
+    dataset_role: MASTER
+    scenario_group: WARNING
+    language: KO
+    intent: C002 Remake 작성권은 제작사가 보유하지만 기존 방송사의 First Negotiation Right 확인 필요.
+    rules: [R9]
+    expected_result: WARNING
+    reason_codes: [PRIOR_NEGOTIATION_OBLIGATION]
+    scope_expectation: WARNING_ONLY
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: DERIVATIVE_RIGHT_ON_SAME_PARENT}
+    target_contract_id: CTR-KO-0020
+    reference_contract_ids: [CTR-KO-9005]
+    upstream_contract_ids: []
+    target_lifecycle: {document_status: DRAFT, execution_status: PRE_EXECUTION}
+    revision_tags: [NEGOTIATION_RIGHT_NOT_REMAKE_OWNERSHIP]
+    generation: {complexity_profile: WARNING, target_template_type: T4, target_pages: 7, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: RB-KO01
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: KO
+    robustness_parent_id: KO-B01
+    transformation: 본문 영문 제목과 별지 한국어 제목을 연결하되 Target KR과 Existing JP는 비중첩.
+    rules: [R5]
+    expected_result: NORMAL
+    reason_codes: [TERRITORY_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0021
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    revision_tags: [ROBUSTNESS_NORMAL_HARD_NEGATIVE]
+    generation: {complexity_profile: L2, target_template_type: T5, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: RB-KO02
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: KO
+    robustness_parent_id: JP-C03
+    transformation: 효력발생일은 첫 페이지, 36개월 이용기간은 Schedule에 분리.
+    rules: [R6]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0022
+    reference_contract_ids: [CTR-JP-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: RB-KO03
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: KO
+    robustness_parent_id: KO-C03
+    transformation: SVOD·AVOD·TV_LINEAR 복수 Grant를 Schedule 표로 표현.
+    rules: [R4, R7]
+    expected_result: CONFLICT
+    reason_codes: [PARTIAL_GRANT_OVERLAP, EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C002], comparison_content_ids: [C002], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0023
+    reference_contract_ids: [CTR-EN-0002]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: MULTI_GRANT}
+
+  - scenario_id: RB-KO04
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: KO
+    robustness_parent_id: JP-C09
+    transformation: Season 1 전 회차 중 제5화 제외 조건을 각주에만 배치.
+    rules: [R2, R7]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-KO-0024
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 10, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: RB-EN01
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: EN
+    robustness_parent_id: JP-B02
+    transformation: Asia-Pacific Territories를 Korea and Singapore only로 정의하여 Existing JP+TW와 비중첩.
+    rules: [R5]
+    expected_result: NORMAL
+    reason_codes: [TERRITORY_DISJOINT]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0021
+    reference_contract_ids: [CTR-JP-0004]
+    upstream_contract_ids: []
+    revision_tags: [ROBUSTNESS_NORMAL_HARD_NEGATIVE, CONTRACT_DEFINED_APAC_KR_SG]
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: RB-EN02
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: EN
+    robustness_parent_id: EN-C06
+    transformation: all cuts, edits, dubbed versions and alternate versions 표현으로 Edit hierarchy를 변형.
+    rules: [R2]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0022
+    reference_contract_ids: [CTR-KO-0005]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: RB-EN03
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: EN
+    robustness_parent_id: EN-R02
+    transformation: Consent 조건을 Definitions와 Schedule에 분산하고 consent document는 evidence set에서 제외.
+    rules: [R8]
+    expected_result: REVIEW_REQUIRED
+    reason_codes: [SUBLICENSE_CONSENT_UNVERIFIED]
+    scope_expectation: UNRESOLVED
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C012], comparison_content_ids: [C012], related_asset_ids: [], relationship: SAME_AS_UPSTREAM}
+    target_contract_id: CTR-EN-0023
+    reference_contract_ids: []
+    upstream_contract_ids: [CTR-EN-9005]
+    review_expectations: {sublicense_consent: EXTERNAL_REFERENCE, must_not_infer_unapproved: true}
+    generation: {complexity_profile: REVIEW, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: RB-EN04
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: EN
+    robustness_parent_id: EN-C07
+    transformation: 약어 없이 subscription, advertising or transactional on-demand exploitation으로 표현.
+    rules: [R3, R4, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C005], comparison_content_ids: [C005], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-EN-0024
+    reference_contract_ids: [CTR-EN-0003, CTR-JP-0003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: RB-JP01
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: JP
+    robustness_parent_id: JP-C02
+    transformation: 定額制動画配信·サブスクリプション型配信·SVOD를 한 문서에서 혼용.
+    rules: [R1, R4, R5, R7]
+    expected_result: CONFLICT
+    reason_codes: [EXCLUSIVE_RIGHT_OVERLAP]
+    scope_expectation: FULL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C001], comparison_content_ids: [C001], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0021
+    reference_contract_ids: [CTR-KO-0001]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: MULTI_CLAUSE}
+
+  - scenario_id: RB-JP02
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: JP
+    robustness_parent_id: EN-B01
+    transformation: 일본어 상대기간 계산 후 Existing 종료 다음 날 Target 기간이 시작.
+    rules: [R6]
+    expected_result: NORMAL
+    reason_codes: [PERIOD_ADJACENT_NO_OVERLAP]
+    scope_expectation: NO_OVERLAP
+    expected_finding_count: 0
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C006], comparison_content_ids: [C006], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0022
+    reference_contract_ids: [CTR-EN-0004]
+    upstream_contract_ids: []
+    revision_tags: [ROBUSTNESS_NORMAL_HARD_NEGATIVE, INCLUSIVE_DATE_BOUNDARY]
+    generation: {complexity_profile: L2, target_template_type: T1, target_pages: 5, document_evidence_layout: TWO_CLAUSE}
+
+  - scenario_id: RB-JP03
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: JP
+    robustness_parent_id: JP-C09
+    transformation: 第1話から第8話まで（第5話を除く） 형식으로 Episode carve-out을 표현.
+    rules: [R2, R7]
+    expected_result: CONFLICT
+    reason_codes: [CONTENT_SCOPE_OVERLAP]
+    scope_expectation: PARTIAL_OVERLAP
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C003], comparison_content_ids: [C003], related_asset_ids: [], relationship: SAME_CONTENT}
+    target_contract_id: CTR-JP-0023
+    reference_contract_ids: [CTR-JP-9003]
+    upstream_contract_ids: []
+    generation: {complexity_profile: L3, target_template_type: T5, target_pages: 8, document_evidence_layout: BODY_SCHEDULE}
+
+  - scenario_id: RB-JP04
+    status: REVIEWED
+    dataset_role: ROBUSTNESS
+    scenario_group: ROBUSTNESS
+    language: JP
+    robustness_parent_id: JP-W01
+    transformation: 音楽著作権の別途権利処理 문구와 Cue Sheet 제출조건을 Schedule에 배치.
+    rules: [R9]
+    expected_result: WARNING
+    reason_codes: [CROSS_BORDER_MUSIC_CLEARANCE]
+    scope_expectation: WARNING_ONLY
+    expected_finding_count: 1
+    content: {field_status: PRESENT_DERIVED, target_content_ids: [C011], comparison_content_ids: [], related_asset_ids: [], relationship: THIRD_PARTY_RELATED_RIGHT}
+    target_contract_id: CTR-JP-0024
+    reference_contract_ids: []
+    upstream_contract_ids: []
+    warning_requirements: [THIRD_PARTY_MUSIC_CLEARANCE, CUE_SHEET_REVIEW]
+    generation: {complexity_profile: WARNING, target_template_type: T6, target_pages: 7, document_evidence_layout: BODY_SCHEDULE}

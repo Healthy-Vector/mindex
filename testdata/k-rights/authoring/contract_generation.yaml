@@ -1,0 +1,5670 @@
+status: REVIEWED
+version: 0.1
+phase: H
+review_note: Synthetic party names and commercial values were approved for research-backed assignment by the user on 2026-08-18.
+summary:
+  contract_count: 86
+  status_counts:
+    REVIEWED: 86
+contracts:
+- contract_id: CTR-KO-0001
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-05'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  - role: GRANTEE
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: CORE_FIRST
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '688000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0001-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '688000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0002
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-30'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T2
+    target_pages: 5
+    document_evidence_layout: LOCAL
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '282000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '56400000'
+      percentage: '20'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '112800000'
+      percentage: '40'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0002-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '112800000'
+      percentage: '40'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0003
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-07-05'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '298000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0003-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '149000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0003-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '149000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0004
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-11-22'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '535000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0004-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '214000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0004-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '321000.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0001
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-11'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: CORE_FIRST
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: NO_FEE
+    contract_value:
+      amount: '0.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule: []
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0002
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-02-05'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '405000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '162000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '243000.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0003
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-09-15'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '488000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0003-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '488000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0004
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-11-11'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: LOCAL
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '856000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0004-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '342400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0004-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '513600.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '856000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0001
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-30'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: LOCAL
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '55000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0001-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '16500000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0001-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '38500000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0002
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-01-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T2
+    target_pages: 5
+    document_evidence_layout: LOCAL
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '41000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '12300000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '28700000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0003
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-10-03'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  - role: GRANTEE
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '73000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0003-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '21900000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0003-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '51100000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0004
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-11-01'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '875000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0004-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '175000.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0004-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '350000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0004-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '350000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0005
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-08-17'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  - role: GRANTEE
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '704000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0005-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '281600.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0005-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '422400.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0006
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-26'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T6
+    target_pages: 7
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '240000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0006-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '96000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0006-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '144000.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0005
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-18'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '419000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0005-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '125700.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0005-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '293300.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '419000.00'
+      currency: USD
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0005
+  status: REVIEWED
+  language: JP
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-10-09'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '52000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0005-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '26000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0005-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '26000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-9001
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-07-19'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '425000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-9001-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '127500.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-9001-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '297500.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '425000.00'
+      currency: USD
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-9001
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-07-11'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '29000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-9001-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '14500000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-9001-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '14500000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '29000000'
+      currency: JPY
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-9001
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-06-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '238000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-9001-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '95200000'
+      percentage: '40'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9001-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '142800000'
+      percentage: '60'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-9002
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-05-18'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '507000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-9002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '152100000'
+      percentage: '30'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '354900000'
+      percentage: '70'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-9003
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-05-25'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  - role: GRANTEE
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  structure:
+    template_type: T1
+    target_pages: 3
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '563000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-9003-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '168900.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9003-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '394100.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '563000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-9002
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-07-08'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '601000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-9002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '240400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-9002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '360600.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-9003
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-09-02'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '175000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-9003-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '87500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-9003-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '87500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '175000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-9004
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-05-10'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '802000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-9004-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '401000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-9004-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '401000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-9002
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-08'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: JP_BUNKA
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '719000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-9002-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '143800.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-9002-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '287600.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-9002-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '287600.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-9003
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-05-17'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '105000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-9003-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '42000000'
+      percentage: '40'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-9003-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '63000000'
+      percentage: '60'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-9004
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-07-19'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '145000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-9004-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '29000000'
+      percentage: '20'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9004-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '58000000'
+      percentage: '40'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9004-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '58000000'
+      percentage: '40'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '145000000'
+      currency: KRW
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-9005
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-06-09'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: SEC
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '439000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-9005-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '219500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-9005-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '219500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-9004
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-05-22'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '103000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-9004-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '30900000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-9004-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '72100000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-9005
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-05-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T4
+    target_pages: 6
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '154000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-9005-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '77000000'
+      percentage: '50'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-9005-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '77000000'
+      percentage: '50'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0007
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-20'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '426000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0007-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '127800000'
+      percentage: '30'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0007-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '298200000'
+      percentage: '70'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '426000000'
+      currency: KRW
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0008
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-11-07'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '856000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0008-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '342400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0008-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '513600.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0006
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-03'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '193000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0006-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '57900.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0006-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '135100.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0007
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-09-13'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '577000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0007-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '230800.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0007-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '346200.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0006
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2024-11-06'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  - role: GRANTEE
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '63000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0006-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '25200000'
+      percentage: '40'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0006-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '37800000'
+      percentage: '60'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0007
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-11-02'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '508000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0007-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '101600.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0007-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '203200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0007-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '203200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0008
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-20'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '836000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0008-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '167200.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0008-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '334400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0008-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '334400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0008
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-02-21'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '213000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0008-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '63900.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0008-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '149100.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0009
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-30'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '818000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0009-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '163600.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0009-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '327200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0009-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '327200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0009
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-02-26'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '600000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0009-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '120000.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0009-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '240000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0009-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '240000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0009
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-01-04'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '51000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0009-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '51000000'
+      percentage: '100'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0010
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-25'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '808000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0010-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '808000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0010
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-28'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T3
+    target_pages: 3
+    document_evidence_layout: LOCAL
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '349000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0010-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '349000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0010
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2027-11-01'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: LOCAL
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '886000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0010-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '177200.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0010-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '354400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0010-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '354400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0011
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-31'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '384000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0011-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '384000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0011
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-10'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: NO_FEE
+    contract_value:
+      amount: '0.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule: []
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0011
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-21'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  - role: GRANTEE
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '61000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0011-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '18300000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0011-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '42700000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '61000000'
+      currency: JPY
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0012
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-09-04'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '759000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0012-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '227700.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0012-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '531300.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0013
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-07-31'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  - role: GRANTEE
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '278000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0013-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '55600.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0013-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '111200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0013-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '111200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0012
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-09-17'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '850000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0012-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '425000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0012-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '425000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0013
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-29'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '438000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0013-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '219000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0013-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '219000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0014
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-07-20'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '897000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0014-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '358800.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0014-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '538200.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0012
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-07-31'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T2
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '78000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0012-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '39000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0012-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '39000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0013
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-03'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '76000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0013-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '30400000'
+      percentage: '40'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0013-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '45600000'
+      percentage: '60'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0015
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-01-14'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: SEC
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '791000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0015-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '158200.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0015-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '316400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0015-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '316400.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0014
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-14'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T4
+    target_pages: 8
+    document_evidence_layout: MULTI_GRANT
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '370000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0014-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '74000.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0014-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '148000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0014-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '148000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-KO-0014-01
+      scope_type: GRANT
+      scope_id: GRT-KO-0014-01
+      amount: '123333.33'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-KO-0014-02
+      scope_type: GRANT
+      scope_id: GRT-KO-0014-02
+      amount: '123333.33'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-KO-0014-03
+      scope_type: GRANT
+      scope_id: GRT-KO-0014-03
+      amount: '123333.34'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0014
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-08'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '67000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0014-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '33500000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0014-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '33500000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0015
+  status: REVIEWED
+  language: KO
+  agreement_type: SUBLICENSE
+  agreement_date: '2027-03-07'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '521000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0015-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '156300000'
+      percentage: '30'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0015-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '364700000'
+      percentage: '70'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0016
+  status: REVIEWED
+  language: KO
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-10-19'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '242000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0016-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '242000.00'
+      percentage: '100'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0017
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-02'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T4
+    target_pages: 8
+    document_evidence_layout: MULTI_GRANT
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '456000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0017-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '228000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0017-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '228000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-KO-0017-01
+      scope_type: GRANT
+      scope_id: GRT-KO-0017-01
+      amount: '228000.00'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-KO-0017-02
+      scope_type: GRANT
+      scope_id: GRT-KO-0017-02
+      amount: '228000.00'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0016
+  status: REVIEWED
+  language: EN
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-08-27'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: SEC
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '286000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0016-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '85800.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0016-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '200200.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0017
+  status: REVIEWED
+  language: EN
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-08-27'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '904000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0017-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '452000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0017-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '452000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0018
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-09'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '931000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0018-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '465500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0018-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '465500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0015
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-10'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '990000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0015-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '495000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0015-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '495000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0016
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-02'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T6
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: JP_BUNKA
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '54000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0016-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '16200000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0016-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '37800000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-JP-0016-01
+      scope_type: GRANT
+      scope_id: GRT-JP-0016-01
+      amount: '27000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-JP-0016-02
+      scope_type: GRANT
+      scope_id: GRT-JP-0016-02
+      amount: '27000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0017
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '47000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0017-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '47000000'
+      percentage: '100'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '47000000'
+      currency: JPY
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0018
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-19'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '518000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0018-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '103600.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0018-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '207200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0018-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '207200.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '518000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0019
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-01'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '873000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0019-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '261900.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0019-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '611100.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0018
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: CORE_FIRST
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '50000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0018-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '50000000'
+      percentage: '100'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0019
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T1
+    target_pages: 4
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '231000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0019-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '231000000'
+      percentage: '100'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '231000000'
+      currency: KRW
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0020
+  status: REVIEWED
+  language: EN
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-09-23'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: CUAD
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '400000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0020-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '200000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0020-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '200000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0019
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-07'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '82000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0019-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '41000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0019-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '41000000'
+      percentage: '50'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '82000000'
+      currency: JPY
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0020
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-01'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T6
+    target_pages: 7
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '78000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0020-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '78000000'
+      percentage: '100'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-JP-0020-01
+      scope_type: GRANT
+      scope_id: GRT-JP-0020-01
+      amount: '39000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-JP-0020-02
+      scope_type: GRANT
+      scope_id: GRT-JP-0020-02
+      amount: '39000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0020
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-10-29'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T4
+    target_pages: 7
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: COMMERCIAL_MID
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '866000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0020-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '433000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0020-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '433000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '866000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0021
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-09-16'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  - role: GRANTEE
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  structure:
+    template_type: T5
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '525000000'
+      currency_of_account: KRW
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: KRW
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0021-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '262500000'
+      percentage: '50'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0021-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '262500000'
+      percentage: '50'
+      currency: KRW
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0022
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-08-11'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-004
+    name: 노을콘텐츠 유한회사
+    jurisdiction: KR
+    representative: 이하린
+    address: 부산광역시 해운대구 센텀중앙로 90, 14층
+    registration_number: 180111-9001004
+  - role: GRANTEE
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '919000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0022-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '275700.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0022-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '643300.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0023
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-10-25'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-001
+    name: 루미나 픽처스 주식회사
+    jurisdiction: KR
+    representative: 한서진
+    address: 서울특별시 마포구 월드컵북로 164, 9층
+    registration_number: 110111-9001001
+  - role: GRANTEE
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: MULTI_GRANT
+    clause_order_profile: CORE_FIRST
+    source_style_profile: KR_OFFICIAL_FORM
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '757000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-KO-0023-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '227100.00'
+      percentage: '30'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-KO-0023-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '529900.00'
+      percentage: '70'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-KO-0023-01
+      scope_type: GRANT
+      scope_id: GRT-KO-0023-01
+      amount: '252333.33'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-KO-0023-02
+      scope_type: GRANT
+      scope_id: GRT-KO-0023-02
+      amount: '252333.33'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-KO-0023-03
+      scope_type: GRANT
+      scope_id: GRT-KO-0023-03
+      amount: '252333.34'
+      currency: USD
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-KO-0024
+  status: REVIEWED
+  language: KO
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-11-05'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-KO-002
+    name: 해솔미디어 주식회사
+    jurisdiction: KR
+    representative: 김도윤
+    address: 서울특별시 영등포구 국제금융로 36, 12층
+    registration_number: 110111-9001002
+  - role: GRANTEE
+    party_id: PARTY-KO-003
+    name: 온웨이브 플랫폼 주식회사
+    jurisdiction: KR
+    representative: 박지후
+    address: 경기도 성남시 분당구 판교로 242, 6층
+    registration_number: 131111-9001003
+  structure:
+    template_type: T5
+    target_pages: 10
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: NO_FEE
+    contract_value:
+      amount: '0.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule: []
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0021
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-10'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  - role: GRANTEE
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '427000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0021-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '85400.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0021-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '170800.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0021-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '170800.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0022
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-12'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-004
+    name: Lantern Rights Pte. Ltd.
+    jurisdiction: SG
+    representative: Ethan Lim
+    address: '8 Marina View, #21-04, Singapore 018960'
+    registration_number: SG-900104
+  - role: GRANTEE
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: CUAD
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MINIMUM_GUARANTEE
+    contract_value:
+      amount: '661000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0022-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '330500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0022-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '330500.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '661000.00'
+      currency: USD
+      recoupable: false
+      recoupment_basis: null
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0023
+  status: REVIEWED
+  language: EN
+  agreement_type: SUBLICENSE
+  agreement_date: '2026-08-14'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-001
+    name: Northstar Pictures Ltd.
+    jurisdiction: GB
+    representative: Amelia Hart
+    address: 18 Meridian Square, London EC2A 4NE, United Kingdom
+    registration_number: SC900101
+  - role: GRANTEE
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: MG_PLUS_REVENUE_SHARE
+    contract_value:
+      amount: '239000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0023-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '47800.00'
+      percentage: '20'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0023-02
+      milestone: DELIVERY
+      due_date_or_rule: within 10 business days after delivery
+      amount: '95600.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0023-03
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '95600.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee:
+      amount: '239000.00'
+      currency: USD
+      recoupable: true
+      recoupment_basis: NET_RECEIPTS
+      cross_collateralized: false
+      field_status: PRESENT_EXPLICIT
+    revenue_share:
+      rate_percent: '15'
+      calculation_basis: NET_RECEIPTS
+      deductions:
+      - platform fees
+      - indirect taxes
+      - approved third-party distribution costs
+      accounting_period: QUARTERLY
+      statement_due_rule: 45 days after each quarter
+      audit_right: true
+      field_status: PRESENT_EXPLICIT
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-EN-0024
+  status: REVIEWED
+  language: EN
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-01'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-EN-002
+    name: Blue Harbor Distribution LLC
+    jurisdiction: US
+    representative: Daniel Reed
+    address: 420 Harbor Avenue, Wilmington, Delaware 19801, USA
+    registration_number: DE-900102
+  - role: GRANTEE
+    party_id: PARTY-EN-003
+    name: StreamArc Media Inc.
+    jurisdiction: US
+    representative: Maya Collins
+    address: 155 Sunset Media Drive, Los Angeles, California 90028, USA
+    registration_number: CA-900103
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: SEC
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '210000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-EN-0024-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '84000.00'
+      percentage: '40'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-EN-0024-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '126000.00'
+      percentage: '60'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0021
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2025-08-02'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  - role: GRANTEE
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: MULTI_CLAUSE
+    clause_order_profile: MODIFIERS_SCATTERED
+    source_style_profile: JP_BUNKA
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '83000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0021-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '33200000'
+      percentage: '40'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0021-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after accepted delivery
+      amount: '49800000'
+      percentage: '60'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0022
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-21'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-004
+    name: 星空メディア合同会社
+    jurisdiction: JP
+    representative: 伊藤悠真
+    address: 神奈川県横浜市西区みなとみらい四丁目6番3号
+    registration_number: 0200-03-900104
+  - role: GRANTEE
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  structure:
+    template_type: T1
+    target_pages: 5
+    document_evidence_layout: TWO_CLAUSE
+    clause_order_profile: DEFINITIONS_SPLIT
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: false
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '624000.00'
+      currency_of_account: USD
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: USD
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0022-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '312000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0022-02
+      milestone: ACCEPTANCE
+      due_date_or_rule: within 15 business days after acceptance
+      amount: '312000.00'
+      percentage: '50'
+      currency: USD
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0023
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-09-19'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-001
+    name: 株式会社月影スタジオ
+    jurisdiction: JP
+    representative: 佐藤美咲
+    address: 東京都渋谷区神宮前三丁目18番9号
+    registration_number: 0100-01-900101
+  - role: GRANTEE
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  structure:
+    template_type: T5
+    target_pages: 8
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: JP_BUNKA
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: FIXED_FEE
+    contract_value:
+      amount: '81000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0023-01
+      milestone: SIGNING
+      due_date_or_rule: within 15 business days after signing
+      amount: '81000000'
+      percentage: '100'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations: []
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
+- contract_id: CTR-JP-0024
+  status: REVIEWED
+  language: JP
+  agreement_type: DIRECT_LICENSE
+  agreement_date: '2026-08-13'
+  parties:
+  - role: GRANTOR
+    party_id: PARTY-JP-002
+    name: 青波コンテンツ株式会社
+    jurisdiction: JP
+    representative: 高橋蓮
+    address: 東京都港区海岸一丁目7番12号
+    registration_number: 0100-01-900102
+  - role: GRANTEE
+    party_id: PARTY-JP-003
+    name: ミライ配信株式会社
+    jurisdiction: JP
+    representative: 中村葵
+    address: 大阪府大阪市北区中之島二丁目5番8号
+    registration_number: 1200-01-900103
+  structure:
+    template_type: T6
+    target_pages: 7
+    document_evidence_layout: BODY_SCHEDULE
+    clause_order_profile: SCHEDULE_HEAVY
+    source_style_profile: PROJECT_TEMPLATE
+    schedule_usage: true
+  commercial_terms:
+    status: REVIEWED
+    fee_model: PER_GRANT_FEE
+    contract_value:
+      amount: '110000000'
+      currency_of_account: JPY
+      field_status: PRESENT_EXPLICIT
+    payment_currency:
+      currency_of_payment: JPY
+      alternative_currency_allowed: false
+      field_status: PRESENT_EXPLICIT
+    payment_schedule:
+    - payment_id: PAY-JP-0024-01
+      milestone: SIGNING
+      due_date_or_rule: within 10 business days after signing
+      amount: '33000000'
+      percentage: '30'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    - payment_id: PAY-JP-0024-02
+      milestone: DELIVERY
+      due_date_or_rule: within 15 business days after delivery
+      amount: '77000000'
+      percentage: '70'
+      currency: JPY
+      field_status: PRESENT_EXPLICIT
+    allocations:
+    - allocation_id: ALC-JP-0024-01
+      scope_type: GRANT
+      scope_id: GRT-JP-0024-01
+      amount: '55000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    - allocation_id: ALC-JP-0024-02
+      scope_type: GRANT
+      scope_id: GRT-JP-0024-02
+      amount: '55000000'
+      currency: JPY
+      included_in_allocation_id: null
+      field_status: PRESENT_EXPLICIT
+    minimum_guarantee: null
+    revenue_share: null
+    fx_conversion: null
+    taxes_and_charges:
+      indirect_tax_treatment: TAX_EXCLUDED
+      withholding_tax_treatment: AS_REQUIRED_BY_LAW
+      gross_up: false
+      bank_charge_allocation: PAYER
+      field_status: PRESENT_EXPLICIT
