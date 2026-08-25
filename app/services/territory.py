@@ -29,7 +29,7 @@ def end_inclusive_from_upper(upper: date | None) -> date | None:
 def expand_territories(db: Session, codes: Iterable[str]) -> list[str]:
     """국가/그룹 코드가 섞인 목록을 국가 코드로 펼치고 중복 제거(순서 보존).
 
-    - 2자리 코드가 territory_group 에 있으면 그룹으로 보고 전개
+    - territory_group_member 에 행이 있으면 그룹으로 보고 전개
     - 그 외에는 국가 코드로 간주
     """
     result: list[str] = []
@@ -40,7 +40,7 @@ def expand_territories(db: Session, codes: Iterable[str]) -> list[str]:
             continue
         rows = db.execute(
             text(
-                "SELECT country_code FROM master.territory_group_country "
+                "SELECT country_code FROM territory_group_member "
                 "WHERE group_code = :g ORDER BY country_code"
             ),
             {"g": code},

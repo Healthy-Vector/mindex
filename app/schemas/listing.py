@@ -15,7 +15,8 @@ class ContractListItem(CamelModel):
     kind: str = "contract"
     id: int
     title: Optional[str] = None
-    counterparty: str
+    grantor: str
+    grantee: str
     status: str
     has_conflict: bool = False
     display_state: Optional[str] = None

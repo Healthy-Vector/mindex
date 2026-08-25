@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     database_url: str
 
     # --- PIN 세션 (지시서 §4.7) ---
-    jwt_secret: str = "dev-insecure-change-me"
+    jwt_secret: str = "dev-insecure-change-me-at-least-32-bytes"
     jwt_alg: str = "HS256"
     session_ttl_minutes: int = 15
     session_refresh_throttle_seconds: int = 60

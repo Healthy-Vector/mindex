@@ -79,7 +79,7 @@ def list_contracts(
 
     rows = db.execute(
         text(
-            "SELECT c.id, c.counterparty, c.status, c.signed_date, c.created_at, "
+            "SELECT c.id, c.grantor, c.grantee, c.status, c.signed_date, c.created_at, "
             "       lh.file_name AS title, lh.status AS latest_status "
             "FROM contract c "
             "LEFT JOIN LATERAL ("
@@ -95,7 +95,7 @@ def list_contracts(
         state, days = _contract_meta(db, c["id"])
         items.append(
             ContractListItem(
-                id=c["id"], title=c["title"], counterparty=c["counterparty"],
+                id=c["id"], title=c["title"], grantor=c["grantor"], grantee=c["grantee"],
                 status=c["status"], has_conflict=(c["latest_status"] == "conflicted"),
                 display_state=state, days_to_expiry=days, service_title=None,
                 signed_date=c["signed_date"], created_at=c["created_at"],
@@ -105,9 +105,8 @@ def list_contracts(
     if include_processing:
         procs = db.execute(
             text(
-                "SELECT j.tmpid, j.status, j.stage, j.reason, j.created_at, b.filename "
+                "SELECT j.tmpid, j.status, j.stage, j.reason, j.created_at "
                 "FROM staging.extract_job j "
-                "LEFT JOIN staging.pdf_blob b ON b.tmpid=j.tmpid "
                 "WHERE j.status IN ('QUEUED','RUNNING','FAILED') ORDER BY j.created_at DESC"
             )
         ).mappings().all()
@@ -115,7 +114,7 @@ def list_contracts(
             items.append(
                 ProcessingListItem(
                     tmpid=str(p["tmpid"]), status=p["status"], stage=p["stage"],
-                    filename=p["filename"], reason=p["reason"], created_at=p["created_at"],
+                    filename=None, reason=p["reason"], created_at=p["created_at"],
                 ).model_dump(by_alias=True, mode="json")
             )
 
@@ -212,16 +211,15 @@ def get_contract(
             ips.append(IpBrief(ip_id=r["ip_id"], title=r["ip_title"], kind=r["ip_kind"]))
 
     state, days = _contract_meta(db, contract_id)
-    grantor = db.execute(text("SELECT name FROM team ORDER BY id LIMIT 1")).scalar()
     cur_ver = next((h["version"] for h in histories if h["id"] == cur_id), None)
 
     return ContractDetail(
-        id=c["id"], title=title, counterparty=c["counterparty"], status=c["status"],
+        id=c["id"], title=title, grantor=c["grantor"], grantee=c["grantee"], status=c["status"],
         signed_date=c["signed_date"], lang=c["lang"],
         amount=float(c["amount"]) if c["amount"] is not None else None, currency=c["currency"],
         current_version=cur_ver, has_conflict=has_conflict, conflict_report=conflict_report,
         display_state=state, days_to_expiry=days, service_title=None,
-        grantor=grantor, grantee=None, authority=Authority(),
+        authority=Authority(),
         ips=ips, rights=rights, histories=hrows,
     )
 
@@ -256,17 +254,33 @@ def cancel_contract(
 ) -> CancelResponse:
     """contract.status='cancelled' 로 바꾸면 트리거(release_contract_rights)가
     active 권리를 terminated 로 내린다(§5.7 대응, P2-DB 12번 트리거)."""
+    current = db.execute(
+        text("SELECT status FROM contract WHERE id=:c FOR UPDATE"),
+        {"c": contract_id},
+    ).scalar()
+    if current is None:
+        db.rollback()
+        raise NotFound("계약을 찾을 수 없습니다")
+    if current == "cancelled":
+        db.rollback()
+        raise AlreadyCancelled("이미 종료된 계약입니다")
+
     active = db.execute(
         text("SELECT count(*) FROM rights_grant WHERE contract_id=:c AND status='active'"),
         {"c": contract_id},
     ).scalar_one()
-    updated = db.execute(
+    terminated_at = db.execute(
         text("UPDATE contract SET status='cancelled', updated_at=now() "
-             "WHERE id=:c AND status<>'cancelled'"),
+             "WHERE id=:c AND status<>'cancelled' RETURNING updated_at"),
         {"c": contract_id},
-    ).rowcount
-    if updated == 0:
+    ).scalar()
+    if terminated_at is None:
         db.rollback()
-        raise AlreadyCancelled("이미 종료되었거나 존재하지 않는 계약입니다")
+        raise AlreadyCancelled("이미 종료된 계약입니다")
     db.commit()
-    return CancelResponse(contract_id=contract_id, status="cancelled", terminated_rights=int(active))
+    return CancelResponse(
+        contract_id=contract_id,
+        status="cancelled",
+        terminated_rights=int(active),
+        terminated_at=terminated_at,
+    )

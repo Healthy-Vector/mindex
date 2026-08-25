@@ -6,18 +6,14 @@ P2-DB 에서 team 은 PIN 관리 전용 테이블이고, team_id 를 도메인 �
 """
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.errors import NotFound
 
 
-def resolve_team_id(db: Session, team_hint: Optional[str] = None) -> str:
-    if team_hint:
-        return str(team_hint)
+def resolve_team_id(db: Session) -> int:
     row = db.execute(text("SELECT id FROM team ORDER BY id LIMIT 1")).first()
     if not row:
         raise NotFound("등록된 팀이 없습니다.")
-    return str(row[0])
+    return int(row[0])

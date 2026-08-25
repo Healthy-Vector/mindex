@@ -8,8 +8,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
-
 import bcrypt
 import jwt
 
@@ -28,7 +26,7 @@ def hash_pin(pin: str) -> str:
     return bcrypt.hashpw(pin.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def issue_token(team_id: str) -> tuple[str, datetime]:
+def issue_token(team_id: str | int) -> tuple[str, datetime]:
     """team_id 로 JWT 발급. (token, expiresAt) 반환."""
     s = get_settings()
     now = datetime.now(timezone.utc)

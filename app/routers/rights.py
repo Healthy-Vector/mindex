@@ -28,10 +28,13 @@ def rights_history(
 ) -> RightsHistoryResponse:
     rows = db.execute(
         text(
-            "SELECT id, contract_id, territory, legal_right, exploitation_mode, "
-            "       lower(period) lo, upper(period) hi, exclusivity, status, "
-            "       created_at, terminated_at, terminated_reason "
-            "FROM rights_grant WHERE lineage_id=:l ORDER BY created_at"
+            "SELECT rg.id, rg.contract_id, rg.contract_history_id, ch.version, "
+            "       rg.territory, rg.legal_right, rg.exploitation_mode, "
+            "       lower(rg.period) lo, upper(rg.period) hi, rg.exclusivity, rg.status, "
+            "       rg.created_at, rg.terminated_at, rg.terminated_reason "
+            "FROM rights_grant rg "
+            "JOIN contract_history ch ON ch.id=rg.contract_history_id "
+            "WHERE rg.lineage_id=:l ORDER BY rg.created_at"
         ),
         {"l": lineage_id},
     ).mappings().all()
@@ -50,6 +53,7 @@ def rights_history(
         gens.append(
             RightGeneration(
                 rights_grant_id=r["id"], contract_id=r["contract_id"],
+                contract_history_id=r["contract_history_id"], version=r["version"],
                 territory=cur["territory"], legal_right=cur["legal_right"],
                 exploitation_mode=cur["exploitation_mode"], period_start=cur["period_start"],
                 period_end=cur["period_end"], exclusivity=cur["exclusivity"], status=r["status"],

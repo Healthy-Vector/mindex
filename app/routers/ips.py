@@ -11,13 +11,14 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.db import get_db
-from app.errors import IpDuplicate, NotFound
+from app.errors import IpDuplicate, NotFound, ValidationFailed
 from app.schemas.common import Page
-from app.schemas.ips import AliasOut, IpCreate, IpOut, IpPatch
+from app.schemas.ips import AliasOut, AssetOut, IpCreate, IpOut, IpPatch
 from app.schemas.match import AssetRef, IpMatch, MatchResponse
 from app.services.ip_norm import norm_key
 
@@ -29,18 +30,45 @@ def _aliases(db: Session, ip_id: int) -> list[AliasOut]:
         text("SELECT id, alias_text, lang, alias_type FROM ip_alias WHERE ip_id=:i ORDER BY id"),
         {"i": ip_id},
     ).mappings().all()
-    return [AliasOut(id=r["id"], alias_text=r["alias_text"], lang=r["lang"], alias_type=r["alias_type"]) for r in rows]
+    return [AliasOut(id=r["id"], text=r["alias_text"], lang=r["lang"], alias_type=r["alias_type"]) for r in rows]
+
+
+def _assets(db: Session, ip_id: int) -> list[AssetOut]:
+    rows = db.execute(
+        text(
+            "SELECT id, scope_type, title, asset_type, season_no, episode_no, edition_code "
+            "FROM content_asset WHERE ip_id=:i ORDER BY id"
+        ),
+        {"i": ip_id},
+    ).mappings().all()
+    return [
+        AssetOut(
+            content_asset_id=r["id"], scope_type=r["scope_type"], title=r["title"],
+            asset_type=r["asset_type"], season_no=r["season_no"],
+            episode_no=r["episode_no"], edition_code=r["edition_code"],
+        )
+        for r in rows
+    ]
 
 
 def _ip_out(db: Session, row) -> IpOut:
+    contract_count = db.execute(
+        text(
+            "SELECT count(DISTINCT rg.contract_id) FROM rights_grant rg "
+            "JOIN content_asset ca ON ca.id=rg.content_asset_id WHERE ca.ip_id=:i"
+        ),
+        {"i": row["id"]},
+    ).scalar_one()
     return IpOut(
-        id=row["id"], title=row["title"], kind=row["kind"], activity=row["activity"],
+        ip_id=row["id"], title=row["title"], kind=row["kind"], activity=row["activity"],
         created_at=row["created_at"], aliases=_aliases(db, row["id"]),
+        assets=_assets(db, row["id"]), contract_count=int(contract_count),
     )
 
 
 @router.get("/ips", response_model=Page[IpOut])
 def list_ips(
+    q: Optional[str] = Query(default=None),
     include_inactive: bool = Query(default=False),
     page: int = Query(default=1, ge=1),
     size: Optional[int] = Query(default=None, ge=1, le=100),
@@ -52,6 +80,16 @@ def list_ips(
     rows = db.execute(
         text(f"SELECT id, title, kind, activity, created_at FROM ip {where} ORDER BY created_at DESC")
     ).mappings().all()
+    if q and q.strip():
+        key = norm_key(q)
+        matched_ids = set()
+        for row in rows:
+            if key in norm_key(row["title"]):
+                matched_ids.add(row["id"])
+        for alias in db.execute(text("SELECT ip_id, alias_text FROM ip_alias")).mappings():
+            if key in norm_key(alias["alias_text"]):
+                matched_ids.add(alias["ip_id"])
+        rows = [row for row in rows if row["id"] in matched_ids]
     total = len(rows)
     window = rows[(page - 1) * size : (page - 1) * size + size]
     return Page[IpOut](items=[_ip_out(db, r) for r in window], total=total, page=page, size=size)
@@ -60,19 +98,44 @@ def list_ips(
 @router.post("/ips", response_model=IpOut, status_code=201)
 def create_ip(body: IpCreate, db: Session = Depends(get_db)) -> IpOut:
     key = norm_key(body.title)
-    for r in db.execute(text("SELECT id, title FROM ip")).mappings().all():
-        if norm_key(r["title"]) == key:
-            raise IpDuplicate("같은 이름의 IP 가 이미 있습니다", details={"ipId": r["id"]})
-    ip_id = db.execute(
-        text("INSERT INTO ip(title, kind) VALUES (:t,:k) RETURNING id"),
-        {"t": body.title, "k": body.kind},
-    ).scalar_one()  # 트리거가 기본 content_asset 자동 생성
-    for a in body.aliases:
-        db.execute(
-            text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
-            {"i": ip_id, "t": a.alias_text, "l": a.lang, "ty": a.alias_type},
+    existing = db.execute(
+        text(
+            "SELECT i.id, i.title, a.alias_text FROM ip i "
+            "LEFT JOIN ip_alias a ON a.ip_id=i.id"
         )
-    db.commit()
+    ).mappings().all()
+    for r in existing:
+        if norm_key(r["title"]) == key or (r["alias_text"] and norm_key(r["alias_text"]) == key):
+            raise IpDuplicate("같은 이름의 IP 가 이미 있습니다", details={"ipId": r["id"]})
+    try:
+        ip_id = db.execute(
+            text("INSERT INTO ip(title, kind) VALUES (:t,:k) RETURNING id"),
+            {"t": body.title, "k": body.kind},
+        ).scalar_one()  # 트리거가 기본 content_asset 자동 생성
+        for a in body.aliases:
+            db.execute(
+                text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
+                {"i": ip_id, "t": a.text, "l": a.lang, "ty": a.alias_type},
+            )
+        if body.assets is not None:
+            # ip INSERT 트리거가 만든 기본 SERIES_ALL을 명시 입력으로 교체한다.
+            db.execute(text("DELETE FROM content_asset WHERE ip_id=:i"), {"i": ip_id})
+            for a in body.assets:
+                db.execute(
+                    text(
+                        "INSERT INTO content_asset("
+                        "ip_id, asset_type, scope_type, title, season_no, episode_no, edition_code"
+                        ") VALUES (:i,:at,CAST(:st AS asset_scope_kind),:t,:sn,:en,:ec)"
+                    ),
+                    {
+                        "i": ip_id, "at": a.asset_type, "st": a.scope_type, "t": a.title,
+                        "sn": a.season_no, "en": a.episode_no, "ec": a.edition_code,
+                    },
+                )
+        db.commit()
+    except DBAPIError as ex:
+        db.rollback()
+        raise ValidationFailed(_db_message(ex)) from ex
     row = db.execute(
         text("SELECT id, title, kind, activity, created_at FROM ip WHERE id=:i"), {"i": ip_id}
     ).mappings().first()
@@ -86,21 +149,28 @@ def patch_ip(ip_id: int, body: IpPatch, db: Session = Depends(get_db)) -> IpOut:
         raise NotFound("IP 를 찾을 수 없습니다")
     sets, params = [], {"i": ip_id}
     if body.title is not None:
-        sets.append("title=:t"); params["t"] = body.title
+        sets.append("title=:t")
+        params["t"] = body.title
     if body.kind is not None:
-        sets.append("kind=:k"); params["k"] = body.kind
+        sets.append("kind=:k")
+        params["k"] = body.kind
     if body.activity is not None:
-        sets.append("activity=CAST(:a AS ip_activity_kind)"); params["a"] = body.activity
-    if sets:
-        db.execute(text(f"UPDATE ip SET {', '.join(sets)} WHERE id=:i"), params)
-    if body.aliases is not None:  # 전체 교체
-        db.execute(text("DELETE FROM ip_alias WHERE ip_id=:i"), {"i": ip_id})
-        for a in body.aliases:
-            db.execute(
-                text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
-                {"i": ip_id, "t": a.alias_text, "l": a.lang, "ty": a.alias_type},
-            )
-    db.commit()
+        sets.append("activity=CAST(:a AS ip_activity_kind)")
+        params["a"] = body.activity
+    try:
+        if sets:
+            db.execute(text(f"UPDATE ip SET {', '.join(sets)} WHERE id=:i"), params)
+        if body.aliases is not None:  # 전체 교체
+            db.execute(text("DELETE FROM ip_alias WHERE ip_id=:i"), {"i": ip_id})
+            for a in body.aliases:
+                db.execute(
+                    text("INSERT INTO ip_alias(ip_id, alias_text, lang, alias_type) VALUES (:i,:t,:l,:ty)"),
+                    {"i": ip_id, "t": a.text, "l": a.lang, "ty": a.alias_type},
+                )
+        db.commit()
+    except DBAPIError as ex:
+        db.rollback()
+        raise ValidationFailed(_db_message(ex)) from ex
     row = db.execute(
         text("SELECT id, title, kind, activity, created_at FROM ip WHERE id=:i"), {"i": ip_id}
     ).mappings().first()
@@ -137,8 +207,25 @@ def match_ips(q: str = Query(..., min_length=1), db: Session = Depends(get_db)) 
         matches.append(
             IpMatch(
                 ip_id=ip["id"], title=ip["title"], kind=ip["kind"], matched_on=how,
-                assets=[AssetRef(**a) for a in assets],
+                assets=[AssetRef(content_asset_id=a["id"], **{k: v for k, v in a.items() if k != "id"}) for a in assets],
                 relations=[],  # ip_relation 미구현
             )
         )
     return MatchResponse(matches=matches)
+
+
+@router.get("/ips/{ip_id}", response_model=IpOut)
+def get_ip(ip_id: int, db: Session = Depends(get_db)) -> IpOut:
+    """IP 단건 상세. 비활성 IP도 기존 계약 확인을 위해 조회할 수 있다."""
+    row = db.execute(
+        text("SELECT id, title, kind, activity, created_at FROM ip WHERE id=:i"),
+        {"i": ip_id},
+    ).mappings().first()
+    if row is None:
+        raise NotFound("IP 를 찾을 수 없습니다")
+    return _ip_out(db, row)
+
+
+def _db_message(ex: DBAPIError) -> str:
+    message = str(getattr(ex, "orig", ex)).strip()
+    return message.splitlines()[0][:300] if message else "IP 요청 처리에 실패했습니다"

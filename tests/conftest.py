@@ -110,7 +110,8 @@ def body(clean_db, *, exclusivity="exclusive", territory="KR",
          legal_right="TRANSMISSION", exploitation_mode="SVOD",
          start="2027-01-01", end="2027-12-31", source_tmpid=None, ip_id="__seed__"):
     b = {
-        "counterparty": "C사",
+        "grantor": "C사",
+        "grantee": "T사",
         "ipId": clean_db["ip_id"] if ip_id == "__seed__" else ip_id,
         "fileName": "contract.pdf", "filePath": "/tmp/contract.pdf", "fileHash": "h" * 8,
         "documentKind": "final",
@@ -122,5 +123,5 @@ def body(clean_db, *, exclusivity="exclusive", territory="KR",
         }],
     }
     if source_tmpid:
-        b["sourceTmpid"] = source_tmpid
+        b["sourceTmpid"] = str(source_tmpid)
     return b

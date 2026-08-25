@@ -12,7 +12,7 @@ from app.schemas.common import CamelModel
 
 
 class AssetRef(CamelModel):
-    id: int
+    content_asset_id: int
     scope_type: str
     season_no: Optional[int] = None
     episode_no: Optional[int] = None

@@ -68,7 +68,8 @@ class Authority(CamelModel):
 class ContractDetail(CamelModel):
     id: int
     title: Optional[str] = None       # contract.title 컬럼이 없어 최신 세대 fileName 으로 대체(§11)
-    counterparty: Optional[str] = None
+    grantor: str
+    grantee: str
     status: str
     signed_date: Optional[date] = None
     lang: Optional[str] = None
@@ -80,8 +81,6 @@ class ContractDetail(CamelModel):
     display_state: Optional[str] = None
     days_to_expiry: Optional[int] = None
     service_title: Optional[str] = None  # §11-2 → null
-    grantor: Optional[str] = None        # 자기 팀(team.name). team_id 미전파라 단일팀 기준
-    grantee: Optional[str] = None        # 미확정 → null
     authority: Authority = Authority()
     ips: list[IpBrief] = []
     rights: list[RightRow] = []

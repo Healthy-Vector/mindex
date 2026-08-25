@@ -41,7 +41,7 @@ def _effective(interp: dict[str, Any], filters) -> dict[str, Any]:
         if filters.exclusivity is not None:
             eff["exclusivity"] = filters.exclusivity
         if filters.period is not None:
-            eff["period"] = filters.period
+            eff["period"] = filters.period.model_dump(mode="json")
     return eff
 
 
@@ -60,23 +60,27 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
     if eff["territoryGroups"]:
         terrs = expand_territories(db, terrs + eff["territoryGroups"])
 
-    clauses = ["rg.status='active'"]
+    clauses = ["TRUE"]
     params: dict[str, Any] = {}
     if eff["legalRights"]:
-        clauses.append("rg.legal_right = ANY(:lr)"); params["lr"] = eff["legalRights"]
+        clauses.append("rg.legal_right = ANY(:lr)")
+        params["lr"] = eff["legalRights"]
     if eff["exploitationModes"]:
-        clauses.append("rg.exploitation_mode = ANY(:em)"); params["em"] = eff["exploitationModes"]
+        clauses.append("rg.exploitation_mode = ANY(:em)")
+        params["em"] = eff["exploitationModes"]
     if terrs:
-        clauses.append("rg.territory = ANY(:terrs)"); params["terrs"] = terrs
+        clauses.append("rg.territory = ANY(:terrs)")
+        params["terrs"] = terrs
     if eff["exclusivity"]:
-        clauses.append("rg.exclusivity = CAST(:excl AS exclusivity_kind)"); params["excl"] = eff["exclusivity"]
+        clauses.append("rg.exclusivity = CAST(:excl AS exclusivity_kind)")
+        params["excl"] = eff["exclusivity"]
     if eff["period"]:
         clauses.append("rg.period && CAST(:period AS daterange)")
         params["period"] = to_daterange_literal(eff["period"]["start"], eff["period"]["end"])
 
     candidates = [
         int(x) for x in db.execute(
-            text("SELECT DISTINCT rg.contract_id FROM rights_grant rg WHERE " + " AND ".join(clauses)),
+            text("SELECT DISTINCT rg.contract_id FROM confirmed_rights_grant rg WHERE " + " AND ".join(clauses)),
             params,
         ).scalars().all()
     ]
@@ -112,7 +116,7 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
     for cid in window:
         c = db.execute(
             text(
-                "SELECT c.id, c.counterparty, c.status, "
+                "SELECT c.id, c.grantor, c.grantee, c.status, "
                 "  (SELECT file_name FROM contract_history WHERE contract_id=c.id ORDER BY version DESC LIMIT 1) title "
                 "FROM contract c WHERE c.id=:c"
             ),
@@ -120,7 +124,7 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
         ).mappings().first()
         if c:
             results.append(SearchResult(contract_id=c["id"], title=c["title"],
-                                        counterparty=c["counterparty"], status=c["status"],
+                                        grantor=c["grantor"], grantee=c["grantee"], status=c["status"],
                                         score=scores.get(cid)))
     return SearchResponse(interpreted=interp, results=results, total=total,
                           page=body.page, size=size, vector_ranked=vector_ranked)

@@ -1,230 +1,204 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mindex — 프로세스별 API 배치</title>
-<style>
-:root{--ink:#1f2933;--mut:#5d6b7a;--p4:#e0793c;--p1:#4d79e0}
-*{box-sizing:border-box}
-body{margin:0;background:#eef1f5;color:var(--ink);
- font-family:Pretendard,"Noto Sans KR","맑은 고딕","Malgun Gothic",system-ui,sans-serif}
-header{padding:30px 36px 4px}
-h1{margin:0;font-size:26px}
-header p{margin:9px 0 0;color:var(--mut);font-size:15px;line-height:1.6}
-.hint{display:inline-block;margin-top:12px;font-size:13.5px;color:#b85f27;
- background:rgba(224,121,60,.12);border-radius:99px;padding:5px 14px;font-weight:700}
-.wrap{padding:16px 36px 60px;max-width:1180px}
-section{margin-bottom:30px}
-h2{font-size:19px;margin:0 0 6px;display:flex;align-items:baseline;gap:10px}
-h2 .memo{font-size:13.5px;font-weight:400;color:#8892a0}
-.paper{background:#fff;border-radius:14px;box-shadow:0 6px 26px rgba(31,41,51,.12);padding:22px 24px}
-
-.step{display:flex;gap:16px;position:relative;padding-bottom:14px}
-.step::before{content:"";position:absolute;left:20px;top:46px;bottom:0;width:2px;background:#dbe2ea}
-.step:last-child{padding-bottom:0}
-.step:last-child::before{display:none}
-.num{flex:0 0 42px;height:42px;border-radius:50%;background:var(--ink);color:#ffc79c;
- font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:1}
-.body{flex:1;min-width:0;padding-bottom:4px}
-.hd{display:flex;align-items:center;gap:10px}
-.step h3{margin:0;font-size:17px}
-.own{font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 10px}
-.o-p4{background:rgba(224,121,60,.14);color:var(--p4)}
-.o-p1{background:rgba(77,121,224,.14);color:var(--p1)}
-.memo{margin:6px 0 10px;font-size:14px;color:#5d6b7a;line-height:1.6}
-.apis{display:flex;flex-direction:column;gap:8px}
-
-button.api{font:inherit;text-align:left;width:100%;cursor:pointer;
- border:1.5px solid #e2e8ef;border-left-width:5px;border-radius:9px;padding:9px 13px;
- display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
- background:#fff;transition:border-color .12s,box-shadow .12s,transform .12s}
-button.api:hover{box-shadow:0 3px 14px rgba(31,41,51,.14);transform:translateY(-1px)}
-button.api:focus-visible{outline:2px solid var(--p4);outline-offset:2px}
-button.api.sel{border-color:var(--ink);box-shadow:0 3px 16px rgba(31,41,51,.2)}
-.api.p4{border-left-color:var(--p4)}
-.api.p1{border-left-color:var(--p1);background:#fafbfd}
-.api.p4dim{border-left-color:#c3cad2;background:#f7f9fb;border-style:dashed}
-.api .l{display:flex;align-items:center;gap:9px;min-width:0}
-.no{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;
- border-radius:6px;background:#eef1f5;color:#5d6b7a;font-size:12px;font-weight:700;padding:0 5px}
-.no.big{min-width:28px;height:28px;font-size:14px;margin-right:9px;background:var(--ink);color:#ffc79c}
-.m{font-size:11.5px;font-weight:700;border-radius:5px;padding:2px 7px;letter-spacing:.02em}
-.m-get{background:rgba(47,166,107,.15);color:#1d7048}
-.m-post{background:rgba(224,121,60,.16);color:#b85f27}
-.m-patch{background:rgba(138,95,201,.15);color:#6b3fa0}
-.api code{font-family:ui-monospace,Consolas,"D2Coding",monospace;font-size:14px;color:#1f2933}
-.api .d{font-size:13.5px;color:#7b8794;flex:1}
-.caret{font-size:12.5px;font-weight:700;color:#b0b9c4;white-space:nowrap}
-button.api:hover .caret{color:var(--p4)}
-
-.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
-.scard{border:1.5px solid #e2e8ef;border-radius:12px;padding:14px 16px;background:#fff}
-.sh{display:flex;align-items:center;gap:9px;margin-bottom:10px}
-.sk{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
- border-radius:7px;background:var(--ink);color:#ffc79c;font-size:14px;font-weight:700}
-.scard h4{margin:0;font-size:15.5px}
-.scard .memo{margin:0 0 10px;font-size:13px}
-.foot{margin-top:14px;font-size:13px;color:#8892a0;line-height:1.7}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:#7b8794}
-.legend span b{color:#1f2933}
-
-/* ── 상세 패널 ── */
-#scrim{position:fixed;inset:0;background:rgba(31,41,51,.42);opacity:0;pointer-events:none;
- transition:opacity .18s;z-index:40}
-#scrim.on{opacity:1;pointer-events:auto}
-#panel{position:fixed;top:0;right:0;height:100%;width:min(620px,94vw);background:#fff;
- box-shadow:-8px 0 40px rgba(31,41,51,.24);transform:translateX(102%);transition:transform .22s ease;
- z-index:50;display:flex;flex-direction:column}
-#panel.on{transform:none}
-#pclose{position:absolute;top:14px;right:16px;border:0;background:#eef1f5;color:#5d6b7a;
- width:32px;height:32px;border-radius:9px;font-size:19px;cursor:pointer;line-height:1}
-#pclose:hover{background:#dde3ea;color:#1f2933}
-#pbody{overflow:auto;padding:26px 30px 60px}
-.dhead{display:flex;align-items:center;gap:9px;margin-bottom:8px}
-.dhead code{font-family:ui-monospace,Consolas,"D2Coding",monospace;font-size:15px}
-.dtitle{margin:0 0 12px;font-size:21px;display:flex;align-items:center}
-.dmeta{display:flex;gap:8px;margin-bottom:16px}
-.tag{font-size:12.5px;font-weight:700;border-radius:99px;padding:3px 11px}
-.own-p4{background:rgba(224,121,60,.14);color:var(--p4)}
-.own-p1{background:rgba(77,121,224,.14);color:var(--p1)}
-.lock{background:rgba(198,74,60,.13);color:#b8422f}
-.open{background:#eef1f5;color:#7b8794}
-.dwhere{background:#f7f9fb;border-left:3px solid var(--ink);border-radius:0 8px 8px 0;
- padding:10px 14px;font-size:13.8px;line-height:1.65;margin-bottom:20px}
-.dwhere b{display:block;font-size:12px;color:#8892a0;margin-bottom:3px;letter-spacing:.03em}
-.dh{margin:22px 0 8px;font-size:14px;color:#8892a0;letter-spacing:.03em;
- border-bottom:1px solid #e8edf2;padding-bottom:6px}
-.dul{margin:0;padding-left:19px;font-size:14.2px;line-height:1.72;color:#3d4a58}
-.dul li{margin-bottom:6px}
-.dul.warn li::marker{color:var(--p4)}
-.dnote{margin:0 0 8px;font-size:13.5px;color:#5d6b7a}
-table.dt{border-collapse:collapse;width:100%;font-size:13.4px}
-table.dt th{background:#f2f5f8;text-align:left;padding:7px 10px;font-weight:700;color:#5d6b7a;
- font-size:12.5px;border-bottom:1.5px solid #dde3ea}
-table.dt td{border-bottom:1px solid #edf1f5;padding:7px 10px;vertical-align:top;line-height:1.6;color:#3d4a58}
-table.dt td:nth-child(1){font-family:ui-monospace,Consolas,monospace;color:#1f2933;white-space:nowrap}
-table.dt td:nth-child(2){color:#7b8794;white-space:nowrap}
-.dpre{background:#1f2933;color:#e6edf3;border-radius:10px;padding:14px 16px;overflow:auto;
- font-family:ui-monospace,Consolas,"D2Coding",monospace;font-size:12.8px;line-height:1.72;margin:0}
-#pbody code{background:#f2f5f8;border-radius:4px;padding:1px 5px;
- font-family:ui-monospace,Consolas,monospace;font-size:.92em}
-.dpre code,.dhead code,.api code{background:none;padding:0}
-@media(max-width:760px){.wrap{padding:14px 18px 50px}header{padding:22px 18px 4px}}
-</style></head><body>
-
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mindex — 프로세스별 API 배치 v1.1</title>
+  <style>
+    :root{--ink:#18202b;--muted:#687385;--line:#d9dee7;--p1:#2d67c7;--p4:#c45a24;--bg:#f4f6f9;--ok:#14735d}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Noto Sans KR",sans-serif}
+    header,.wrap{max-width:1120px;margin:auto}header{padding:42px 24px 18px}h1{margin:0 0 6px;font-size:30px}h2{margin:38px 0 12px;font-size:21px}h3{margin:0;font-size:17px}
+    p{margin:7px 0}.muted,.meta{color:var(--muted)}.notice{padding:14px 16px;border-left:4px solid var(--ok);background:#eaf7f2;border-radius:7px}
+    .wrap{padding:0 24px 60px}.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.step,.api{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px}
+    .step b{display:block;margin-bottom:4px}.owner{display:inline-block;padding:1px 7px;border-radius:10px;color:#fff;font-size:12px}.p1{background:var(--p1)}.p4{background:var(--p4)}
+    .api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}.api{border-top:4px solid var(--p4)}.api.p1-card{border-top-color:var(--p1)}
+    summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}.route{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.no{font-weight:800;color:var(--p4)}.p1-card .no{color:var(--p1)}
+    .method{font:700 12px ui-monospace,monospace;padding:2px 7px;border-radius:4px;background:#eef1f5}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{background:#eef1f5;padding:1px 4px;border-radius:3px}
+    .detail{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.detail h4{margin:12px 0 4px}.detail ul{margin:4px 0;padding-left:20px}.schema{overflow:auto;background:#161c25;color:#e8eef8;padding:10px;border-radius:7px;font-size:12px;white-space:pre-wrap}
+    table{width:100%;border-collapse:collapse;margin:8px 0;background:#fff}th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}th{background:#eef1f5}
+    .tag{font-size:12px;color:var(--muted)}@media(max-width:680px){.api-grid{grid-template-columns:1fr}header,.wrap{padding-left:15px;padding-right:15px}}
+  </style>
+</head>
+<body>
 <header>
-  <h1>Mindex — 프로세스별 API 배치</h1>
-  <p>계약서 한 건이 지나가는 단계마다 어떤 API가 호출되는지 정리한 것입니다.
-     번호는 API 설계서의 목록 번호와 같습니다.</p>
-  <div class="hint">API 카드를 클릭하면 payload · response · 구현 주의사항이 열립니다</div>
+  <h1>Mindex — 프로세스별 API 배치 v1.2</h1>
+  <p class="muted">PostgreSQL 17 · main의 P2-DB 계약 · legal right × exploitation mode 2축 기준</p>
 </header>
-
-<div class="wrap">
-
-<section>
-  <h2>계약서 등록 흐름 <span class="memo">① 업로드부터 ⑥ 확정 저장까지 순서대로</span></h2>
-  <div class="paper">
-<div class="step"><div class="num">①</div><div class="body"><div class="hd"><h3>업로드 접수</h3><span class="own o-p1">P1</span></div><p class="memo">PDF + 작업 등록을 한 트랜잭션으로 커밋한 뒤에야 응답</p><div class="apis"><button class="api p1" data-api="2" type="button"><span class="l"><span class="no">2</span><span class="m m-post">POST</span><code>/extract</code></span><span class="d">202 로 tmpid 즉시 반환</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">②</div><div class="body"><div class="hd"><h3>추출 (비동기)</h3><span class="own o-p1">P1</span></div><p class="memo">워커가 OCR → LLM. 화면은 폴링. 브라우저를 닫아도 계속 진행</p><div class="apis"><button class="api p1" data-api="3" type="button"><span class="l"><span class="no">3</span><span class="m m-get">GET</span><code>/extract/{tmpid}</code></span><span class="d">QUEUED · RUNNING · DONE · FAILED</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">③</div><div class="body"><div class="hd"><h3>결과 확인 · 수정</h3><span class="own o-p4">P4</span></div><p class="memo">추출 결과를 화면에서 검토·수정. DB에는 아직 쓰지 않음</p><div class="apis"><button class="api p4" data-api="4" type="button"><span class="l"><span class="no">4</span><span class="m m-get">GET</span><code>/ips/match</code></span><span class="d">작품·권리대상 후보</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="13" type="button"><span class="l"><span class="no">13</span><span class="m m-post">POST</span><code>/ips</code></span><span class="d">신규 IP 즉석 등록</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="16" type="button"><span class="l"><span class="no">16</span><span class="m m-get">GET</span><code>/refs</code></span><span class="d">권리유형 · 국가 드롭다운</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">④</div><div class="body"><div class="hd"><h3>검증</h3><span class="own o-p4">P4</span></div><p class="memo">master 스키마에 실제 INSERT 시도 → 결과만 받고 되돌림</p><div class="apis"><button class="api p4" data-api="5" type="button"><span class="l"><span class="no">5</span><span class="m m-post">POST</span><code>/contracts/verify</code></span><span class="d">넣어보고 무조건 롤백</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">⑤</div><div class="body"><div class="hd"><h3>충돌 리포트</h3><span class="own o-p4">P4</span></div><p class="memo">별도 호출 없음. ④ 응답에 상대 계약·겹친 기간·근거가 이미 들어 있음</p><div class="apis"><button class="api p4dim" data-api="5" type="button"><span class="l"><span class="no">5</span><span class="m m-post">POST</span><code>/contracts/verify</code></span><span class="d">응답의 conflicts[] 를 그대로 렌더</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">⑥</div><div class="body"><div class="hd"><h3>확정 저장</h3><span class="own o-p4">P4</span></div><p class="memo">성공이든 충돌이든 항상 커밋. staging 정리까지 같은 트랜잭션</p><div class="apis"><button class="api p4" data-api="6" type="button"><span class="l"><span class="no">6</span><span class="m m-post">POST</span><code>/contracts</code></span><span class="d">한 트랜잭션 · 중복 확정 차단</span><span class="caret">상세 ›</span></button></div></div></div>
-    <div class="foot">④ 검증과 ⑥ 확정 저장은 <b>같은 EXCLUDE 제약</b>을 씁니다.
-      검증은 결과만 보고 되돌리고, 저장은 실패했을 때만 되돌린 뒤 <code>conflicted</code> 로 기록합니다.
-      판정 로직이 두 벌이 되지 않습니다.</div>
+<main class="wrap">
+  <div class="notice">
+    DB 정본은 P2-DB의 <code>sql/init/*.sql</code>이다. 도메인은 <code>public</code>, 임시 추출은 같은 DB의 <code>staging</code> 스키마를 사용한다.
+    충돌은 <code>rights_grant</code> 행이 아니라 <code>contract_history.status='conflicted'</code>와 <code>conflict_report</code>로 기록한다.
   </div>
-</section>
 
-<section>
-  <h2>계약서 열람 흐름 <span class="memo">Ⓐ 진입부터 Ⓓ 원문·이력까지 순서대로</span></h2>
-  <div class="paper">
-<div class="step"><div class="num">Ⓐ</div><div class="body"><div class="hd"><h3>진입 — 목록 또는 검색</h3></div><p class="memo">목록에서 찾거나 검색으로 바로 들어옵니다. 검색은 별개 기능이 아니라 또 하나의 진입점입니다</p><div class="apis"><button class="api p4" data-api="7" type="button"><span class="l"><span class="no">7</span><span class="m m-get">GET</span><code>/contracts</code></span><span class="d">상태 필터 · 추출 중인 건까지 합쳐 내려줌</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="15" type="button"><span class="l"><span class="no">15</span><span class="m m-post">POST</span><code>/search</code></span><span class="d">자연어 질의 · SQL 필터 → 벡터 랭킹</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="16" type="button"><span class="l"><span class="no">16</span><span class="m m-get">GET</span><code>/refs</code></span><span class="d">지역 · 상태 필터 드롭다운</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">Ⓑ</div><div class="body"><div class="hd"><h3>PIN 인증</h3></div><p class="memo">계약 금액·당사자·근거 원문이 노출되므로 상세 진입 전에 한 번 잠급니다</p><div class="apis"><button class="api p4" data-api="1" type="button"><span class="l"><span class="no">1</span><span class="m m-post">POST</span><code>/auth/pin</code></span><span class="d">팀 공유 열람 세션 · 15분</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">Ⓒ</div><div class="body"><div class="hd"><h3>계약서 상세</h3></div><p class="memo">정상 건과 충돌 건의 응답 형태가 같습니다. 화면 코드가 갈라지지 않습니다</p><div class="apis"><button class="api p4" data-api="8" type="button"><span class="l"><span class="no">8</span><span class="m m-get">GET</span><code>/contracts/{id}</code></span><span class="d">기본정보 · 권리 · 버전이력을 한 번에</span><span class="caret">상세 ›</span></button></div></div></div>
-<div class="step"><div class="num">Ⓓ</div><div class="body"><div class="hd"><h3>원문 · 이력 열람</h3></div><p class="memo">상세 화면 안에서 필요할 때만 추가로 부릅니다</p><div class="apis"><button class="api p4" data-api="9" type="button"><span class="l"><span class="no">9</span><span class="m m-get">GET</span><code>/contracts/{id}/file</code></span><span class="d">원본 PDF 스트림</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="10" type="button"><span class="l"><span class="no">10</span><span class="m m-get">GET</span><code>/rights/{lineageId}/history</code></span><span class="d">같은 계보의 세대 전체</span><span class="caret">상세 ›</span></button></div></div></div>
-    <div class="foot">Ⓐ 는 세션 없이 조회할 수 있고, Ⓑ 부터 세션이 필요합니다.
-      Ⓒ 는 요청 하나로 사이드바 네 개 카드를 모두 채웁니다 — 나누면 카드마다 로딩 시점이 달라져 화면이 어수선해집니다.</div>
+  <h2>계약서 등록 흐름</h2>
+  <div class="flow">
+    <div class="step"><span class="owner p1">P1</span><b>① 업로드</b><code>POST /extract</code><p>PDF와 작업을 저장하고 <code>202/tmpid</code> 반환</p></div>
+    <div class="step"><span class="owner p1">P1</span><b>② 비동기 추출</b><code>GET /extract/{tmpid}</code><p>QUEUED · RUNNING · DONE · FAILED</p></div>
+    <div class="step"><span class="owner p4">P4</span><b>③ 검토·매칭</b><code>GET /ips/match</code><p>IP와 content asset 선택, 필요하면 IP 등록</p></div>
+    <div class="step"><span class="owner p4">P4</span><b>④ 검증</b><code>POST /contracts/verify</code><p><code>validate_rights_batch()</code>, 결과 후 전부 롤백</p></div>
+    <div class="step"><span class="owner p4">P4</span><b>⑤ 충돌 표시</b><code>conflictReport</code><p>별도 호출 없이 ④ 응답을 그대로 렌더</p></div>
+    <div class="step"><span class="owner p4">P4</span><b>⑥ 확정</b><code>POST /contracts</code><p><code>save_rights_batch()</code>, APPLIED/CONFLICTED 모두 커밋</p></div>
   </div>
-</section>
 
-<section>
-  <h2>상태를 바꾸는 동작 <span class="memo">열람 중 계약 상세에서 분기</span></h2>
-  <div class="paper">
-    <div class="sgrid">
-<div class="scard"><div class="sh"><h4>계약 종료</h4></div><p class="memo">상태만 바꾸고 권리를 두면 끝난 계약이 다른 계약을 계속 막습니다</p><button class="api p4" data-api="11" type="button"><span class="l"><span class="no">11</span><span class="m m-post">POST</span><code>/contracts/{id}/cancel</code></span><span class="d">권리도 함께 terminated</span><span class="caret">상세 ›</span></button></div>
-<div class="scard"><div class="sh"><h4>버전 · 최종 계약 등록</h4></div><p class="memo">상세 화면의 두 버튼. 새 API가 아니라 ① 로 되돌아갑니다</p><button class="api p1" data-api="2" type="button"><span class="l"><span class="no">2</span><span class="m m-post">POST</span><code>/extract</code></span><span class="d">mode=revision · final 로 등록 흐름 재진입</span><span class="caret">상세 ›</span></button></div>
-    </div>
-    <div class="foot">이 둘은 순서가 있는 흐름이 아니라 계약 상세 화면에서 갈라져 나가는 동작입니다.
-      버전·최종 계약 등록은 새 엔드포인트가 아니라 <b>등록 흐름 ① 로 되돌아가는 진입점</b>입니다.</div>
+  <h2>열람·관리 흐름</h2>
+  <div class="flow">
+    <div class="step"><b>Ⓐ 진입</b><code>GET /contracts</code><br><code>POST /search</code><p>목록 또는 SQL 필터→벡터 검색</p></div>
+    <div class="step"><b>Ⓑ PIN</b><code>POST /auth/pin</code><p>공유 세션 발급, teamId 외부 노출 없음</p></div>
+    <div class="step"><b>Ⓒ 상세</b><code>GET /contracts/{id}</code><p>권리·세대·충돌 리포트를 한 번에</p></div>
+    <div class="step"><b>Ⓓ 원문·계보</b><code>GET /contracts/{id}/file</code><br><code>GET /rights/{lineageId}/history</code></div>
+    <div class="step"><b>IP 관리</b><code>GET/POST/PATCH /ips</code><p><code>activity=active|deactive</code>, 삭제 없음</p></div>
   </div>
-</section>
 
-<section>
-  <h2>IP 관리 흐름 <span class="memo">UI-D-001 · UI-D-002 · 계약과 독립된 마스터 데이터</span></h2>
-  <div class="paper">
-    <div class="sgrid">
-<div class="scard"><div class="sh"><span class="sk">㉮</span><h4>목록 조회 · 검색</h4></div><p class="memo">UI-D-001 좌측 목록. 비활성 IP 토글로 숨김</p><button class="api p4" data-api="12" type="button"><span class="l"><span class="no">12</span><span class="m m-get">GET</span><code>/ips</code></span><span class="d">타이틀 · 유형 · 별칭 · 상태</span><span class="caret">상세 ›</span></button>
-<button class="api p4" data-api="16" type="button"><span class="l"><span class="no">16</span><span class="m m-get">GET</span><code>/refs</code></span><span class="d">유형 드롭다운</span><span class="caret">상세 ›</span></button></div>
-<div class="scard"><div class="sh"><span class="sk">㉯</span><h4>상세 · 수정 · 활성화</h4></div><p class="memo">행 클릭 시 우측 패널. 수정 버튼은 UI-D-002 를 수정 모드로 염</p><button class="api p4" data-api="14" type="button"><span class="l"><span class="no">14</span><span class="m m-patch">PATCH</span><code>/ips/{id}</code></span><span class="d">부분 수정 · 활성 토글</span><span class="caret">상세 ›</span></button></div>
-<div class="scard"><div class="sh"><span class="sk">㉰</span><h4>신규 등록</h4></div><p class="memo">경로 1/2 직접 진입(UI-D-002) · 경로 2/2 업로드 중 신규 등록</p><button class="api p4" data-api="13" type="button"><span class="l"><span class="no">13</span><span class="m m-post">POST</span><code>/ips</code></span><span class="d">다국어 정식명 · 내부 범위 초기 목록</span><span class="caret">상세 ›</span></button></div>
-    </div>
-    <div class="foot"><b>삭제 기능은 없습니다.</b> 이미 등록된 계약이 그 IP를 참조하고 있어 비활성화로 대신합니다.
-      활성 스위치는 확인 없이 즉시 반영되며, 삭제가 아니므로 되돌리기 쉽습니다.<br>
-      신규 등록 경로는 둘입니다 — <b>㉰ 직접 진입</b>(IP 관리 화면)과 <b>업로드 중 신규 등록</b>(③ 단계의 13번 호출). 같은 엔드포인트를 씁니다.<br>
-      <b>OST·리메이크는 별도 IP</b> 로 등록하고 <code>ip_relation</code> 으로 원작과 잇습니다. 시즌·에피소드 같은 작품 내부 범위만 <code>content_asset</code> 이 담당합니다.</div>
-  </div>
-</section>
+  <h2>API 상세</h2>
+  <div class="api-grid">
+    <details class="api" open>
+      <summary><div class="route"><span class="no">1</span><span class="method">POST</span><code>/api/auth/pin</code><b>PIN 인증</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p>단일 <code>team.pin_hash</code>와 bcrypt 비교. 별도 연장 API는 없다.</p>
+        <pre class="schema">request  { "pin": "1234" }
+response { "sessionToken": "...", "expiresAt": "...", "ttlSeconds": 900 }</pre>
+        <ul><li>보호 API 8·9·10·11 호출 시 요청 시각+15분으로 sliding expiration.</li><li>재발급은 1분에 한 번, 새 값은 <code>X-Session-Token</code>·<code>X-Session-Expires</code> 헤더로 전달.</li></ul>
+      </div>
+    </details>
 
-<section>
-  <h2>단계에 걸치지 않는 API</h2>
-  <div class="paper">
-    <div class="apis"><button class="api p4" data-api="16" type="button"><span class="l"><span class="no">16</span><span class="m m-get">GET</span><code>/refs</code></span><span class="d">국가 · 권리유형 · IP유형 · 관계유형 코드. 세 흐름 모두에서 사용</span><span class="caret">상세 ›</span></button></div>
-    <div class="legend">
-      <span><b>P1</b> 파란 테두리 — 추출 서빙 (업로드 접수 · 워커 · 상태 조회)</span>
-      <span><b>P4</b> 주황 테두리 — 판정 · 조회 API</span>
-      <span><b>점선</b> — 새 호출이 아니라 앞 단계 응답을 재사용</span>
-    </div>
-  </div>
-</section>
+    <details class="api p1-card">
+      <summary><div class="route"><span class="no">2</span><span class="method">POST</span><code>/extract</code><b>업로드 접수</b></div><span class="tag">P1 · 공개</span></summary>
+      <div class="detail"><p><code>multipart/form-data</code>: file, mode(new|revision|final), 선택 contractId·ipId. <code>staging.pdf_blob</code>와 <code>extract_job</code>을 한 트랜잭션으로 저장하고 202를 반환한다.</p></div>
+    </details>
 
-</div>
+    <details class="api p1-card">
+      <summary><div class="route"><span class="no">3</span><span class="method">GET</span><code>/extract/{tmpid}</code><b>추출 상태·결과</b></div><span class="tag">P1 · 공개</span></summary>
+      <div class="detail"><p>status, stage, reason, result를 반환한다. 실패 상태 조회도 HTTP 200이다.</p></div>
+    </details>
 
-<div id="scrim"></div>
-<aside id="panel" aria-label="API 상세">
-  <button id="pclose" type="button" aria-label="닫기">×</button>
-  <div id="pbody"></div>
-</aside>
+    <details class="api">
+      <summary><div class="route"><span class="no">4</span><span class="method">GET</span><code>/api/ips/match?q=</code><b>IP 매칭</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p>active IP의 title·alias를 검색한다.</p><pre class="schema">{ "matches": [{
+  "ipId": 12, "title": "겨울의 신호", "kind": "DRAMA", "matchedOn": "title",
+  "assets": [{ "contentAssetId": 80, "scopeType": "SERIES_ALL", "title": "겨울의 신호" }],
+  "relations": []
+}] }</pre><p><code>ip_relation</code> 미구현이므로 relations는 빈 배열이다.</p></div>
+    </details>
 
-<script>
-const PANELS = {"1": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/auth/pin</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">1</span>PIN 인증</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓑ PIN 인증 — 열람 흐름에서 Ⓐ 진입 다음, Ⓒ 계약서 상세 앞</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>계약 상세 화면은 계약 금액·당사자·근거 원문을 그대로 노출하므로 팀 PIN으로 한 번 잠급니다.</li><li>개인 로그인이 아니라 <b>팀이 공유하는 열람 세션</b>입니다. 목록·검색·IP 관리는 세션 없이 조회할 수 있습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>pin</td><td>string</td><td>O</td><td>4자리 숫자. <code>master.team.pin_hash</code> 와 대조</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>sessionToken</td><td>string</td><td>이후 요청의 <code>Authorization: Bearer</code> 헤더에 사용</td></tr><tr><td>expiresAt</td><td>string(ISO8601)</td><td>만료 시각. 화면 카운트다운의 기준</td></tr><tr><td>ttlSeconds</td><td>int</td><td>남은 초. 기본 900(15분)</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;sessionToken&quot;: &quot;eyJhbGciOi...&quot;, &quot;expiresAt&quot;: &quot;2026-08-22T15:45:00+09:00&quot;, &quot;ttlSeconds&quot;: 900 }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>PIN 이 틀리면 <code>401</code> + <code>INVALID_PIN</code>.</li><li>보호 API(8·9·10·11) 호출 시 만료 시각을 요청 시각+15분으로 자동 연장하되(sliding), 갱신은 세션당 1분에 한 번으로 제한합니다. 별도 연장 API 는 없으며, 갱신 시 새 토큰을 X-Session-Token / X-Session-Expires 헤더로 내려줍니다.</li></ul>", "2": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/extract</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">2</span>업로드 접수</h3>\n<div class=\"dmeta\"><span class=\"tag own-p1\">P1</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>① 업로드 접수 — 버전·최종 계약 등록도 <code>mode</code> 만 바꿔 여기로 재진입</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>PDF 를 <code>staging.pdf_blob</code> 에 넣고 <code>staging.extract_job</code> 에 대기 작업을 하나 등록합니다.</li><li><b>두 INSERT 가 한 트랜잭션</b>이라 “파일은 저장됐는데 큐에 안 들어간” 상태가 생기지 않습니다. 커밋이 끝나야 응답합니다.</li><li>OCR·LLM 추출은 건당 50~60초라 기다리지 않습니다. <code>202</code> 로 <code>tmpid</code> 만 즉시 주고 워커 파드가 뒤에서 가져갑니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\"><code>multipart/form-data</code></p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>file</td><td>binary</td><td>O</td><td>PDF. 최대 100MB. 스캔본 권장 상한 20MB</td></tr><tr><td>mode</td><td>enum</td><td>O</td><td><code>new</code> / <code>revision</code> / <code>final</code></td></tr><tr><td>contractId</td><td>int</td><td>△</td><td><code>revision</code>·<code>final</code> 일 때 필수</td></tr><tr><td>ipId</td><td>int</td><td>△</td><td><code>revision</code>·<code>final</code> 일 때 필수</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>tmpid</td><td>uuid</td><td>추출 작업 식별자. 이후 모든 단계에서 사용</td></tr><tr><td>status</td><td>enum</td><td>접수 직후이므로 항상 <code>QUEUED</code></td></tr><tr><td>filename</td><td>string</td><td>저장된 원본 파일명</td></tr><tr><td>byteSize</td><td>int</td><td>바이트 크기</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;tmpid&quot;: &quot;0a7c3f2e-...&quot;, &quot;status&quot;: &quot;QUEUED&quot;, &quot;filename&quot;: &quot;겨울의신호_v2.pdf&quot;, &quot;byteSize&quot;: 4823910 }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>mode=new</code> → <code>contract</code> 신규 + <code>status='draft'</code></li><li><code>mode=revision</code> → 같은 <code>contract</code> 에 <code>contract_history</code> 추가, <code>version=v(n+1)</code></li><li><code>mode=final</code> → 충돌이 없으면 <code>contract.status='signed'</code>, <code>version='final'</code></li><li>프론트는 응답 즉시 주소를 <code>/upload/{tmpid}</code> 로 바꿔야 합니다. 새로고침 복구의 가장 싼 방법입니다.</li></ul>", "3": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/extract/{tmpid}</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">3</span>추출 상태·결과 조회</h3>\n<div class=\"dmeta\"><span class=\"tag own-p1\">P1</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>② 추출(비동기)</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>프론트가 주기적으로 호출해 진행 상태를 확인합니다. 완료되면 이 응답에 추출 결과가 함께 실려 옵니다.</li><li><b>브라우저를 닫아도 워커는 계속 돕니다.</b> 나중에 같은 <code>tmpid</code> 로 들어오면 결과를 그대로 받습니다.</li><li><b>실패도 <code>200</code> 으로 줍니다.</b> 조회 요청 자체는 성공했기 때문입니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">없음. 경로 파라미터 <code>tmpid</code> 만 사용합니다.</p>\n\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>status</td><td>enum</td><td><code>QUEUED</code> / <code>RUNNING</code> / <code>DONE</code> / <code>FAILED</code></td></tr><tr><td>stage</td><td>enum·null</td><td><code>RUNNING</code> 일 때만. <code>OCR</code> / <code>LLM</code></td></tr><tr><td>queuePosition</td><td>int·null</td><td><code>QUEUED</code> 일 때 앞에 몇 건 있는지</td></tr><tr><td>reason</td><td>string·null</td><td><code>FAILED</code> 사유 — OCR_TIMEOUT / LLM_TIMEOUT / UNREADABLE_PDF / MAX_ATTEMPTS</td></tr><tr><td>result</td><td>object·null</td><td><code>DONE</code> 일 때만. contractInfo · ipCandidates · rights[] · rawText · confidence</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;tmpid&quot;: &quot;0a7c...&quot;, &quot;status&quot;: &quot;RUNNING&quot;, &quot;stage&quot;: &quot;LLM&quot;, &quot;result&quot;: null }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>폴링 간격 2s → 4s → 8s → 최대 30s. 몇 번 실패해도 에러 화면으로 넘기지 말고 간격만 늘립니다.</li><li><code>result.rights[].territories</code> 는 지역 그룹이 이미 국가 단위로 펼쳐진 상태로 옵니다.</li><li><code>result.rights[].evidence</code> 는 조건 필드마다 근거 배열 — <code>location</code>/<code>page</code>/<code>clause</code>/<code>quote</code>/<code>confidence</code>.</li><li><code>conditionsRaw</code>(Reserved·Carve-out·Holdback·Sublicense)는 <b>판정에 쓰지 않고 화면 표시용</b>입니다.</li></ul>", "4": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/ips/match</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">4</span>IP 매칭 후보</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>③ 결과 확인·수정 — 업로드 화면의 IP 매칭 패널</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>추출된 작품명이 자동 매칭되지 않았거나 사용자가 다른 IP 로 바꾸려 할 때 검색 콤보박스가 호출합니다.</li><li><code>ip.title</code> 뿐 아니라 <code>ip_alias</code> 까지 함께 찾습니다. 계약서마다 표기가 달라 정식 명칭만으로는 못 찾는 경우가 많습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">쿼리 파라미터</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>q</td><td>string</td><td>O</td><td>검색어. 2자 이상</td></tr><tr><td>limit</td><td>int</td><td>X</td><td>기본 10</td></tr><tr><td>includeInactive</td><td>bool</td><td>X</td><td>기본 false</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>items[].ipId / title / kind</td><td>-</td><td></td></tr><tr><td>items[].matchedAlias</td><td>string·null</td><td>별칭으로 걸렸으면 그 별칭</td></tr><tr><td>items[].matchedBy</td><td>enum</td><td><code>title</code> / <code>alias</code></td></tr><tr><td>items[].score</td><td>number</td><td>0~1 유사도</td></tr><tr><td>items[].assets</td><td>array</td><td>이 IP 의 권리 대상 목록 — <code>contentAssetId</code>·<code>scopeType</code>·<code>title</code></td></tr><tr><td>items[].relations</td><td>array</td><td>OST·리메이크 등 관련 IP — <code>ipId</code>·<code>kind</code>·<code>relationType</code></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;items&quot;: [ { &quot;ipId&quot;: 12, &quot;title&quot;: &quot;겨울의 신호&quot;, &quot;matchedBy&quot;: &quot;alias&quot;, &quot;score&quot;: 0.94, &quot;assets&quot;: [...], &quot;relations&quot;: [...] } ] }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>assets</code> 를 함께 내려주는 이유 — IP 를 고른 직후 시즌까지 바로 골라야 합니다. 요청을 나누면 드롭다운이 한 박자 늦습니다.</li><li><b>OST·리메이크는 부모 IP 의 하위 범위가 아니라 별도 IP</b> 입니다. 그 권리는 해당 IP 의 <code>content_asset_id</code> 로 저장됩니다.</li></ul>", "5": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/contracts/verify</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">5</span>충돌 검증</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>④ 검증 — 응답의 <code>conflicts[]</code> 가 그대로 ⑤ 충돌 리포트 화면</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>“충돌검사 실행”을 누르면 호출됩니다. <b><code>master</code> 스키마에 실제로 INSERT 를 시도해 보고 무조건 롤백합니다.</b></li><li>조회로 겹침을 계산하는 방식이 아니라, 저장 때 걸리는 것과 <b>완전히 같은 EXCLUDE 제약</b>을 씁니다. 판정 로직이 두 벌이 되지 않습니다.</li><li>데이터는 한 행도 남지 않습니다. 시퀀스는 되돌아가지 않아 id 에 구멍이 생기지만 기능에는 영향이 없습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>tmpid</td><td>uuid</td><td>O</td><td>추출 작업 id</td></tr><tr><td>mode</td><td>enum</td><td>O</td><td><code>new</code> / <code>revision</code> / <code>final</code></td></tr><tr><td>contractId</td><td>int</td><td>△</td><td><code>revision</code>·<code>final</code> 일 때</td></tr><tr><td>ipId</td><td>int</td><td>O</td><td>사용자가 확정한 IP</td></tr><tr><td>rights[]</td><td>array</td><td>O</td><td>contentAssetId · territories[] · rightsType · period · exclusivity · conditionsRaw · evidence</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>hasConflict</td><td>bool</td><td>충돌 유무</td></tr><tr><td>checkedRows</td><td>int</td><td>실제로 검사한 행 수 (국가 단위로 펼친 뒤)</td></tr><tr><td>conflicts[].severity</td><td>enum</td><td>EXCLUSIVE_VS_EXCLUSIVE / EXCLUSIVE_VS_SOLE / SOLE_VS_SOLE</td></tr><tr><td>conflicts[].territory / rightsType</td><td>string</td><td>겹친 국가 · 권리유형</td></tr><tr><td>conflicts[].overlap</td><td>object</td><td><code>start</code>·<code>end</code>·<code>days</code></td></tr><tr><td>conflicts[].incoming</td><td>object</td><td>이번에 올린 조건 (기간·독점여부·근거)</td></tr><tr><td>conflicts[].existing</td><td>object</td><td>상대 계약 id·제목·상대방·<code>rightsGrantId</code>·기간·<code>evidence</code></td></tr></tbody></table>\n<h4 class=\"dh\">처리 절차</h4><pre class=\"dpre\">SAVEPOINT chk;\n  -- 이번 PDF 의 rights_grant 전체를 INSERT 시도\nROLLBACK TO chk;   -- 통과했든 걸렸든 무조건</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>충돌이 있어도 <code>200</code> 입니다. HTTP 오류로 주면 프론트가 요청 실패와 충돌을 구분하지 못합니다.</li><li>여기서 통과해도 ⑥ 저장에서 다시 걸릴 수 있습니다. 그 사이 다른 사용자가 겹치는 계약을 확정할 수 있기 때문입니다.</li><li><code>existing.evidence</code> 를 함께 내려주므로 원문 대조 팝업이 추가 요청 없이 열립니다.</li></ul>", "6": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/contracts</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">6</span>계약 확정 저장</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>⑥ 확정 저장 — <b>이 프로젝트에서 가장 중요한 엔드포인트</b></div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>한 트랜잭션 안에서 확정·판정·정리를 모두 끝냅니다.</li><li>충돌은 트랜잭션 실패가 아니라 판정 결과입니다. 결과를 기록하고 정상 종료합니다.</li><li><b>부분 승인은 발생하지 않습니다.</b> 이번 PDF 의 권리를 하나의 SAVEPOINT 안에서 한꺼번에 넣으므로, 한 건만 걸려도 전부 되돌아간 뒤 전부 <code>conflicted</code> 로 다시 들어갑니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">5번 검증 API 와 <b>동일한 형태</b>에 <code>contractInfo</code> 가 추가됩니다. 검증 이후 값을 더 고쳤을 수 있으므로 전체를 다시 보냅니다.</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>tmpid</td><td>uuid</td><td>O</td><td>중복 확정 차단 키로도 사용</td></tr><tr><td>mode / contractId / ipId</td><td>-</td><td>O/△</td><td>5번과 동일</td></tr><tr><td>contractInfo</td><td>object</td><td>O</td><td>title · counterparty · signedDate · lang · amount · currency</td></tr><tr><td>rights[]</td><td>array</td><td>O</td><td>최종 조건 목록</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>contractId / contractHistoryId</td><td>int</td><td>생성·갱신된 계약과 이번 버전 행</td></tr><tr><td>version</td><td>string</td><td><code>v1</code>, <code>v2</code>, … 또는 <code>final</code></td></tr><tr><td>contractStatus</td><td>enum</td><td><code>draft</code> / <code>signed</code></td></tr><tr><td>historyStatus</td><td>enum</td><td><code>applied</code> / <code>conflicted</code></td></tr><tr><td>savedRights[]</td><td>array</td><td><code>rightsGrantId</code>·<code>territory</code>·<code>rightsType</code>·<code>status</code>·<code>lineageId</code></td></tr><tr><td>conflicts[]</td><td>array</td><td>5번과 같은 구조</td></tr><tr><td>stagingCleared</td><td>bool</td><td>임시 데이터 정리 여부</td></tr></tbody></table>\n<h4 class=\"dh\">처리 절차</h4><pre class=\"dpre\">1. contract.source_tmpid 로 이미 확정된 tmpid 인지 먼저 검사   → 409\n2. contract · contract_history · contract_chunk 저장          → 되돌리지 않는 구간\n3. SAVEPOINT sp — 같은 계약의 이전 세대 권리를 terminated 로 내리고\n                   이번 권리를 일괄 INSERT\n4. EXCLUDE 통과 → 그대로 유지 (다시 INSERT 하지 않음)\n   EXCLUDE 위반 → ROLLBACK TO sp → 상대 조회 → 같은 조건을 conflicted 로 재INSERT\n5. staging 의 임시 행 삭제 (같은 트랜잭션)\n6. COMMIT — 성공이든 충돌이든 항상 커밋</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>final</code>·충돌 없음 → <code>signed</code> / <code>applied</code> / <code>active</code></li><li><code>final</code>·충돌 → <code>draft</code> 유지 / <code>conflicted</code> / <code>conflicted</code></li><li><code>new</code>·<code>revision</code>·충돌 없음 → <code>draft</code> / <code>applied</code> / <code>active</code></li><li>충돌이 나면 <code>current_history_id</code> 를 갱신하지 않습니다. 직전 유효 버전이 그대로 남습니다.</li><li>같은 <code>tmpid</code> 로 두 번째 요청이 오면 <code>409 ALREADY_CONFIRMED</code> 와 함께 첫 결과를 돌려줍니다.</li></ul>", "7": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/contracts</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">7</span>계약 목록</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓐ 진입 — 목록. 검색(15번)과 함께 열람 흐름의 두 진입점 중 하나</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>첫 화면(<code>/</code>)의 테이블을 채웁니다.</li><li><b>아직 추출 중인 건도 함께 내려줍니다.</b> 사용자가 <code>tmpid</code> 를 잃어버려도 목록에서 다시 들어갈 수 있어야 하기 때문입니다. 이 항목들은 <code>master</code> 가 아니라 <code>staging.extract_job</code> 에서 옵니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">쿼리 파라미터</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>q</td><td>string</td><td>X</td><td>IP명·상대방명 부분 검색</td></tr><tr><td>status</td><td>enum[]</td><td>X</td><td><code>draft</code> / <code>signed</code> / <code>cancelled</code>. 복수 지정 가능</td></tr><tr><td>territory</td><td>string</td><td>X</td><td>국가 코드 필터</td></tr><tr><td>exclusiveOnly</td><td>bool</td><td>X</td><td>독점 계약만 보기 토글</td></tr><tr><td>includeProcessing</td><td>bool</td><td>X</td><td>기본 true. 추출 중인 건 포함 여부</td></tr><tr><td>sort</td><td>enum</td><td>X</td><td><code>recent</code>(기본) / <code>expiring</code></td></tr><tr><td>page / size</td><td>int</td><td>X</td><td>기본 1 / 20</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>items[].kind</td><td>enum</td><td><code>contract</code> 또는 <code>processing</code></td></tr><tr><td>(contract) ipTitle / serviceTitle / grantor / grantee</td><td>string</td><td></td></tr><tr><td>(contract) status</td><td>enum</td><td><code>draft</code> / <code>signed</code> / <code>cancelled</code></td></tr><tr><td>(contract) displayState</td><td>enum</td><td>파생값 — BEFORE_TERM / IN_TERM / EXPIRING / EXPIRED</td></tr><tr><td>(contract) daysToExpiry</td><td>int·null</td><td><code>EXPIRING</code> 일 때 D-day. 원형 게이지에 사용</td></tr><tr><td>(contract) territories / mainRightsTypes / period / isExclusive / hasConflict</td><td>-</td><td></td></tr><tr><td>(processing) tmpid / filename / jobStatus / stage / createdAt</td><td>-</td><td>클릭 시 <code>/upload/{tmpid}</code> 로 이동</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;total&quot;: 9, &quot;page&quot;: 1, &quot;size&quot;: 20, &quot;items&quot;: [ { &quot;kind&quot;: &quot;processing&quot;, ... }, { &quot;kind&quot;: &quot;contract&quot;, ... } ] }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>displayState</code>·<code>daysToExpiry</code> 는 저장 값이 아니라 <code>period</code> 로 계산합니다. 컬럼으로 두면 배치로 계속 갱신해야 하고 실제와 어긋납니다.</li></ul>", "8": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/contracts/{id}</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">8</span>계약 상세</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag lock\">PIN 세션 필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓒ 계약서 상세</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>우측 사이드바 네 개 카드(기본 정보 / 권리 / 재허락 / Payment)와 버전 이력을 <b>한 번에</b> 채웁니다. 나누면 카드마다 로딩 시점이 달라져 화면이 어수선해집니다.</li><li><b>정상 계약과 충돌 계약의 응답 형태가 같습니다.</b> 충돌 건도 조건이 <code>rights_grant</code> 에 <code>conflicted</code> 로 저장되어 있어 같은 경로로 읽힙니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">경로 <code>id</code>, 쿼리 <code>historyId</code>(생략 시 현재 유효 버전)</p>\n\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>title / status / contractType / signedDate</td><td>-</td><td></td></tr><tr><td>grantor / grantee / amount / currency</td><td>-</td><td>갑 / 을 / 금액 / 통화</td></tr><tr><td>currentVersion</td><td>string</td><td><code>v3</code> 또는 <code>final</code></td></tr><tr><td>histories[]</td><td>array</td><td><code>historyId</code>·<code>version</code>·<code>status</code>·<code>filePath</code>·<code>parsedAt</code>·<code>isCurrent</code></td></tr><tr><td>rights[]</td><td>array</td><td><code>rightsGrantId</code>·<code>lineageId</code>·<code>status</code>·<code>contentAsset</code>·<code>territory</code>·<code>rightsType</code>·<code>period</code>·<code>exclusivity</code>·<code>conditionsRaw</code>·<code>evidence</code></td></tr><tr><td>conflictReport</td><td>object·null</td><td>최신 버전이 <code>conflicted</code> 일 때만. 5번 <code>conflicts</code> 와 같은 구조</td></tr><tr><td>authority</td><td>object</td><td>재허락 카드. <b>스키마 미확정 — 전 필드 null</b></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;contractId&quot;: 101, &quot;status&quot;: &quot;signed&quot;, &quot;currentVersion&quot;: &quot;final&quot;, &quot;histories&quot;: [...], &quot;rights&quot;: [...], &quot;conflictReport&quot;: null }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>rights[].lineageId</code> 는 <code>conflicted</code> 행에서 null 입니다. 이력 조회(10번) 버튼을 숨기는 기준이 됩니다.</li><li>권리가 하나도 없으면 <code>rights</code> 는 빈 배열이고 화면은 “등록된 권리 조항이 없습니다”를 표시합니다.</li></ul>", "9": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/contracts/{id}/file</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">9</span>원본 PDF 조회</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag lock\">PIN 세션 필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓓ 원문·이력 열람 — 계약 상세 좌측 미리보기 패널</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>확정된 계약의 PDF 는 <code>contract_history.file_path</code> 가 가리키는 원본입니다.</li><li><code>staging.pdf_blob</code> 은 확정 시점에 이미 삭제되었으므로 여기서 읽지 않습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">경로 <code>id</code> / 쿼리 <code>historyId</code>·<code>disposition</code></p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>historyId</td><td>int</td><td>X</td><td>생략 시 현재 유효 버전의 PDF</td></tr><tr><td>disposition</td><td>enum</td><td>X</td><td><code>inline</code>(기본) / <code>attachment</code>. 다운로드 버튼은 attachment</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>(본문)</td><td>binary</td><td><code>200 OK</code> · <code>Content-Type: application/pdf</code> · 바이너리 스트림</td></tr></tbody></table>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>원문이 없는 계약은 <code>404 NO_SOURCE_FILE</code> 을 반환하고, 화면은 “원문 텍스트가 없습니다” 빈 상태를 표시합니다.</li></ul>", "10": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/rights/{lineageId}/history</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">10</span>권리 이력</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag lock\">PIN 세션 필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓓ 원문·이력 열람 — 권리 카드의 “이력 보기”</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li><code>rights_grant</code> 는 UPDATE 없이 INSERT 만 하므로 과거 세대가 <code>terminated</code> 행으로 그대로 남아 있습니다. 같은 <code>lineage_id</code> 를 공유하는 행을 생성 시각 순으로 내려주면 그것이 곧 이력입니다.</li><li><b>무엇이 언제부터 바뀌었는지</b>를 답하는 것이 목적입니다. 개정판이 들어와도 조건이 그대로인 권리는 새 행을 만들지 않으므로, 최신 행의 생성 시각이 곧 “이 조건이 시작된 시점”입니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">경로 파라미터 <code>lineageId</code> 만 사용합니다.</p>\n\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>generations[]</td><td>array</td><td>세대 목록. 오래된 순</td></tr><tr><td>generations[].rightsGrantId / contractHistoryId / version</td><td>-</td><td>어느 업로드에서 나왔는지</td></tr><tr><td>generations[].status</td><td>enum</td><td><code>active</code> / <code>terminated</code></td></tr><tr><td>generations[].territory / rightsType / period / exclusivity</td><td>-</td><td>그 세대의 조건</td></tr><tr><td>generations[].changedFields</td><td>string[]</td><td>직전 세대 대비 바뀐 필드명. 서버가 계산</td></tr><tr><td>generations[].createdAt / terminatedAt / terminatedReason</td><td>-</td><td></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;lineageId&quot;: 5100, &quot;generations&quot;: [ { &quot;version&quot;: &quot;v1&quot;, &quot;status&quot;: &quot;terminated&quot;, &quot;changedFields&quot;: [] }, { &quot;version&quot;: &quot;final&quot;, &quot;status&quot;: &quot;active&quot;, &quot;changedFields&quot;: [&quot;period.end&quot;] } ] }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>changedFields</code> 는 화면 타임라인에서 “무엇이 바뀌었는지”를 강조 표시하는 데 씁니다.</li></ul>", "11": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/contracts/{id}/cancel</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">11</span>계약 종료</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag lock\">PIN 세션 필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>상태를 바꾸는 동작 — 순서가 있는 단계가 아니라 계약 상세에서 갈라져 나가는 동작</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>계약 상태를 <code>cancelled</code> 로 바꾸면서 <b>그 계약에 살아 있는 권리를 전부 <code>terminated</code> 로 내립니다.</b></li><li>이 두 번째 처리가 핵심입니다. 상태만 바꾸고 권리를 그대로 두면 EXCLUDE 인덱스에 남아 다른 계약을 계속 막습니다. 협의가 결렬된 계약 때문에 실제 계약이 등록되지 못하는 상황이 생깁니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>reason</td><td>enum</td><td>O</td><td><code>cancelled</code>(해지) / <code>expired</code>(만료) / <code>waiver</code>(권리포기)</td></tr><tr><td>note</td><td>string</td><td>X</td><td>자유 입력 메모</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>contractId</td><td>int</td><td></td></tr><tr><td>status</td><td>enum</td><td><code>cancelled</code></td></tr><tr><td>terminatedRights</td><td>int</td><td><code>terminated</code> 로 바뀐 권리 행 수</td></tr><tr><td>terminatedAt</td><td>datetime</td><td></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;contractId&quot;: 101, &quot;status&quot;: &quot;cancelled&quot;, &quot;terminatedRights&quot;: 4, &quot;terminatedAt&quot;: &quot;2026-08-22T16:03:22+09:00&quot; }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>종료는 PDF 업로드가 아니므로 <code>contract_history</code> 행을 만들지 않습니다. 이력은 권리 쪽 <code>terminated_reason</code> 에만 남습니다.</li><li>이미 <code>cancelled</code> 인 계약에 다시 호출하면 <code>422 ALREADY_CANCELLED</code>.</li></ul>", "12": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/ips</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">12</span>IP 목록</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>㉮ IP 목록 조회 — <code>UI-D-001</code> 좌측 목록</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>계약 흐름과 독립된 마스터 데이터 관리 화면입니다.</li><li><b>삭제는 지원하지 않습니다.</b> 이미 등록된 계약이 그 IP 를 참조하고 있기 때문이며, 대신 비활성화로 목록에서 감춥니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">쿼리 파라미터</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>q</td><td>string</td><td>X</td><td>타이틀·별칭 검색</td></tr><tr><td>includeInactive</td><td>bool</td><td>X</td><td>기본 false</td></tr><tr><td>page / size</td><td>int</td><td>X</td><td></td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>items[].ipId / title / kind</td><td>-</td><td>대표명 · 유형</td></tr><tr><td>items[].aliases</td><td>array</td><td><code>{ lang, text, aliasType }</code></td></tr><tr><td>items[].activity</td><td>enum</td><td></td></tr><tr><td>items[].contractCount</td><td>int</td><td>이 IP 를 참조하는 계약 수</td></tr><tr><td>items[].updatedAt</td><td>datetime</td><td>상세 패널의 “최근 수정일”</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;total&quot;: 24, &quot;items&quot;: [ { &quot;ipId&quot;: 12, &quot;title&quot;: &quot;겨울의 신호&quot;, &quot;kind&quot;: &quot;DRAMA&quot;, &quot;activity&quot;: &quot;active&quot;, &quot;contractCount&quot;: 7 } ] }</pre>", "13": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/ips</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">13</span>IP 등록</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>㉰ IP 신규 등록 — 진입 경로가 둘입니다. <code>UI-D-002</code> 직접 진입, 그리고 등록 흐름 ③ 단계의 “신규 IP로 등록” 버튼. 같은 엔드포인트를 씁니다</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>업로드 도중 새 작품이 나오면 화면을 벗어나지 않고 여기서 바로 만들 수 있어야 합니다. 응답의 <code>ipId</code> 를 그대로 매칭 패널에 채웁니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>title</td><td>string</td><td>O</td><td>대표명</td></tr><tr><td>kind</td><td>string</td><td>O</td><td><code>DRAMA</code> / <code>FILM</code> / <code>ANIMATION</code> 등</td></tr><tr><td>aliases</td><td>array</td><td>X</td><td>언어별 정식명. <code>{ lang, text, aliasType }</code></td></tr><tr><td>assets</td><td>array</td><td>X</td><td>권리 대상 초기 목록. 생략하면 <code>SERIES_ALL</code> 하나만 자동 생성</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>ipId</td><td>int</td><td></td></tr><tr><td>title / kind / activity</td><td>-</td><td></td></tr><tr><td>assets[]</td><td>array</td><td><code>contentAssetId</code>·<code>scopeType</code>·<code>title</code></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;ipId&quot;: 31, &quot;title&quot;: &quot;겨울의 신호&quot;, &quot;kind&quot;: &quot;DRAMA&quot;, &quot;activity&quot;: &quot;active&quot;, &quot;assets&quot;: [ { &quot;contentAssetId&quot;: 80, &quot;scopeType&quot;: &quot;SERIES_ALL&quot; } ] }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li>같은 정규화 키의 IP 가 이미 있으면 <code>409</code> 와 기존 <code>ipId</code> 를 함께 돌려줍니다. 중복 생성 대신 기존 것을 고를 수 있게 하기 위함입니다.</li></ul>", "14": "<div class=\"dhead\"><span class=\"m m-patch\">PATCH</span><code>/ips/{id}</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">14</span>IP 수정·활성화</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>㉯ IP 상세·수정·활성화 — <code>UI-D-001</code> 우측 상세 패널</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>부분 수정이므로 보낸 필드만 반영합니다.</li><li>수정 버튼은 <code>UI-D-002</code> 를 수정 모드로 열고, 활성 스위치는 <b>확인 모달 없이 즉시 반영</b>합니다. 삭제가 아니라 되돌리기 쉬우므로 한 번 더 묻지 않습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>title</td><td>string</td><td>X</td><td>대표명 변경</td></tr><tr><td>kind</td><td>string</td><td>X</td><td>유형 변경</td></tr><tr><td>aliases</td><td>array</td><td>X</td><td><b>전체 교체</b>. 보낸 목록이 최종 상태가 됩니다</td></tr><tr><td>activity</td><td>enum</td><td>X</td><td>active / deactive 전환</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>(전체)</td><td>object</td><td>12번 <code>items[]</code> 와 같은 구조의 단일 객체</td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;activity&quot;: &quot;deactive&quot; }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>contractCount</code> 가 0보다 큰 IP 를 비활성화해도 기존 계약 조회에는 영향이 없습니다. 새 계약을 만들 때 목록에 안 나올 뿐입니다.</li></ul>", "15": "<div class=\"dhead\"><span class=\"m m-post\">POST</span><code>/search</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">15</span>통합 검색</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>Ⓐ 진입 — 검색. 별개 기능이 아니라 목록과 나란한 또 하나의 진입점</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>1단계 <b>조건 필터</b> — 질의에서 지역·기간·권리유형·독점여부를 뽑아 <code>rights_grant</code> 를 SQL 로 좁힙니다.</li><li>2단계 <b>의미 랭킹</b> — 남은 후보의 <code>contract_chunk.embedding</code> 과 질의 임베딩을 비교해 순위를 매깁니다.</li><li>교차 언어 검색도 같은 엔드포인트입니다. 임베딩 모델이 다국어라 한국어 질의로 영어·일본어 원문을 찾을 수 있습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">GET 이 아니라 POST 인 이유는 질의문이 길고 필터 객체가 중첩되기 때문입니다.</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>query</td><td>string</td><td>O</td><td>자연어 질의</td></tr><tr><td>mode</td><td>enum</td><td>X</td><td><code>natural</code>(기본) / <code>cross</code>. cross 는 원문 언어가 질의어와 다른 건만</td></tr><tr><td>filters</td><td>object</td><td>X</td><td>territories[] · rightsTypes[] · exclusivity · signedFrom · signedTo. <b>질의 해석 결과보다 우선</b></td></tr><tr><td>limit</td><td>int</td><td>X</td><td>기본 20</td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>interpreted</td><td>object</td><td>질의에서 뽑아낸 조건. 화면 상단 “감지된 지역” 카드에 사용</td></tr><tr><td>stages</td><td>array</td><td><code>SQL_FILTER</code> → <code>VECTOR_RANK</code> → <code>MAPPED</code></td></tr><tr><td>avgConfidence</td><td>number</td><td>평균 신뢰도 카드</td></tr><tr><td>results[].similarity</td><td>number</td><td>0~1 코사인 유사도. 화면에 %로 표시</td></tr><tr><td>results[].matchedFilters</td><td>string[]</td><td>구조화 매칭 근거 태그</td></tr><tr><td>results[].sourceLang</td><td>string</td><td>원문 언어. cross 모드에서 “원문 EN” 배지</td></tr><tr><td>results[].snippets</td><td>array</td><td><code>{ chunkId, page, clauseNo, text, similarity }</code></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;query&quot;: &quot;동남아시아 지역 내에서 독점적으로 모바일 게임 배포 권리를 허용하는 2024년 이후 체결된 모든 계약&quot;, &quot;mode&quot;: &quot;natural&quot;, &quot;filters&quot;: { &quot;signedFrom&quot;: &quot;2024-01-01&quot; }, &quot;limit&quot;: 20 }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>interpreted</code> 를 그대로 내려주는 이유는 사용자가 “시스템이 내 질문을 이렇게 이해했다”를 확인하고 필터를 고칠 수 있어야 하기 때문입니다.</li></ul>", "16": "<div class=\"dhead\"><span class=\"m m-get\">GET</span><code>/refs</code></div>\n<h3 class=\"dtitle\"><span class=\"no big\">16</span>참조 코드 목록</h3>\n<div class=\"dmeta\"><span class=\"tag own-p4\">P4</span><span class=\"tag open\">PIN 세션 불필요</span></div>\n<div class=\"dwhere\"><b>프로세스 위치</b><div>전 구간 공통 — 세 흐름 모두에서 사용</div></div>\n<h4 class=\"dh\">API 역할</h4><ul class=\"dul\"><li>목록 필터의 지역 드롭다운, 업로드 화면의 권리유형 선택, 검색 필터가 모두 이 값을 씁니다.</li><li>값이 자주 바뀌지 않으므로 프론트에서 캐시해도 됩니다. 라벨은 언어별 행으로 정규화되어 있어 <code>lang</code> 으로 골라 받습니다.</li></ul>\n<h4 class=\"dh\">payload</h4>\n<p class=\"dnote\">쿼리 파라미터</p>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>필수</th><th>설명</th></tr></thead><tbody><tr><td>types</td><td>string[]</td><td>X</td><td><code>country</code> / <code>territoryGroup</code> / <code>rightsType</code> / <code>conflictCode</code> / <code>ipKind</code> / <code>scopeType</code> / <code>relationType</code>. 생략하면 전체</td></tr><tr><td>lang</td><td>char(2)</td><td>X</td><td>기본 <code>ko</code></td></tr></tbody></table>\n<h4 class=\"dh\">response</h4>\n<table class=\"dt\"><thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead><tbody><tr><td>country</td><td>array</td><td><code>{ code, label, inScope }</code></td></tr><tr><td>territoryGroup</td><td>array</td><td><code>{ code, label, countries[] }</code></td></tr><tr><td>rightsType</td><td>array</td><td><code>{ code, label }</code></td></tr><tr><td>conflictCode</td><td>array</td><td><code>{ code, template }</code></td></tr><tr><td>ipKind / scopeType / relationType</td><td>array</td><td><code>{ code, label }</code></td></tr></tbody></table>\n<h4 class=\"dh\">예시</h4><pre class=\"dpre\">{ &quot;country&quot;: [ { &quot;code&quot;: &quot;JP&quot;, &quot;label&quot;: &quot;일본&quot;, &quot;inScope&quot;: true } ], &quot;territoryGroup&quot;: [ { &quot;code&quot;: &quot;APAC&quot;, &quot;countries&quot;: [&quot;KR&quot;,&quot;JP&quot;,&quot;SG&quot;,&quot;TW&quot;] } ] }</pre>\n<h4 class=\"dh\">구현 시 주의</h4><ul class=\"dul warn\"><li><code>territoryGroup.countries</code> 를 함께 내려주는 이유 — 사용자가 “APAC”을 고르면 화면에서 즉시 국가 단위로 펼쳐 보여줘야 하고, 저장 시에도 국가마다 <code>rights_grant</code> 한 행이 되기 때문입니다.</li></ul>"};
-const panel = document.getElementById('panel');
-const scrim = document.getElementById('scrim');
-const pbody = document.getElementById('pbody');
-let cur = null;
-function openPanel(no){
-  if(!PANELS[no]) return;
-  pbody.innerHTML = PANELS[no];
-  pbody.scrollTop = 0;
-  panel.classList.add('on'); scrim.classList.add('on');
-  document.querySelectorAll('button.api.sel').forEach(b=>b.classList.remove('sel'));
-  document.querySelectorAll('button.api[data-api="'+no+'"]').forEach(b=>b.classList.add('sel'));
-  cur = no;
+    <details class="api" open>
+      <summary><div class="route"><span class="no">5</span><span class="method">POST</span><code>/api/contracts/verify</code><b>계약 검증</b></div><span class="tag">공개 · 200</span></summary>
+      <div class="detail"><p>권리마다 <code>legalRight</code>와 <code>exploitationMode</code>를 모두 받는다. rights·territories는 한 건 이상이다.</p>
+        <pre class="schema">request {
+  "contractId": null, "grantor": "C사", "grantee": "T사", "ipId": 12,
+  "fileName": "contract.pdf", "filePath": "contracts/...", "fileHash": "...",
+  "documentKind": "draft",
+  "rights": [{
+    "contentAssetId": 80, "legalRight": "TRANSMISSION", "exploitationMode": "SVOD",
+    "territories": ["APAC"], "period": {"start":"2027-01-01","end":"2027-12-31"},
+    "exclusivity": "exclusive", "evidence": { "legal_right":{"quote":"..."}, "exploitation_mode":{"quote":"..."}, "territory":{"quote":"..."}, "period":{"quote":"..."}, "exclusivity":{"quote":"..."} }
+  }]
 }
-function closePanel(){
-  panel.classList.remove('on'); scrim.classList.remove('on');
-  document.querySelectorAll('button.api.sel').forEach(b=>b.classList.remove('sel'));
-  cur = null;
+response { "batchResult":"CONFLICTED", "hasConflict":true, "constraintName":"no_exclusive_overlap", "conflictReport":{...} }</pre>
+        <p><code>validate_rights_batch()</code>가 실제 INSERT 경로로 판정하고 내부 쓰기를 전부 되돌린다.</p>
+      </div>
+    </details>
+
+    <details class="api" open>
+      <summary><div class="route"><span class="no">6</span><span class="method">POST</span><code>/api/contracts</code><b>확정 저장</b></div><span class="tag">공개 · 201</span></summary>
+      <div class="detail"><p>5번 요청에 선택 <code>chunks[]</code>와 <code>sourceTmpid</code>를 추가한다. 청크 페이지는 <code>pageStart</code>·<code>pageEnd</code>로 보내며 단일 <code>page</code>는 사용하지 않는다.</p>
+        <pre class="schema">response {
+  "batchResult":"APPLIED", "contractId":101, "contractHistoryId":301,
+  "hasConflict":false, "constraintName":null, "conflictReport":null
+}</pre>
+        <ul><li>sourceTmpid가 있으면 staging 작업이 DONE이고 extract_result가 있어야 하며, 현재 사용 중인 값의 재사용은 409 ALREADY_CONFIRMED.</li><li>충돌이어도 201이며 grant는 0행, conflicted history와 P2 conflict_report는 커밋.</li><li><code>consumed_at</code>·TTL 정리는 D-33 O-15 확정 전 별도 단계.</li><li>과거 개정 tmpid까지 영구 차단하려면 P2에 history 단위 UNIQUE 또는 소비 원장이 필요하다.</li></ul>
+      </div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">7</span><span class="method">GET</span><code>/api/contracts</code><b>통합 목록</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p>query: <code>includeProcessing=true</code>, <code>page</code>, <code>size</code>. 계약과 staging의 QUEUED/RUNNING/FAILED 항목을 최신순으로 섞어 <code>{items,total,page,size}</code>로 반환한다. 계약 표시는 최신 fileName을 쓴다.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">8</span><span class="method">GET</span><code>/api/contracts/{id}</code><b>계약 상세</b></div><span class="tag">Bearer 필요</span></summary>
+      <div class="detail"><p>기본정보, ips, active rights, histories, 최신 conflictReport를 한 번에 반환한다. 권리는 <code>legalRight</code>·<code>exploitationMode</code>와 각각의 라벨을 포함한다. 충돌 세대에는 grant가 없으므로 입력 충돌은 histories의 report에서 읽는다.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">9</span><span class="method">GET</span><code>/api/contracts/{id}/file</code><b>원본 PDF</b></div><span class="tag">Bearer 필요</span></summary>
+      <div class="detail"><p><code>contract_history.file_path</code>의 PDF를 반환한다. 현재 구현은 로컬 파일 어댑터이며 object storage 연결은 남은 통합 작업이다. 없으면 404 NO_SOURCE_FILE.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">10</span><span class="method">GET</span><code>/api/rights/{lineageId}/history</code><b>권리 계보</b></div><span class="tag">Bearer 필요</span></summary>
+      <div class="detail"><p>active·terminated 세대를 오래된 순서로 반환한다. 각 generation은 contractHistoryId·version, legalRight, exploitationMode, territory, 기간, exclusivity, 종료정보와 서버 계산 changedFields를 포함한다.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">11</span><span class="method">POST</span><code>/api/contracts/{id}/cancel</code><b>계약 종료</b></div><span class="tag">Bearer 필요</span></summary>
+      <div class="detail"><p>request body 없음. contract를 cancelled로 바꾸면 P2 트리거가 active grant를 terminated/cancelled로 내린다.</p><pre class="schema">{ "contractId":101, "status":"cancelled", "terminatedRights":4, "terminatedAt":"..." }</pre><p>없는 계약은 404, 이미 종료된 계약은 422 ALREADY_CANCELLED.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">12</span><span class="method">GET</span><code>/api/ips</code><b>IP 목록</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p>query: <code>q</code>, <code>includeInactive=false</code>, page, size. title·alias를 검색한다.</p><pre class="schema">{ "items":[{
+  "ipId":12, "title":"겨울의 신호", "kind":"DRAMA", "activity":"active",
+  "aliases":[{"id":1,"lang":"ko","text":"겨울의 신호","aliasType":"title"}],
+  "assets":[{"contentAssetId":80,"scopeType":"SERIES_ALL"}], "contractCount":7, "createdAt":"..."
+}], "total":1, "page":1, "size":20 }</pre></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">12-1</span><span class="method">GET</span><code>/api/ips/{id}</code><b>IP 상세</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p>ID로 IP 한 건을 조회한다. 비활성 IP도 기존 계약 확인을 위해 조회할 수 있고, 없는 ID는 404다.</p><pre class="schema">{
+  "ipId":12, "title":"겨울의 신호", "kind":"DRAMA", "activity":"deactive",
+  "aliases":[{"id":1,"lang":"ko","text":"겨울의 신호","aliasType":"title"}],
+  "assets":[{"contentAssetId":80,"scopeType":"SERIES_ALL"}],
+  "contractCount":7, "createdAt":"..."
+}</pre></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">13</span><span class="method">POST</span><code>/api/ips</code><b>IP 등록</b></div><span class="tag">공개 · 201</span></summary>
+      <div class="detail"><pre class="schema">{
+  "title":"겨울의 신호", "kind":"DRAMA",
+  "aliases":[{"lang":"ko","text":"겨울의 신호","aliasType":"title"}],
+  "assets":[{"scopeType":"SERIES_ALL","title":"겨울의 신호"}]
+}</pre><p>assets 생략 시 P2 트리거가 기본 SERIES_ALL 한 행을 만든다. 정규화 이름 중복은 409와 기존 ipId.</p></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">14</span><span class="method">PATCH</span><code>/api/ips/{id}</code><b>IP 수정·활성 전환</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><p><code>title</code>, <code>kind</code>, <code>activity</code>, <code>aliases</code> 중 보낸 값만 수정한다. aliases는 전체 교체이며 activity는 <code>active | deactive</code>다.</p><pre class="schema">{ "activity": "deactive" }</pre></div>
+    </details>
+
+    <details class="api">
+      <summary><div class="route"><span class="no">15</span><span class="method">POST</span><code>/api/search</code><b>통합 검색</b></div><span class="tag">공개</span></summary>
+      <div class="detail"><pre class="schema">{
+  "query":"한국 독점 SVOD 계약",
+  "filters":{"legalRights":["TRANSMISSION"],"exploitationModes":["SVOD"],"territories":["KR"],"exclusivity":"exclusive","period":{"start":"2027-01-01","end":"2027-12-31"}},
+  "page":1, "size":20
 }
-document.querySelectorAll('button.api').forEach(b=>{
-  b.addEventListener('click', ()=> b.dataset.api===cur ? closePanel() : openPanel(b.dataset.api));
-});
-scrim.addEventListener('click', closePanel);
-document.getElementById('pclose').addEventListener('click', closePanel);
-document.addEventListener('keydown', ev=>{ if(ev.key==='Escape') closePanel(); });
-</script>
-</body></html>
+response { "interpreted":{...}, "results":[{"contractId":101,"title":"contract.pdf","grantor":"C사","grantee":"T사","status":"signed","score":0.91}], "total":1,"page":1,"size":20,"vectorRanked":true }</pre><p>명시 filters가 자연어 해석보다 우선한다. <code>confirmed_rights_grant</code>의 서명 완료 계약을 SQL로 축소한 후에만 contract_chunk 벡터 랭킹을 수행한다.</p></div>
+    </details>
+
+    <details class="api" open>
+      <summary><div class="route"><span class="no">16</span><span class="method">GET</span><code>/api/refs</code><b>참조 코드</b></div><span class="tag">공개 · cache 1h</span></summary>
+      <div class="detail"><p>query: 쉼표 구분 <code>types=legalRight,exploitationMode,country,territoryGroup,reasonCode</code>, <code>lang=ko</code>.</p><pre class="schema">{
+  "legalRights":[{"code":"TRANSMISSION","parentCode":"PUBLIC_TRANSMISSION","nameKo":"전송권"}],
+  "exploitationModes":[{"code":"SVOD","parentCode":"VOD","nameKo":"구독형 VOD"}],
+  "countries":[{"code":"KR","label":"대한민국","inScope":true}],
+  "territoryGroups":[{"code":"APAC","label":"아시아 태평양","countries":["KR","JP"]}],
+  "reasonCodes":[{"code":"EXCLUSIVE_RIGHT_OVERLAP","resultType":"CONFLICT","severity":95}]
+}</pre><p>구형 단일축 <code>rightsType</code>은 제공하지 않는다.</p></div>
+    </details>
+  </div>
+
+  <h2>공통 충돌 응답</h2>
+  <pre class="schema">{
+  "constraint_name":"no_exclusive_overlap",
+  "exception_detail":"...",
+  "conflicts":[{
+    "incoming":{"legal_right":"TRANSMISSION","exploitation_mode":"SVOD","territory":"KR","period":"[2027-01-01,2028-01-01)","exclusivity":"exclusive"},
+    "existing_grant_id":5100, "existing_contract_id":101, "overlap_period":"[2027-06-01,2028-01-01)",
+    "legal_right_relation":"same", "exploitation_mode_relation":"same", "blocking_layer":"no_exclusive_overlap"
+  }]
+}</pre>
+  <p class="muted">DB의 snake_case JSON은 <code>conflictReport</code> 내부에서 P2 원형 그대로 전달한다. 바깥 API 모델만 camelCase다.</p>
+</main>
+</body>
+</html>
