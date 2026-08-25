@@ -1,0 +1,90 @@
+/* "비활성 IP 포함" 토글로 표시되는 행이 바뀔 때마다 table-layout:auto가 내용 기준으로
+   컬럼 폭을 다시 계산해 흔들렸다 — list-table과 같은 방식(고정폭 + colgroup)으로 고정한다.
+   가로 스크롤 컨테이너(mx-table-scroll)는 mindex-ui.css 공용. */
+.ipmgmt-table {
+  table-layout: fixed;
+  min-width: 520px;
+}
+
+.ipmgmt-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ipmgmt-inactive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--mx-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ipmgmt-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+/* .ipmgmt-grid를 1단으로 접는 규칙은 shared.css의 공용 사이드바 접기 브레이크포인트에 있다. */
+@media (max-width: 640px) {
+  .ipmgmt-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+.ipmgmt-row {
+  cursor: pointer;
+}
+/* --mx-accent-bg(민트)은 "활성" 상태 칩(mx-tag-accent) 색과 겹쳐 헷갈리므로, 선택된 행은
+   중립 톤 배경 + 좌측 accent 바로 구분한다. */
+.ipmgmt-row--active {
+  background: var(--mx-bg-tint);
+  box-shadow: inset 3px 0 0 0 var(--mx-accent);
+}
+.ipmgmt-row--active:hover {
+  background: var(--mx-bg-tint);
+}
+
+.ipmgmt-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mx-border-soft);
+  font-size: 13px;
+}
+
+.ipmgmt-alias-groups {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ipmgmt-alias-group-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mx-muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.ipmgmt-alias-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  padding: 4px 0;
+}
+
+.ipmgmt-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mx-border-soft);
+}

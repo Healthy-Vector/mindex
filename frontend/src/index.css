@@ -1,23 +1,14 @@
 body {
   margin: 0;
-  font-family: -apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif;
-  color: #0f172a;
-  background: #ffffff;
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 6px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 14px;
+  font-family: Manrope, -apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  color: #1b211d;
+  background: #f4f5f4;
 }
 
 a {
-  color: #0f766e;
+  color: #1c472b;
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: #398358;
 }

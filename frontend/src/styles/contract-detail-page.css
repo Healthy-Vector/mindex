@@ -1,0 +1,312 @@
+.detail-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.detail-title {
+  margin-bottom: 2px;
+}
+.detail-subtitle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.detail-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.detail-meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mx-border-soft);
+  font-size: 13px;
+}
+.detail-meta-row--last {
+  border-bottom: none;
+}
+/* 라벨 폭을 고정해서 행마다 흔들리지 않게 하고, 값은 남는 폭에서 줄바꿈 대신
+   말줄임 처리한다(길면 hover로 전체 텍스트 확인). */
+.detail-meta-label {
+  width: 132px;
+  flex-shrink: 0;
+}
+.detail-meta-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* 왼쪽 = PDF 뷰어(넓게), 오른쪽 = 추출된 rights_grant 컬럼(좁게) */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* 넓은 화면에서는 항상 숨김 — 좁은 화면에서만 나타나는 PDF 패널 접기/펼치기 버튼.
+   상태(pdfPanelOpen)는 항상 갖고 있지만, 넓은 화면에서는 이 버튼도 숨겨지는 접기
+   효과도 같이 꺼져서 항상 펼쳐진 채로 보인다. */
+.detail-panel-toggle {
+  display: none;
+  margin-bottom: 12px;
+}
+/* .detail-grid를 1단으로 접는 규칙은 shared.css의 공용 사이드바 접기 브레이크포인트에 있다. */
+@media (max-width: 860px) {
+  .detail-panel-toggle {
+    display: inline-flex;
+  }
+  /* .preview-panel 자체의 display:flex와 특정도가 같아 소스 순서로 밀릴 수 있어
+     클래스를 겹쳐 특정도를 올린다. */
+  .preview-panel.detail-preview-panel--collapsed {
+    display: none;
+  }
+}
+
+.detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rights-card {
+  border: 1px solid var(--mx-border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.rights-card--terminated {
+  opacity: 0.6;
+  background: var(--mx-bg-tint);
+}
+.rights-card-tags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.rights-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 6px 0 2px;
+}
+.rights-card-meta {
+  font-size: 12px;
+  color: var(--mx-muted);
+}
+
+/* 높이는 JS(ResizeObserver)가 오른쪽 상세 영역 실측 높이를 인라인 style로 넣어준다 —
+   PDF가 여러 쪽이라 자연 높이가 상세 영역보다 훨씬 길어질 수 있어서. */
+.preview-panel {
+  padding: 0;
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid oklch(92% 0.01 150 / 12%);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.preview-header > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* CustomSelect(mx-input 기반)는 라이트 폼 톤이라, 이 다크 툴바 안에서는 preview-header-btn과
+   같은 크기감·색으로 다시 입힌다. width:100%도 여기서는 필요 없어서 auto로 되돌린다. */
+.preview-header-actions .mx-select-trigger {
+  width: auto;
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 7px;
+  border: 1px solid oklch(92% 0.01 150 / 20%);
+  background: none;
+  color: var(--mx-dark-text);
+}
+.preview-header-btn {
+  background: none;
+  border: 1px solid oklch(92% 0.01 150 / 20%);
+  color: var(--mx-dark-text);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  /* 다운로드 버튼은 <a>라 기본 밑줄이 붙는다 — 옆의 button과 톤을 맞춘다. */
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.preview-header-btn:hover:not(:disabled) {
+  background: oklch(92% 0.01 150 / 10%);
+}
+.preview-header-btn:disabled,
+.preview-header-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* 다크 툴바 위라 --mx-accent(딥그린)는 배경과 거의 안 구분된다 — 라이트그린으로 대비 확보. */
+.preview-header-btn:focus-visible,
+.preview-pdf-arrow:focus-visible {
+  outline: 2px solid var(--mx-green-light);
+  outline-offset: 2px;
+}
+.preview-body {
+  padding: 24px 28px 28px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.preview-unlocked-title {
+  color: var(--mx-green-light);
+  font-weight: 700;
+  margin-bottom: 14px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.preview-fallback-text {
+  margin: 0;
+  padding: 16px 0;
+  color: oklch(75% 0.01 150);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* react-pdf — 세로는 오른쪽 상세 영역 높이에 맞춰 줄이고(preview-pdf-page가 flex:1로
+   남은 공간을 차지), 가로는 패널 폭을 넘지 않게 한다. 캔버스는 max-width/max-height만
+   주고 width/height는 auto로 둬서 종횡비를 유지한 채 더 좁은 쪽 기준으로 줄어들게 한다. */
+.preview-pdf {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+.preview-pdf-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+.preview-pdf-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* 퍼센트 height는 조상 체인 전체가 "정해진 높이"여야 계산된다 — react-pdf의 Document/Page는
+   기본이 auto 높이라 체인이 끊긴다. 여기서부터 canvas까지 전부 height:100%로 명시해서
+   preview-pdf-page의 실제 높이(=오른쪽 상세 영역 높이)가 끝까지 전달되게 한다. */
+.preview-pdf .react-pdf__Document {
+  height: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.preview-pdf .react-pdf__Page {
+  height: 100% !important;
+  max-width: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.preview-pdf canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.preview-pdf-arrow {
+  /* preview-pdf-row은 align-items:stretch라 명시적 높이(34px)를 가진 이 버튼은
+     스펙상 stretch 대상에서 빠지면서 위쪽으로 붙어버린다 — align-self로 직접 세로 중앙 정렬. */
+  align-self: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid oklch(92% 0.01 150 / 20%);
+  background: oklch(92% 0.01 150 / 8%);
+  color: var(--mx-dark-text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.preview-pdf-arrow:hover:not(:disabled) {
+  background: oklch(92% 0.01 150 / 16%);
+}
+.preview-pdf-arrow:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.preview-pdf-nav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--mx-dark-text);
+  font-size: 11px;
+  margin-top: 10px;
+}
+/* PIN 인증 */
+.detail-pin-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+.detail-extend-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--mx-dark-overlay);
+  padding: 0;
+  align-items: center;
+}
+.detail-pin-modal {
+  width: 100%;
+  max-width: 380px;
+}
+.detail-pin-input {
+  margin: 16px 0 8px;
+  text-align: center;
+  font-size: 22px;
+  letter-spacing: 0.6em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+.detail-pin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}

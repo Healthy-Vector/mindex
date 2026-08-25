@@ -1,0 +1,169 @@
+.conflict-demo-toggle {
+  flex-shrink: 0;
+}
+
+.conflict-summary-banner {
+  margin-bottom: 20px;
+}
+
+.conflict-clean-banner {
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.conflict-severity-tag--critical {
+  background: var(--mx-alert-bg);
+  color: var(--mx-alert-text);
+}
+.conflict-severity-tag--serious {
+  background: var(--mx-warn3-bg);
+  color: var(--mx-warn3-text);
+}
+.conflict-severity-tag--moderate {
+  background: var(--mx-warn1-bg);
+  color: var(--mx-warn1-text);
+}
+
+/* 비교군 vs 업로드 파일 대조 테이블 — 비교값은 요약이 아니라 그 자체가 봐야 할 정보라
+   말줄임 대신 자연 줄바꿈을 허용하고, 컬럼 폭만 고정해 한쪽으로 쏠리지 않게 한다. */
+.conflict-compare-table {
+  margin-bottom: 16px;
+  table-layout: fixed;
+  min-width: 560px;
+}
+.conflict-compare-row--clickable {
+  cursor: pointer;
+}
+.conflict-compare-row--clickable:hover {
+  background: var(--mx-bg-tint);
+}
+
+/* 원문 비교 팝업 */
+.conflict-quote-modal {
+  width: 100%;
+  max-width: 720px;
+}
+.conflict-quote-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mx-muted);
+  margin-bottom: 6px;
+}
+
+/* ConflictTimeline 컴포넌트 — 라벨 열(conflict-timeline-labels)과 그래프 영역
+   (conflict-timeline-plot)을 분리해서, 눈금·중첩 구간·막대가 전부 plot 너비 기준
+   0~100%로 정렬되게 한다. */
+.conflict-timeline-body {
+  display: flex;
+  gap: 12px;
+}
+.conflict-timeline-labels {
+  display: flex;
+  flex-direction: column;
+  width: 168px;
+  flex-shrink: 0;
+}
+.conflict-timeline-label-spacer {
+  height: 24px;
+}
+.conflict-timeline-row-label {
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+}
+.conflict-timeline-row-role {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--mx-muted);
+}
+.conflict-timeline-row-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--mx-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conflict-timeline-plot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.conflict-timeline-axis {
+  position: relative;
+  height: 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--mx-border);
+}
+.conflict-timeline-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  color: var(--mx-muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+.conflict-timeline-overlap-band {
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  border-radius: 4px;
+  opacity: 0.16;
+  pointer-events: none;
+}
+.conflict-timeline-track-row {
+  position: relative;
+  height: 34px;
+  display: flex;
+  align-items: center;
+}
+.conflict-timeline-fill {
+  position: absolute;
+  height: 12px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--mx-surface);
+}
+.conflict-timeline-fill.conflict-timeline-bar--existing {
+  background: var(--mx-green-light);
+}
+.conflict-timeline-fill.conflict-timeline-bar--incoming {
+  background: var(--mx-accent);
+}
+.conflict-timeline-tooltip {
+  position: absolute;
+  top: -30px;
+  transform: translateX(-4px);
+  background: var(--mx-dark-bg);
+  color: var(--mx-dark-text);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 5;
+}
+.conflict-timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--mx-muted);
+  margin-top: 8px;
+}
+.conflict-timeline-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  opacity: 0.6;
+}
+
+.conflict-save-bar {
+  gap: 20px;
+}
