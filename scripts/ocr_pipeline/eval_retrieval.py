@@ -44,7 +44,7 @@ from app.pipeline.chunk import build_chunks
 from app.pipeline.extract import extract_document
 from app.pipeline.retrieval import FIELD_QUERIES, retrieve
 from app.pipeline.segment import segment
-from scripts.paraphrase import count_hits, paraphrase
+from scripts.ocr_pipeline.paraphrase import count_hits, paraphrase
 
 GOLDSET = Path("eval/retrieval_goldset.json")
 KS = (1, 3, 5)

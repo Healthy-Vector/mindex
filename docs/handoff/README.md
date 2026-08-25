@@ -25,13 +25,13 @@ date: 2026-08-22
 | **Task1 최종 출력** `*.retrieval.json` | [samples/](samples/) |
 | **구조·필드 설명** | [samples/README.md](samples/README.md) |
 | 규격 정의 | [app/schemas/pipeline.py](../../app/schemas/pipeline.py) |
-| 생성 스크립트 | [make_handoff_samples.py](../../scripts/make_handoff_samples.py) |
+| 생성 스크립트 | [make_handoff_samples.py](../../scripts/ocr_pipeline/make_handoff_samples.py) |
 | DB 전달 규격 | [docs/synthetic_data/interfaces/](../synthetic_data/interfaces/) |
 | DB 스키마 | [docs/erd/](../erd/) |
 
 ```bash
 # 샘플 재생성 (실제 파이프라인을 그대로 호출한다)
-PYTHONPATH=. python scripts/make_handoff_samples.py
+PYTHONPATH=. python scripts/ocr_pipeline/make_handoff_samples.py
 ```
 
 **Task2 담당자는 `*.retrieval.json`만 보면 된다.**
@@ -109,7 +109,7 @@ PYTHONPATH=. python scripts/make_handoff_samples.py
 | 의미 단독 | 44.6% / 96.9% | 41.2% / 95.9% |
 | **w=0.5** | **89.0% / 100.0%** | **77.5% / 99.8%** |
 
-`scripts/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
+`scripts/ocr_pipeline/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
 
 ### v0.1 -> v0.2
 
@@ -244,7 +244,7 @@ Dockerfile(python:3.12-slim)이 `requirements.txt` 를 그대로 설치하는데
 수백 개로 늘어난다. 파이프라인을 실제로 돌리는 환경에서만
 `pip install -r requirements-ml.txt` 를 한다.
 
-`scripts/check_ml_env.py` 로 설치 상태를 진단할 수 있다. import 통과가 아니라
+`scripts/ocr_pipeline/check_ml_env.py` 로 설치 상태를 진단할 수 있다. import 통과가 아니라
 실제 GPU 연산까지 시켜서 판정한다 — 설치가 됐는데 커널이 없어 첫 연산에서
 죽는 경우가 있기 때문이다.
 

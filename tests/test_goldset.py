@@ -30,7 +30,7 @@ def gold() -> dict:
 
 
 def test_정답지가_원본_주석과_일치한다(gold):
-    """원본이 바뀌면 scripts/build_goldset.py 를 다시 돌려야 한다."""
+    """원본이 바뀌면 scripts/ocr_pipeline/build_goldset.py 를 다시 돌려야 한다."""
     evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))["actual_evidence"]
     assert gold["source_evidence_total"] == len(evidence)
 

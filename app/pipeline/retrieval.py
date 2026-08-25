@@ -38,7 +38,7 @@ HYBRID_SCORER = "hybrid-v1"
 #: 어휘와 의미를 섞는 비율. 0이면 어휘 단독, 1이면 의미 단독.
 #:
 #: 라벨 표현을 바꾼 held-out 집합(정답 556건)에서 측정해 정했다.
-#: `scripts/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
+#: `scripts/ocr_pipeline/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
 #:
 #: 원본 코퍼스로는 정할 수 없었다. 어휘 패턴을 그 코퍼스를 보며 썼기 때문에
 #: 어휘가 실패하는 경우가 556건 중 1건뿐이라, 의미검색이 기여할 여지 자체가

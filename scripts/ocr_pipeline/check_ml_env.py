@@ -115,15 +115,23 @@ def check_embedding() -> None:
 
 
 def check_tokenizer_fit() -> None:
-    """실제 청크가 모델 입력 한계를 넘는지. 넘으면 조용히 잘린다."""
+    """실제 청크가 모델 입력 한계를 넘는지. 넘으면 조용히 잘린다.
+
+    번들의 `chunks[]` 에는 **회수된 청크만** 담기므로(문서당 전체의 70% 안팎)
+    이 점검은 표본 검사다. 전수 확인이 필요하면 `app.pipeline.chunk` 를 직접
+    돌려야 한다.
+    """
     head("청크 길이 vs 모델 입력 한계")
     import glob
     import json
     from pathlib import Path
 
-    files = sorted(glob.glob("docs/handoff/samples/*.parse.json"))
+    # *.parse.json 이 아니라 *.retrieval.json 이다. 중간 산출물 parse.json 은
+    # v0.3(커밋 e260079)에서 없어졌는데 이 글롭이 그대로 남아 있어서, 그 뒤로
+    # 이 점검이 매번 "샘플이 없다"며 조용히 건너뛰고 있었다.
+    files = sorted(glob.glob("docs/handoff/samples/*.retrieval.json"))
     if not files:
-        print(f"{WARN} 샘플 parse.json 이 없어 건너뛴다.")
+        print(f"{WARN} 샘플 retrieval.json 이 없어 건너뛴다.")
         return
     if ver("transformers") is None:
         print(f"{WARN} transformers 미설치로 건너뛴다.")
@@ -139,9 +147,9 @@ def check_tokenizer_fit() -> None:
         d = json.loads(Path(f).read_text(encoding="utf-8"))
         for c in d["chunks"]:
             total += 1
-            n = len(tok.encode(f"passage: {c['chunk_text']}"))
+            n = len(tok.encode(f"passage: {c['text']}"))
             if n > limit:
-                over.append((d["document"]["file_name"], c["chunk_id"], len(c["chunk_text"]), n))
+                over.append((d["document"]["file_name"], c["chunk_id"], len(c["text"]), n))
 
     if not over:
         print(f"{OK} 청크 {total}개 모두 {limit} 토큰 이내")

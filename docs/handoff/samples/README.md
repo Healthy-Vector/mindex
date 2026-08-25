@@ -13,7 +13,7 @@ payload = bundle.model_dump(mode="json")         # 여기 있는 .json 과 같�
 ```
 
 규격 정의는 [`app/schemas/pipeline.py`](../../../app/schemas/pipeline.py)에 있다.
-샘플은 [`scripts/make_handoff_samples.py`](../../../scripts/make_handoff_samples.py)로
+샘플은 [`scripts/ocr_pipeline/make_handoff_samples.py`](../../../scripts/ocr_pipeline/make_handoff_samples.py)로
 재생성하며, **실제 파이프라인 출력 그 자체**다(별도 생성기가 아니다).
 
 > **v0.2 → v0.3**
@@ -308,7 +308,7 @@ e5 코사인은 좁은 구간에 눌려 있다(2000청크 실측).
 | RRF k=60 | 80.4% / 99.8% | 59.5% / 88.1% / 89.9% |
 
 0.5가 봉우리다. RRF가 진 것은 순위만 쓰면 **어휘가 얼마나 확신하는지**를
-버리기 때문이다. `scripts/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
+버리기 때문이다. `scripts/ocr_pipeline/eval_retrieval.py --paraphrase` 로 재현할 수 있다.
 
 ---
 

@@ -68,7 +68,7 @@ CPU에서는 안 날 가능성이 있다.** 다른 팀원 PC에서 재현되는�
 mkldnn은 커봤을 때 CPU 추론이 유의미하게 빨라지는 최적화라서, 꺼진 채로
 그냥 두면 안 그래도 느린 CPU OCR이 필요 이상으로 느려진다. 그래서 끄는
 쪽을 코드에 박아 넣지 않고 **환경변수로 재시도할 수 있게** 했다 —
-`MINDEX_OCR_MKLDNN=1`로 켜고 `scripts/check_ml_env.py`를 돌려서 이
+`MINDEX_OCR_MKLDNN=1`로 켜고 `scripts/ocr_pipeline/check_ml_env.py`를 돌려서 이
 환경에서도 같은 오류가 나는지 먼저 확인해 보기 바란다. 안 나면 그 값을
 기본으로 켜 두는 게 맞다.
 
@@ -123,7 +123,7 @@ logger = logging.getLogger(__name__)
 
 #: mkldnn(oneDNN CPU 가속)을 켤지. 기본은 끔(Intel Core Ultra 7 255H에서
 #: 재현된 버그 회피, 위 모듈 docstring 참조). 다른 CPU에서는 문제없을 수
-#: 있으니 `MINDEX_OCR_MKLDNN=1`로 켜서 `scripts/check_ml_env.py`로 먼저
+#: 있으니 `MINDEX_OCR_MKLDNN=1`로 켜서 `scripts/ocr_pipeline/check_ml_env.py`로 먼저
 #: 확인해 보고, 안 나면 이 값을 기본으로 바꾸는 걸 권한다.
 _ENABLE_MKLDNN = os.environ.get("MINDEX_OCR_MKLDNN", "0") == "1"
 
