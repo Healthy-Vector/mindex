@@ -30,7 +30,8 @@ export default function ContractDetailPage() {
         <thead>
           <tr>
             <th>지역</th>
-            <th>권리 유형</th>
+            <th>법적 권리</th>
+            <th>이용형태</th>
             <th>기간</th>
             <th>독점</th>
             <th>신뢰도</th>
@@ -42,7 +43,8 @@ export default function ContractDetailPage() {
           {(contract.rights_grants ?? []).map((r) => (
             <tr key={r.id}>
               <td>{r.territory}</td>
-              <td>{r.rights_type}</td>
+              <td>{r.legal_right}</td>
+              <td>{r.exploitation_mode}</td>
               <td>{r.period}</td>
               <td>{r.is_exclusive ? "예" : "아니오"}</td>
               <td>{r.confidence}</td>
