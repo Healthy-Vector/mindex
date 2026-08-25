@@ -1,0 +1,245 @@
+/* 디자인 토큰 — mx-*(mindex-ui.css)와 페이지별 CSS가 공통으로 참조한다.
+   OpenSQL 브랜드 그린(딥/미디엄/라이트) 3톤을 "콜드 그레이" 배경 위에 얹은 팔레트.
+   딥그린=메인 accent, 미디엄그린=hover/강조, 라이트그린=태그·배경 틴트. */
+:root {
+  color-scheme: light;
+  --mx-text: #1b211d;
+  --mx-muted: #6c766f;
+  --mx-border: #e1e4e1;
+  --mx-border-soft: rgba(27, 33, 29, 0.07);
+  --mx-border-strong: rgba(27, 33, 29, 0.16);
+  --mx-surface: #ffffff;
+  --mx-bg-tint: rgba(27, 33, 29, 0.04);
+
+  /* OpenSQL 브랜드 그린 3톤 */
+  --mx-green-deep: #1c472b;
+  --mx-green-medium: #398358;
+  --mx-green-light: #6eae91;
+
+  --mx-accent: var(--mx-green-deep);
+  --mx-accent-hover: var(--mx-green-medium);
+  --mx-accent-bg: #ddeee6;
+
+  --mx-alert: #b4472b;
+  --mx-alert-text: #963a22;
+  --mx-alert-bg: #f7e9e4;
+
+  --mx-info-bg: oklch(93% 0.03 230);
+  --mx-info-text: oklch(38% 0.1 235);
+
+  /* 만료 임박 3단계(D-90/60/30) 앰버 램프 */
+  --mx-warn1: #c99a2e;
+  --mx-warn1-text: #8a6a17;
+  --mx-warn1-bg: #f8f0d9;
+  --mx-warn2: #d9821f;
+  --mx-warn2-text: #9c5d17;
+  --mx-warn2-bg: #f6e4c8;
+  --mx-warn3: #d9691f;
+  --mx-warn3-text: #9c4a17;
+  --mx-warn3-bg: #f4d9bf;
+
+  --mx-dark-bg: oklch(18% 0.01 150);
+  --mx-dark-text: oklch(92% 0.01 150);
+  --mx-dark-muted: oklch(70% 0.01 150);
+  --mx-dark-overlay: oklch(18% 0.01 150 / 92%);
+}
+
+/* 타이포그래피 */
+.mx-muted {
+  color: var(--mx-muted);
+}
+.mx-text-sm {
+  font-size: 13px;
+}
+.mx-text-xs {
+  font-size: 12px;
+}
+.mx-text-xxs {
+  font-size: 11px;
+}
+.mx-heading-lg {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 800;
+}
+.mx-heading-card {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+.mx-heading-panel {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+/* 레이아웃 유틸리티 */
+.mx-flex {
+  display: flex;
+}
+.mx-flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 모든 페이지의 상단 제목 행: 제목(+설명) 왼쪽, 주요 액션/토글 오른쪽 — flex-start로 위쪽 정렬 */
+.mx-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+@media (max-width: 640px) {
+  /* 액션 버튼(mx-btn)은 flex-shrink:0라 폭을 안 줄여서, 좁은 화면에선 제목이 그
+     대가로 자투리 폭에 눌려 세로로 길게 줄바꿈된다 — 아예 줄을 나눠서 피한다. */
+  .mx-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* align-items:stretch가 폭은 채워줘도 내부 정렬은 그대로라 토글이 왼쪽에 붙어 보인다 —
+     가운데 정렬 대신 옵션들이 전체 폭을 나눠 채우는 탭바 형태로 바꾼다. */
+  .mx-page-header > .mx-seg {
+    display: flex;
+  }
+  .mx-page-header > .mx-seg > .mx-seg-opt {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* "넓은 폭(px) 사이드바 + 나머지" 2단 그리드(업로드 파일 패널, 계약 상세 PDF 뷰어, IP 상세,
+   검색 교차언어 MCP 패널)가 좁은 화면에서 1단으로 접히는 공용 브레이크포인트. 그리드 자체의
+   폭 값(340px/440px/360px/380px)은 페이지마다 달라 각 페이지 CSS에 남아있고, "좁아지면
+   1fr로 접는다"는 동작만 여기 한 곳에 모았다. */
+@media (max-width: 860px) {
+  /* 그냥 1fr가 아니라 minmax(0, 1fr)이어야 한다 — bare 1fr는 트랙 최소폭이 암묵적으로
+     auto(내부 콘텐츠의 min-content)라서, 안 줄어드는 버튼(예: PDF 뷰어의 "새 탭에서
+     크게 보기") 하나 때문에 그리드 트랙 전체가, 나아가 페이지 전체가 옆으로 넘친다. */
+  .upload-grid,
+  .detail-grid,
+  .ipmgmt-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.mx-mt-16 {
+  margin-top: 16px;
+}
+.mx-mt-20 {
+  margin-top: 20px;
+}
+.mx-mb-20 {
+  margin-bottom: 20px;
+}
+.mx-mb-24 {
+  margin-bottom: 24px;
+}
+
+.mx-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 480px) {
+  .mx-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 카드/패널 변형 */
+.mx-card-pad {
+  padding: 18px;
+}
+.mx-alert-banner {
+  background: var(--mx-alert-bg);
+  color: var(--mx-alert-text);
+  border-radius: 10px;
+  padding: 13px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mx-dark-panel {
+  background: var(--mx-dark-bg);
+  color: var(--mx-dark-text);
+}
+.mx-quote-box {
+  background: var(--mx-bg-tint);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-style: italic;
+}
+.mx-divider-v {
+  width: 1px;
+  height: 14px;
+  background: var(--mx-border-soft);
+  flex-shrink: 0;
+}
+.mx-empty-state {
+  font-size: 13px;
+  color: var(--mx-muted);
+  margin: 0;
+}
+.mx-link-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: none;
+}
+.mx-chip-btn {
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+/* :focus-visible 링은 mindex-ui.css에 인터랙션 요소 공용으로 모여있다. */
+
+/* CustomSelect — @radix-ui/react-select 래퍼. 열림/닫힘·포지셔닝·키보드 내비게이션·
+   접근성은 Radix가 맡고, 여기서는 mx-* 톤에 맞춘 스타일만 입힌다. */
+.mx-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+.mx-select-chevron {
+  color: var(--mx-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.mx-select-menu {
+  width: var(--radix-select-trigger-width);
+  max-height: min(240px, var(--radix-select-content-available-height));
+  margin: 0;
+  padding: 4px;
+  background: var(--mx-surface);
+  border: 1px solid var(--mx-border);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(27, 33, 29, 0.14);
+  /* Select는 document.body에 포탈되므로 팝업 모달(.detail-extend-overlay, z-index:50)보다
+     낮으면 모달 안에서 열었을 때 뒤에 가려 안 보인다 — 항상 최상단에 오도록 여유 있게 높였다. */
+  z-index: 100;
+  overflow-y: auto;
+}
+.mx-select-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--mx-text);
+  outline: none;
+}
+.mx-select-option[data-highlighted] {
+  background: var(--mx-bg-tint);
+}
+.mx-select-option[data-state="checked"] {
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+  font-weight: 600;
+}

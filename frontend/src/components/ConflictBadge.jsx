@@ -3,17 +3,7 @@
 export default function ConflictBadge({ conflict }) {
   if (!conflict) return null;
   return (
-    <span
-      style={{
-        background: "#fef3c7",
-        border: "1px solid #f59e0b",
-        borderRadius: 4,
-        padding: "2px 8px",
-        fontSize: 12,
-        color: "#b45309",
-      }}
-      title="conflicting key value violates exclusion constraint"
-    >
+    <span className="mx-tag mx-tag-alert" title="conflicting key value violates exclusion constraint">
       충돌 감지됨
     </span>
   );

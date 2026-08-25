@@ -1,0 +1,496 @@
+.upload-context-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--mx-bg-tint);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.upload-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 28px;
+  /* 5단계 라벨이 다 안 들어가면(글자 세로 쪼개짐 대신) 가로 스크롤로 빠진다. */
+  overflow-x: auto;
+}
+.upload-step-connector {
+  flex: 1;
+  min-width: 24px;
+  height: 1px;
+  background: var(--mx-border-strong);
+}
+.upload-step-connector--done {
+  background: var(--mx-accent);
+}
+.upload-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* flex-shrink 기본값(1)이면 라벨 컨테이너가 눌려 글자가 세로로 쪼개진다. */
+  flex-shrink: 0;
+}
+.upload-step--pending {
+  opacity: 0.45;
+}
+.upload-step-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--mx-border-strong);
+  /* flex-shrink 기본값(1)이면 좁은 화면에서 가로만 눌려 원이 타원으로 찌그러진다. */
+  flex-shrink: 0;
+}
+.upload-step-badge--active {
+  background: var(--mx-accent);
+  color: #fff;
+  border: none;
+}
+.upload-step-badge--error {
+  background: var(--mx-alert);
+  color: #fff;
+  border: none;
+}
+.upload-step-label {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.upload-step-status {
+  font-size: 11px;
+  color: var(--mx-muted);
+  white-space: nowrap;
+}
+.upload-step-status--active {
+  color: var(--mx-accent);
+}
+.upload-step-status--error {
+  color: var(--mx-alert-text);
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* 넓은 화면에서는 항상 숨김 — 좁은 화면에서만 나타나는 파일 상태 패널 접기/펼치기 버튼.
+   상태(filePanelOpen)는 항상 갖고 있지만, 넓은 화면에서는 접기 효과 자체도 꺼져서
+   항상 펼쳐진 채로 보인다. */
+.upload-panel-toggle {
+  display: none;
+  margin-bottom: 12px;
+}
+/* .upload-grid를 1단으로 접는 규칙은 shared.css의 공용 사이드바 접기 브레이크포인트에 있다. */
+@media (max-width: 860px) {
+  .upload-panel-toggle {
+    display: inline-flex;
+  }
+  /* .upload-dropzone 자체의 display:flex와 특정도가 같아 소스 순서로 밀릴 수 있어
+     클래스를 겹쳐 특정도를 올린다. */
+  .upload-dropzone.upload-dropzone--collapsed {
+    display: none;
+  }
+}
+
+.upload-dropzone {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 32px;
+  border-style: dashed;
+  border-color: var(--mx-border-strong);
+}
+.upload-dropzone-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--mx-accent-bg);
+  display: grid;
+  place-items: center;
+  color: var(--mx-accent);
+  font-size: 20px;
+}
+.upload-dropzone-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+.upload-dropzone-sub {
+  font-size: 13px;
+  color: var(--mx-muted);
+}
+.upload-dropzone--clickable {
+  cursor: pointer;
+}
+.upload-dropzone--dragging {
+  border-color: var(--mx-accent);
+  background: var(--mx-accent-bg);
+}
+.upload-dropzone-icon--done {
+  background: var(--mx-accent);
+  color: #fff;
+}
+.upload-replace-file-btn {
+  color: var(--mx-accent);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.upload-replace-file-btn:hover {
+  color: var(--mx-accent-hover);
+  text-decoration: underline;
+}
+.upload-file-error {
+  font-size: 12.5px;
+  color: var(--mx-danger, #b4472b);
+}
+.upload-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--mx-accent-bg);
+  border-top-color: var(--mx-accent);
+  animation: upload-spin 0.8s linear infinite;
+}
+
+.upload-hitl-section { margin-top: 24px; }
+.upload-result-column,
+.upload-hitl-review {
+  display: grid;
+  gap: 14px;
+}
+.upload-result-column > .upload-hitl-section,
+.upload-hitl-review > .upload-review-section {
+  margin-top: 0;
+}
+.upload-collapsible-card {
+  overflow: visible;
+}
+.upload-card-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.upload-card-summary::-webkit-details-marker {
+  display: none;
+}
+.upload-card-summary .mx-heading-panel {
+  margin: 0;
+}
+.upload-card-chevron {
+  color: var(--mx-muted);
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+.upload-collapsible-card[open] .upload-card-chevron {
+  transform: rotate(180deg);
+}
+.upload-card-body {
+  padding: 0 16px 14px;
+}
+.upload-review-intro .upload-panel-desc {
+  margin: 8px 0 0;
+}
+
+/* HITL 검증표 — 기존 화면의 필드명 / 추출값 / 근거조항 3열 구성을 유지한다. */
+.upload-review-table {
+  border-top: 1px solid var(--mx-border);
+}
+.upload-review-basic-table {
+  border-top: 1px solid var(--mx-border);
+}
+.upload-review-basic-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.8fr) minmax(320px, 3fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 62px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mx-border);
+}
+.upload-review-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.8fr) minmax(320px, 2fr) minmax(190px, 1fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 62px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mx-border);
+}
+.upload-review-head {
+  min-height: auto;
+  padding-block: 9px;
+  color: var(--mx-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.upload-review-label {
+  color: var(--mx-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+.upload-review-value,
+.upload-review-evidence {
+  min-width: 0;
+}
+.upload-review-right-title {
+  padding: 9px 14px;
+  background: var(--mx-bg-tint);
+  border-bottom: 1px solid var(--mx-border);
+  color: var(--mx-accent-hover);
+  font-size: 13px;
+  font-weight: 700;
+}
+.upload-review-money {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  gap: 8px;
+}
+.upload-review-period {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+.upload-inline-evidence-trigger {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mx-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+.upload-inline-evidence-chevron {
+  flex-shrink: 0;
+  color: var(--mx-muted);
+  transition: transform 0.18s ease;
+}
+.upload-inline-evidence-trigger[aria-expanded="false"] .upload-inline-evidence-chevron {
+  transform: rotate(180deg);
+}
+.upload-inline-evidence-fields {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  margin: 0 -14px -10px;
+  padding: 14px;
+  border-top: 1px solid var(--mx-border);
+  background: var(--mx-bg-tint);
+}
+.upload-inline-evidence-label {
+  color: var(--mx-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.upload-inline-evidence-fields textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+}
+
+@media (max-width: 980px) {
+  .upload-review-basic-row,
+  .upload-review-row {
+    grid-template-columns: 130px minmax(260px, 1fr);
+    gap: 12px 18px;
+  }
+  .upload-review-head > :nth-child(3) { display: none; }
+  .upload-review-evidence {
+    grid-column: 2;
+  }
+  .upload-inline-evidence-trigger { grid-column: 2; }
+}
+@media (max-width: 640px) {
+  .upload-review-basic-row,
+  .upload-review-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-inline: 4px;
+  }
+  .upload-review-head { display: none; }
+  .upload-review-evidence { grid-column: auto; }
+  .upload-inline-evidence-trigger { grid-column: auto; }
+  .upload-review-period,
+  .upload-review-money { grid-template-columns: 1fr; }
+  .upload-review-period > span { display: none; }
+}
+
+.upload-registration-context { border-bottom: 0; }
+.upload-mode-selector { width: min(100%, 520px); margin-top: 6px; }
+.upload-mode-selector .mx-seg-opt { flex: 1; }
+.upload-mode-selector .mx-seg-opt:disabled:not(.active) { opacity: 0.4; cursor: not-allowed; }
+.upload-mode-selector .mx-seg-opt:disabled.active { cursor: default; }
+.upload-mode-help { margin-top: 8px; }
+.upload-readonly-target { margin-top: 16px; }
+.upload-target-contract { margin-top: 14px; }
+
+/* 파이프라인 실패 결과 — conflict-summary-banner/list-toast와 같은 색상 배너 톤 */
+.upload-failed-banner {
+  margin-bottom: 20px;
+}
+.upload-failed-code {
+  margin-top: 8px;
+}
+
+.upload-checking {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+@keyframes upload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.upload-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.upload-panel-desc {
+  font-size: 13px;
+  color: var(--mx-muted);
+  margin-bottom: 14px;
+}
+
+.upload-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.upload-territory-editor {
+  display: grid;
+  gap: 9px;
+}
+.upload-territory-mode {
+  width: fit-content;
+}
+.upload-territory-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.upload-territory-chip {
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.upload-territory-chip--excluded {
+  background: transparent;
+  border-color: var(--mx-border-strong);
+  color: var(--mx-muted);
+}
+
+/* IP 매칭 패널 */
+.upload-ipmatch {
+  border-bottom: 1px solid var(--mx-border-soft);
+  padding-bottom: 16px;
+}
+.upload-ipmatch--inline {
+  border: 0;
+  padding: 0;
+}
+.upload-ipmatch-title {
+  margin: 0 8px;
+}
+.upload-ipmatch-result-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* IP 매칭 콤보박스 — CustomSelect(.mx-select-trigger/.mx-select-menu/.mx-select-option)와
+   같은 톤으로 맞추되, 검색 입력이 필요해 Radix Select 대신 직접 만든 트리거+패널. */
+.mx-combobox {
+  position: relative;
+}
+.mx-combobox-trigger-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.mx-combobox-trigger-value .upload-ipmatch-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mx-combobox-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--mx-surface);
+  border: 1px solid var(--mx-border);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(27, 33, 29, 0.14);
+}
+.mx-combobox-search {
+  flex-shrink: 0;
+}
+.mx-combobox-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mx-combobox-list .mx-select-option {
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  font: inherit;
+}
+.mx-combobox-list .mx-select-option:hover {
+  background: var(--mx-bg-tint);
+}
+.mx-combobox-option--checked {
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+  font-weight: 600;
+}
+.mx-combobox-create-btn {
+  flex-shrink: 0;
+}

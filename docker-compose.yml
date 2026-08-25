@@ -7,7 +7,10 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME:-mindex}
     ports:
-      - "5432:5432"
+      # 호스트에 PostgreSQL이 따로 설치돼 있으면 5432를 두 프로세스가 함께 물고
+      # (Windows에서는 bind가 실패하지 않는다) 클라이언트가 엉뚱한 쪽에 붙는다.
+      # 그 경우 .env에 DB_PORT=5433처럼 지정한다. 기본값은 종전과 같다.
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./sql/init:/docker-entrypoint-initdb.d
