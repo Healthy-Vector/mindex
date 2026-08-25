@@ -129,7 +129,7 @@ class PgJobStore:
     LEASE_SECONDS = 600  # 워커가 죽었을 때 다른 워커가 재클레임할 수 있는 시간
 
     def __init__(self, dsn: str | None = None):
-        from repository import dsn_from_env
+        from .repository import dsn_from_env
         self._dsn = dsn or dsn_from_env()
 
     def _conn(self):
