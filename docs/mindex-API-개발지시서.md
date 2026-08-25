@@ -32,7 +32,7 @@
 | 10 | `GET /api/rights/{lineageId}/history` | 권리 계보 | 필요 |
 | 11 | `POST /api/contracts/{id}/cancel` | 계약 종료와 권리 해제 | 필요 |
 | 12 | `GET /api/ips` | IP 목록·검색 | 불필요 |
-| 12-1 | `GET /api/ips/{id}` | IP·별칭·자산 단건 상세 | 불필요 |
+| 17 | `GET /api/ips/{id}` | IP·별칭·자산 단건 상세 | 불필요 |
 | 13 | `POST /api/ips` | IP 등록 | 불필요 |
 | 14 | `PATCH /api/ips/{id}` | IP 부분 수정·활성 전환 | 불필요 |
 | 15 | `POST /api/search` | SQL 필터 후 벡터 랭킹 | 불필요 |
@@ -202,7 +202,7 @@ save_rights_batch(
 ### IP
 
 - 12번은 `q`로 title·alias를 검색하고 `includeInactive=false`가 기본이다.
-- 12-1번은 ID로 IP 단건을 조회하고 `aliases`, `assets`, `contractCount`를 함께 반환한다. 기존 계약 확인을 위해 `deactive` IP도 조회한다. 없는 ID는 `404 NOT_FOUND`다.
+- 17번은 ID로 IP 단건을 조회하고 `aliases`, `assets`, `contractCount`를 함께 반환한다. 기존 계약 확인을 위해 `deactive` IP도 조회한다. 없는 ID는 `404 NOT_FOUND`다.
 - 13번은 중복 정규화 키를 찾으면 `409 IP_DUPLICATE`와 기존 `ipId`를 보낸다.
 - 14번은 보낸 필드만 수정한다. `aliases`를 보내면 전체 교체한다. `activity`도 이 요청의 선택 필드다.
 - 비활성 IP는 신규 매칭에서 제외하지만 기존 계약 조회에는 영향을 주지 않는다.
