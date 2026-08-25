@@ -72,6 +72,9 @@ mkldnn은 커봤을 때 CPU 추론이 유의미하게 빨라지는 최적화라�
 환경에서도 같은 오류가 나는지 먼저 확인해 보기 바란다. 안 나면 그 값을
 기본으로 켜 두는 게 맞다.
 
+**단 x86 한정이다.** oneDNN은 AVX 계열 확장 명령어를 쓰는 x86 가속 라이브러리라
+Apple Silicon(arm64)에서는 켤 이유가 없다.
+
 ## 언어 모델을 둘만 둔다
 
 PaddleOCR 3.x 기본 모델(PP-OCRv6, `lang` 미지정)은 **영어·일본어·중국어를
@@ -125,6 +128,7 @@ logger = logging.getLogger(__name__)
 #: 재현된 버그 회피, 위 모듈 docstring 참조). 다른 CPU에서는 문제없을 수
 #: 있으니 `MINDEX_OCR_MKLDNN=1`로 켜서 `scripts/ocr_pipeline/check_ml_env.py`로 먼저
 #: 확인해 보고, 안 나면 이 값을 기본으로 바꾸는 걸 권한다.
+#: **x86 한정이다.** Apple Silicon(arm64)에서는 켜지 말 것.
 _ENABLE_MKLDNN = os.environ.get("MINDEX_OCR_MKLDNN", "0") == "1"
 
 #: 래스터화 결과의 긴 변 상한(픽셀). 이보다 커지면 dpi를 낮춰서 맞춘다.

@@ -59,14 +59,35 @@ def get_model():
         import torch
         from sentence_transformers import SentenceTransformer
 
-        kwargs = {}
+        # 실측 처리량 (232청크 / 80청크 기준)
+        #   CUDA fp16   80 chunk/s   RTX 5050 Laptop, VRAM peak 3.5GB
+        #   CUDA fp32   29 chunk/s
+        #   CPU fp32    2.8 chunk/s  Intel Core Ultra 7 255H, 16 threads
+        #
+        # CPU가 CUDA fp16 대비 29배 느리다. 86건 전량(색인청크 1804개)이면
+        # GPU 23초 vs CPU 11분이다. 배치 작업은 감당되지만 요청당 대기로는
+        # 못 쓴다.
+        kwargs: dict = {}
         if torch.cuda.is_available():
+            # fp16은 CUDA에서만 쓴다. CPU에서는 오히려 느리거나 미지원이고,
+            # MPS도 fp16 커널 지원이 연산마다 들쭉날쭉하다.
             kwargs["model_kwargs"] = {"torch_dtype": torch.float16}
-            logger.info(
-                "임베딩 모델을 GPU(fp16)에 올린다: %s", torch.cuda.get_device_name(0)
-            )
+            device = f"CUDA fp16 ({torch.cuda.get_device_name(0)})"
+        elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            # Apple Silicon. sentence-transformers가 알아서 고르지만, 어디서
+            # 도는지 로그로 남겨야 "왜 이렇게 느리지"를 추적할 수 있다.
+            kwargs["device"] = "mps"
+            device = "MPS fp32 (Apple Silicon)"
         else:
-            logger.warning("CUDA 없음 — 임베딩을 CPU에서 돌린다. 상당히 느리다.")
+            device = f"CPU fp32 ({torch.get_num_threads()} threads)"
+
+        logger.info("임베딩 모델 로딩: %s / %s", MODEL_NAME, device)
+        if not torch.cuda.is_available():
+            logger.warning(
+                "가속기 없이 도는 경로다(%s). 실측 CPU 2.8 chunk/s — "
+                "CUDA fp16 대비 약 29배 느리다.",
+                device,
+            )
 
         _model = SentenceTransformer(MODEL_NAME, **kwargs)
         return _model

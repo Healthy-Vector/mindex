@@ -21,20 +21,46 @@
 #
 # PyPI에도 torch가 있어서 --extra-index-url만으로는 CPU 빌드가 잡힐 수 있다.
 # +cu130 로컬 버전까지 명시해 PyTorch 인덱스의 휠만 매칭되게 한다.
+#
+# ⚠️ macOS에는 +cu130 휠이 없다(애플이 CUDA를 안 쓴다). 마커 없이 고정하면
+# 맥에서 `No matching distribution found for torch==2.13.0+cu130`으로 설치가
+# 통째로 실패한다. 그래서 플랫폼별로 갈라 둔다 — 맥은 PyPI의 기본 휠을 받고,
+# Apple Silicon이면 MPS 백엔드가 자동으로 잡힌다.
 
 --extra-index-url https://download.pytorch.org/whl/cu130
 
-torch==2.13.0+cu130
+torch==2.13.0+cu130 ; sys_platform != "darwin"
+torch==2.13.0       ; sys_platform == "darwin"
 
 # 임베딩 — intfloat/multilingual-e5-large (1024-dim, MIT)
 # transformers·tokenizers·safetensors·huggingface-hub는 의존성으로 따라온다.
 sentence-transformers==6.0.*
 
+# --- 실행 환경별 요약 ---
+#
+#   개발 GPU (Windows, RTX 5050)   torch cu130 + paddle CPU   임베딩 80 chunk/s
+#   맥 (Apple Silicon)             torch PyPI 기본 + MPS      아래 주의 참조
+#   CI (ubuntu-latest)             설치 안 함                 어휘 회수만
+#   EC2 t3.small (RAM 2GB)         설치 금지                  e5-large가 2.2GB다
+#
+# 임베딩 처리량 실측: CUDA fp16 80 / CUDA fp32 29 / CPU fp32 2.8 (chunk/s).
+# 86건 전량(색인청크 1804개)이면 GPU 23초 vs CPU 11분이다.
+#
+# 맥에서 세팅할 때 주의:
+#   · torch/paddle의 cuDNN DLL 충돌(아래)은 **Windows + CUDA 조합의 문제**다.
+#     맥에는 CUDA가 없으므로 해당 없다.
+#   · mkldnn(oneDNN)은 x86 확장 명령어용이라 Apple Silicon에서는 의미가 없다.
+#     `MINDEX_OCR_MKLDNN=1`을 켜지 말 것.
+#   · paddlepaddle 3.3.1의 macOS arm64 휠 존재 여부는 확인하지 못했다.
+#     `python scripts/ocr_pipeline/check_ml_env.py`로 먼저 확인할 것.
+#     없으면 OCR만 빠지고 디지털 PDF 경로는 그대로 돈다(합성데이터 446페이지가
+#     전부 digital-born이라 실측상 OCR 경로를 한 번도 타지 않는다).
+
 # --- OCR ---
 #   pip install paddlepaddle==3.3.1
 #   pip install paddleocr==3.7.*
 #
-# ⚠️ 반드시 paddlepaddle(CPU)다. paddlepaddle-gpu가 아니다.
+# ⚠️ 반드시 paddlepaddle(CPU)다. paddlepaddle-gpu가 아니다. (Windows+CUDA 한정)
 #
 # 처음엔 paddlepaddle-gpu(cu130)로 시작했다. sm_120(Blackwell) 자체는
 # 문제없었다 — get_device_capability()가 (12, 0)을 정확히 보고했고 GPU

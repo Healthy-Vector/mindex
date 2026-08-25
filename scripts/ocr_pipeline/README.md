@@ -52,9 +52,12 @@ python scripts/ocr_pipeline/check_ml_env.py
   **mkldnn을 켜서 먼저 시도하고 실패하면 꺼서 재시도**해 어느 쪽이 되는지 알려준다
 
 > [!tip] 다른 PC에서 세팅한다면
-> `MINDEX_OCR_MKLDNN=1` 로 켜고 이 스크립트를 먼저 돌려 볼 것.
+> **x86 PC라면** `MINDEX_OCR_MKLDNN=1` 로 켜고 이 스크립트를 먼저 돌려 볼 것.
 > mkldnn 버그는 개발 PC(Intel Core Ultra 7 255H) 한 대에서만 재현됐다.
 > 안 나는 환경이면 켜 두는 게 맞다 — CPU OCR이 유의미하게 빨라진다.
+>
+> **Apple Silicon이면 켜지 말 것.** oneDNN은 AVX 계열 x86 확장용이라
+> arm64에서는 의미가 없다.
 
 ## 2. `run_e2e.py` — 전건 end-to-end
 
