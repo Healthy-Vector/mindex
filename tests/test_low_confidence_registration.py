@@ -37,10 +37,10 @@ def test_batch_registration_does_not_require_confidence(cur, ctx, make_batch_row
     등록되는 데 신뢰도 값이 관여할 자리가 구조적으로 없다."""
     cur.execute(
         """
-        SELECT batch_result FROM save_rights_batch(%s, %s, %s, %s, %s, %s, %s::jsonb)
+        SELECT batch_result FROM save_rights_batch(%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
         """,
         (
-            ctx["contract_id"], "테스트", ctx["ip_id"], "x.pdf", "s3://x", "sha:x",
+            ctx["contract_id"], "mindex", "테스트", ctx["ip_id"], "x.pdf", "s3://x", "sha:x",
             json.dumps([make_batch_row(territory="KR")]),
         ),
     )
