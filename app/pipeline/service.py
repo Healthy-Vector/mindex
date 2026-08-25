@@ -69,6 +69,7 @@ def _to_bundle_chunk(c: Chunk) -> BundleChunk:
         ),
         char_start=c.char_start,
         char_end=c.char_end,
+        indexable=c.indexable,
         embedding=c.embedding,
     )
 
@@ -129,14 +130,16 @@ def retrieve_contract_chunks(
         query_vectors=query_vectors,
     )
 
-    # 같은 청크가 여러 필드에 걸린다. 본문은 아래에 한 번만 두고
-    # fields[]는 chunk_id로 참조하게 해서 중복을 없앤다.
+    # chunks[]는 회수된 것만이 아니라 **계약서 전문**을 담는다(v0.4). Worker가
+    # 이걸 그대로 contract_chunk에 적재하고, 그 뒤로는 시스템 전체의 검색
+    # 인덱스가 된다. 회수된 것만 넘기면 비밀유지·준거법처럼 우리 6개 필드에
+    # 안 걸리는 조항이 검색에서 영영 사라진다. 같은 청크가 여러 필드에 걸리는
+    # 중복은 fields[]가 본문 없이 chunk_id만 참조하는 것으로 이미 막고 있다.
     used = {h.chunk_id for hits in fields.values() for h in hits}
-    referenced = [c for c in chunks if c.chunk_id in used]
 
-    # 색인 제외 청크는 임베딩을 받지 않는다. embedded=True면 벡터가 전부
-    # 있어야 한다는 스키마 규칙과 부딪히지 않도록, 참조된 것만 헤아린다.
-    referenced_embedded = embedded and all(c.embedding is not None for c in referenced)
+    # 색인 제외 청크(별지 제목 등)는 애초에 임베딩을 받지 않는다. 그것 때문에
+    # embedded가 False로 떨어지면 안 되므로 색인 대상만 헤아린다.
+    embedded = embedded and all(c.embedding is not None for c in chunks if c.indexable)
 
     return RetrievalBundle(
         schema_version=SCHEMA_VERSION,
@@ -148,7 +151,7 @@ def retrieve_contract_chunks(
             text_source_summary=doc.source_summary,
             embedding_model=embed_mod.MODEL_NAME,
             embedding_dim=embed_mod.EMBEDDING_DIM,
-            embedded=referenced_embedded,
+            embedded=embedded,
             full_text_length=len(full_text),
         ),
         retrieval=RetrievalInfo(
@@ -160,11 +163,11 @@ def retrieve_contract_chunks(
             clause_total=len(clauses),
             chunk_total=stats.total,
             chunk_indexable=stats.indexable,
-            chunk_referenced=len(referenced),
+            chunk_referenced=len(used),
         ),
         fields={
             name: [_to_field_hit(h, name) for h in hits]
             for name, hits in fields.items()
         },
-        chunks=[_to_bundle_chunk(c) for c in referenced],
+        chunks=[_to_bundle_chunk(c) for c in chunks],
     )

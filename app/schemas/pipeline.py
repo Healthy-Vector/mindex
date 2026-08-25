@@ -12,7 +12,29 @@ Task2(LLM 추출·정규화)가 받는 계약이다. 지금까지는 dict를 손
 - `page_start <= page_end` — 조항이 페이지를 걸치는 경우가 실측 9.4%다.
 - **`fields[]`의 모든 `chunk_id`가 `chunks[]`에 있어야 한다** — 회수 결과는
   본문을 직접 담지 않고 id로 참조한다. 참조가 끊기면 Task2가 근거를 못 읽는다.
+- **`chunks[]`가 계약서 전문이어야 한다** — `chunk_total == len(chunks)`.
+  아래 v0.4 설명 참조.
 - `embedding` 길이 1024 — `contract_chunk.embedding`이 `vector(1024)`다.
+
+## v0.4 — `chunks[]`는 회수 결과가 아니라 계약서 corpus다
+
+v0.3까지 `chunks[]`에는 **어떤 field에든 회수된 청크만** 담았다. 중복을 줄이려던
+것이었는데, 받는 쪽에서 이게 `contract_chunk` 적재분이 되면서 문제가 됐다.
+
+실측(샘플 10건): 전체 215개 중 회수 132개, **회수율 61.4%**. 그리고 빠지는
+83개가 무작위가 아니다. 비밀유지·해지·통지·불가항력·준거법 — **회수 스코어러가
+일부러 감점하는 DISTRACTOR 조항들**이다. 추출 6개 필드에 대해서는 그게 맞지만,
+`contract_chunk`는 시스템 전체의 검색 인덱스(SFR-008/009)라서 그대로 넣으면
+"비밀유지 조항이 있는 계약"을 영원히 못 찾는다.
+
+그래서 두 축을 분리했다.
+
+    chunks[]  = 계약서 전문 corpus. pgvector 적재·RAG 검색의 원본
+    fields{}  = 그 위에 얹힌 회수 결과. chunk_id로 참조만 한다
+
+색인 제외 청크(`indexable=False`, 별지 제목처럼 60자 미만)도 **본문은 담고
+벡터만 None**으로 둔다. `contract_chunk.embedding`이 nullable이라 원문은
+보존되고 검색 품질은 안 망친다.
 
 이 파일은 leaf다. `app.pipeline`을 import하지 않는다. 그래야 스키마만 필요한
 쪽(Task2, Worker)이 pdfplumber까지 끌어오지 않는다.
@@ -24,7 +46,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
-SCHEMA_VERSION = "mindex.retrieval-bundle.v0.3"
+SCHEMA_VERSION = "mindex.retrieval-bundle.v0.4"
 
 #: 임베딩 차원 — DB의 `contract_chunk.embedding vector(1024)`와 맞물린다.
 EMBEDDING_DIM = 1024
@@ -95,7 +117,16 @@ class BundleChunk(BaseModel):
     char_start: int = Field(ge=0)
     char_end: int = Field(ge=0)
 
+    #: 검색 색인 대상인가. False면 `embedding`이 None인 것이 **정상**이다.
+    #:
+    #: 이 구분이 없으면 받는 쪽이 `embedding: null`을 보고 "임베딩이 실패했나"와
+    #: "원래 안 주나"를 구분할 수 없다. 실측상 제외 대상은 별지 제목 줄처럼
+    #: 60자 미만인 조각이다(샘플 215개 중 3개). 내용 없는 조각에 벡터를 주면
+    #: e5 공간에서 어떤 질의와도 어중간하게 가까워서 정답을 밀어낸다.
+    indexable: bool = True
+
     #: Worker가 `contract_chunk.embedding`에 적재할 벡터. 임베딩 전에는 None.
+    #: `indexable=False`면 임베딩 후에도 None이다.
     embedding: list[float] | None = None
 
     @model_validator(mode="after")
@@ -115,6 +146,8 @@ class BundleChunk(BaseModel):
             raise ValueError(f"{self.chunk_id}: location offset이 본체와 다르다")
         if (loc.page_start, loc.page_end) != (self.page_start, self.page_end):
             raise ValueError(f"{self.chunk_id}: location 페이지가 본체와 다르다")
+        if not self.indexable and self.embedding is not None:
+            raise ValueError(f"{self.chunk_id}: 색인 제외 청크에 벡터가 붙었다")
         if self.embedding is not None and len(self.embedding) != EMBEDDING_DIM:
             raise ValueError(
                 f"{self.chunk_id}: 임베딩 차원 {len(self.embedding)} != {EMBEDDING_DIM}"
@@ -163,9 +196,12 @@ class RetrievalInfo(BaseModel):
     min_score: float = Field(ge=0.0, le=1.0)
     field_count: int = Field(ge=1)
     clause_total: int = Field(ge=0)
+    #: 전체 청크 수. v0.4부터 `len(chunks)`와 같아야 한다.
     chunk_total: int = Field(ge=0)
-    #: 색인 대상 청크 수. 별지 제목처럼 내용 없는 조각은 빠진다.
+    #: 그중 색인 대상. 별지 제목처럼 60자 미만인 조각은 빠지고 벡터를 받지 않는다.
     chunk_indexable: int = Field(ge=0)
+    #: 그중 `fields{}`가 실제로 가리킨 청크 수. **통계값일 뿐 `chunks[]`의 크기가
+    #: 아니다** — v0.3까지는 같았으나 v0.4에서 갈라졌다.
     chunk_referenced: int = Field(ge=0)
 
 
@@ -175,10 +211,12 @@ class RetrievalBundle(BaseModel):
     schema_version: str = SCHEMA_VERSION
     document: DocumentInfo
     retrieval: RetrievalInfo
-    #: 필드 이름 → 점수순 회수 결과.
+    #: 필드 이름 → 점수순 회수 결과. `chunks`를 id로 참조만 하고 본문은 안 담는다.
     fields: dict[str, list[FieldHit]]
-    #: `fields`가 참조하는 청크의 본문. 같은 청크가 여러 필드에 걸리므로
-    #: 여기에 한 번만 두고 id로 참조해 중복을 없앤다.
+    #: **계약서 전문 corpus.** 회수 여부와 무관하게 조항 전량이 문서 순서로 담긴다
+    #: (`chunk_index` 오름차순). Worker가 `contract_chunk`에 그대로 적재하는 대상이고,
+    #: 적재 이후 RAG·하이브리드 검색이 보는 것도 이 집합이다. v0.4 변경 — 위 모듈
+    #: docstring 참조.
     chunks: list[BundleChunk]
 
     @model_validator(mode="after")
@@ -195,8 +233,10 @@ class RetrievalBundle(BaseModel):
             raise ValueError("chunk_id가 중복됐다")
 
         # 회수 결과가 본문을 못 찾으면 Task2가 근거를 읽을 수 없다
+        referenced: set[str] = set()
         for name, hits in self.fields.items():
             for h in hits:
+                referenced.add(h.chunk_id)
                 if h.chunk_id not in known:
                     raise ValueError(f"{name}: 참조가 끊긴 chunk_id {h.chunk_id}")
                 if h.matched_field != name:
@@ -206,13 +246,31 @@ class RetrievalBundle(BaseModel):
             if len(hits) > self.retrieval.top_k:
                 raise ValueError(f"{name}: top_k({self.retrieval.top_k})를 넘는 결과")
 
-        if self.retrieval.chunk_referenced != len(self.chunks):
+        # v0.4 — chunks[]는 회수 결과가 아니라 계약서 전문이다. 일부만 담기면
+        # Worker가 contract_chunk를 반쪽만 채우고, 빠진 조항은 검색에서 영영
+        # 사라진다. 통계값이 아니라 이 불변조건이 그걸 막는다.
+        if self.retrieval.chunk_total != len(self.chunks):
+            raise ValueError(
+                f"chunk_total {self.retrieval.chunk_total} != 실제 {len(self.chunks)} "
+                "— chunks[]는 계약서 전문이어야 한다"
+            )
+        if self.retrieval.chunk_indexable != sum(1 for c in self.chunks if c.indexable):
+            raise ValueError(
+                f"chunk_indexable {self.retrieval.chunk_indexable} != "
+                f"실제 {sum(1 for c in self.chunks if c.indexable)}"
+            )
+        if self.retrieval.chunk_referenced != len(referenced):
             raise ValueError(
                 f"chunk_referenced {self.retrieval.chunk_referenced} != "
-                f"실제 {len(self.chunks)}"
+                f"실제 {len(referenced)}"
             )
-        if self.retrieval.chunk_indexable > self.retrieval.chunk_total:
-            raise ValueError("색인 대상이 전체 청크보다 많다")
-        if self.document.embedded and any(c.embedding is None for c in self.chunks):
-            raise ValueError("embedded=True인데 벡터가 없는 청크가 있다")
+        if [c.chunk_index for c in self.chunks] != sorted(
+            c.chunk_index for c in self.chunks
+        ):
+            raise ValueError("chunks[]가 문서 순서(chunk_index)로 정렬돼 있지 않다")
+        # 색인 제외 청크는 벡터가 없는 것이 정상이므로 대상에서 뺀다.
+        if self.document.embedded and any(
+            c.embedding is None for c in self.chunks if c.indexable
+        ):
+            raise ValueError("embedded=True인데 색인 대상 중 벡터가 없는 청크가 있다")
         return self

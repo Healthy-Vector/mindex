@@ -2,8 +2,8 @@
 
 **P3 파싱 → LLM 추출·정규화 담당자 인계 문서**
 
-status: `DRAFT v0.4`
-date: 2026-08-22
+status: `DRAFT v0.5`
+date: 2026-08-25
 
 `retrieve_contract_chunks(pdf_bytes) -> RetrievalBundle` — PDF를 파싱·분해하고
 추출 대상 field별로 관련 청크를 점수와 함께 묶어 넘긴다.
@@ -44,18 +44,23 @@ PYTHONPATH=. python scripts/ocr_pipeline/make_handoff_samples.py
 86건 전부가 아니라 **언어 × 템플릿 × 계약유형이 골고루 덮이도록 10건만** 골랐다.
 `KO 4 / EN 3 / JP 3`, 템플릿 `T1~T6` 전부, `DIRECT_LICENSE 8 / SUBLICENSE 2`, 3~10페이지.
 
-| 파일 | 언어 | T | 유형 | 페이지 | 조항 | 청크 | 특징 |
+청크 수는 v0.4 실측값이다(`chunks[]` = 조항 전량). 괄호 안은 `fields{}`가
+실제로 가리킨 수 — 나머지는 우리 6개 필드와 무관한 조항이지만 corpus 에는
+그대로 담긴다.
+
+| 파일 | 언어 | T | 유형 | 페이지 | 조항 | 청크(회수) | 특징 |
 |---|---|---|---|---:|---:|---:|---|
-| `CTR-KO-0001` | ko | T1 | DIRECT | 3 | 20 | 22 | 가장 단순. 여기서 시작 |
-| `CTR-EN-0001` | en | T1 | DIRECT | 3 | 20 | 21 | 영문 기본형 |
-| `CTR-JP-0001` | ja | T1 | DIRECT | 3 | 20 | 21 | 일문 기본형 |
-| `CTR-EN-0017` | en | T1 | **SUB** | 5 | 20 | 22 | 재이용허락 — 권한체인(R8) |
-| `CTR-JP-0002` | ja | T2 | DIRECT | 4 | 20 | 21 | 방송 방영권·배신권 |
-| `CTR-EN-0006` | en | T3 | DIRECT | 4 | 20 | 23 | 단일 이용방식 |
-| `CTR-KO-0014` | ko | T4 | DIRECT | 7 | 20 | 21 | **별지 없이 본문에 복수 Grant** |
-| `CTR-KO-0015` | ko | T5 | **SUB** | 8 | 24 | 26 | **별지 3개 + 재이용허락** |
-| `CTR-JP-0015` | ja | T5 | DIRECT | 10 | 25 | 28 | **별지 5개**. 최대 난이도 |
-| `CTR-KO-0006` | ko | T6 | DIRECT | 8 | 24 | 26 | **OST 음악 권리처리 별지** |
+| `CTR-KO-0001` | ko | T1 | DIRECT | 3 | 20 | 20 (11) | 가장 단순. 여기서 시작 |
+| `CTR-EN-0001` | en | T1 | DIRECT | 3 | 20 | 20 (14) | 영문 기본형 |
+| `CTR-JP-0001` | ja | T1 | DIRECT | 3 | 20 | 20 (13) | 일문 기본형 |
+| `CTR-EN-0017` | en | T1 | **SUB** | 5 | 20 | 20 (14) | 재이용허락 — 권한체인(R8) |
+| `CTR-JP-0002` | ja | T2 | DIRECT | 4 | 20 | 20 (13) | 방송 방영권·배신권 |
+| `CTR-EN-0006` | en | T3 | DIRECT | 4 | 20 | 20 (14) | 단일 이용방식 |
+| `CTR-KO-0014` | ko | T4 | DIRECT | 7 | 20 | 21 (12) | **별지 없이 본문에 복수 Grant** |
+| `CTR-KO-0015` | ko | T5 | **SUB** | 8 | 24 | 24 (13) | **별지 3개 + 재이용허락** |
+| `CTR-JP-0015` | ja | T5 | DIRECT | 10 | 26 | 26 (15) | **별지 5개**. 최대 난이도 |
+| `CTR-KO-0006` | ko | T6 | DIRECT | 8 | 24 | 24 (13) | **OST 음악 권리처리 별지** |
+| **합계** | | | | | **214** | **215 (132)** | 색인 대상 212 |
 
 난이도 순서: `CTR-KO-0001` → `CTR-KO-0014`(별지 없는 복수 Grant) → `CTR-KO-0015`(별지) → `CTR-JP-0015`(별지 5개).
 
@@ -66,7 +71,7 @@ PYTHONPATH=. python scripts/ocr_pipeline/make_handoff_samples.py
 
 ## 2. Task1 최종 출력 — `RetrievalBundle`
 
-스키마 `mindex.retrieval-bundle.v0.3`. 샘플은 `samples/*.retrieval.json`.
+스키마 `mindex.retrieval-bundle.v0.4`. 샘플은 `samples/*.retrieval.json`.
 
 **전체 구조와 필드 설명은 [samples/README.md](samples/README.md)에 있다.**
 같은 규격을 두 문서에 쓰면 반드시 갈라지므로 그쪽 하나만 유지한다.
@@ -74,16 +79,54 @@ PYTHONPATH=. python scripts/ocr_pipeline/make_handoff_samples.py
 
 ```jsonc
 {
-  "schema_version": "mindex.retrieval-bundle.v0.3",
+  "schema_version": "mindex.retrieval-bundle.v0.4",
   "document":  { ... },   // 이 PDF가 무엇인가
   "retrieval": { ... },   // 어떻게 회수했는가
   "fields":    { ... },   // 필드별로 어디를 봐야 하나  <- 여기서 시작
-  "chunks":    [ ... ]    // 본문 조각 (fields가 가리키는 대상)
+  "chunks":    [ ... ]    // 계약서 전문 corpus (pgvector 적재 대상)
 }
 ```
 
 `fields`는 색인, `chunks`는 자료다. `fields["territory"][0].chunk_id`로
 `chunks[]`를 찾아 `.text`를 읽는다.
+
+### v0.3 -> v0.4 (받는 쪽 코드에 영향 있음)
+
+**`chunks[]`가 회수 결과의 부속물에서 계약서 전문 corpus로 바뀌었다.**
+
+| | v0.3 | v0.4 |
+|---|---|---|
+| `chunks[]` 내용 | 회수된 청크만 | **조항 전량** (`chunk_index` 오름차순) |
+| 샘플 10건 청크 수 | 132 | **215** |
+| `chunk_total` | 통계값 | **`len(chunks)`와 일치해야 함** |
+| `chunk_referenced` | `len(chunks)`와 같음 | **통계값으로 분리됨** |
+| 청크 필드 | — | **`indexable: bool` 추가** |
+
+**왜 바꿨나.** v0.3의 `chunks[]`를 그대로 `contract_chunk`에 적재하면 계약서의
+61.4%만 들어간다. 그리고 빠지는 38.6%가 무작위가 아니다 — 비밀유지·해지·통지·
+불가항력·준거법처럼 **회수 스코어러가 일부러 감점하는 조항들**이다. 추출 6개
+필드에 대해서는 그게 맞지만, `contract_chunk`는 시스템 전체의 검색
+인덱스(SFR-008/009)라서 그대로 두면 "비밀유지 조항이 있는 계약"을 영영 못 찾는다.
+
+```
+chunks[]  = 계약서 전문 corpus. pgvector 적재·RAG 검색의 원본
+fields{}  = 그 위에 얹힌 회수 결과. chunk_id 로 참조만 한다
+```
+
+**받는 쪽이 확인할 것.** `fields{}`만 읽는 코드는 영향이 없다. `chunks[]`를
+순회하는 코드가 있으면 개수가 61% 늘어난다.
+
+**`indexable: false`인 청크.** 별지 제목 줄처럼 60자 미만인 조각이다(샘플
+215개 중 3개). 이 청크는 `embedding`이 **정상적으로 `null`이다** — 실패가
+아니다. 내용 없는 조각에 벡터를 주면 e5 공간에서 어떤 질의와도 어중간하게
+가까워서 정답을 밀어낸다. `contract_chunk.embedding`이 nullable이므로
+**본문은 저장하고 벡터만 NULL**로 두면 된다.
+
+> [!warning] 적재 시 `clause_no` 매핑
+> 표제·당사자 부분의 `clause_no`는 `__FRONT_MATTER__`, 조항 머리를 못 찾은
+> 문서는 `__UNSEGMENTED__`다. 번들 안에서는 종류를 구분하는 값이지만 실제
+> 조항 번호가 아니므로, `contract_chunk.clause_no`(nullable)에 넣을 때는
+> **`NULL`로 매핑**하는 것을 권한다.
 
 ### v0.2 -> v0.3 (받는 쪽 코드에 영향 있음)
 

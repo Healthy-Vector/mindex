@@ -83,9 +83,12 @@ def make_bundle(chunks=None, fields=None, **over) -> RetrievalBundle:
             min_score=0.15,
             field_count=len(RETRIEVAL_FIELDS),
             clause_total=24,
-            chunk_total=26,
-            chunk_indexable=25,
-            chunk_referenced=len(chunks),
+            # v0.4 — chunks[]가 계약서 전문이므로 통계가 실제와 맞아야 한다.
+            chunk_total=len(chunks),
+            chunk_indexable=sum(1 for c in chunks if c.indexable),
+            chunk_referenced=len(
+                {h.chunk_id for hits in fields.values() for h in hits}
+            ),
         ),
         fields=fields,
         chunks=chunks,
@@ -207,6 +210,57 @@ def test_embedded인데_벡터가_없으면_거부():
     )
     with pytest.raises(ValidationError, match="벡터가 없는 청크"):
         make_bundle(document=doc)
+
+
+# ── v0.4 — chunks[]는 계약서 전문 corpus다 ────────────────────────────────
+def test_chunks가_전문이_아니면_거부():
+    """일부만 담기면 Worker가 contract_chunk를 반쪽만 채우고, 빠진 조항은
+    검색에서 영영 사라진다. 실측상 회수분만 담으면 61.4%밖에 안 남는다."""
+    b = make_bundle()
+    with pytest.raises(ValidationError, match="계약서 전문이어야 한다"):
+        make_bundle(retrieval=b.retrieval.model_copy(update={"chunk_total": 26}))
+
+
+def test_색인_제외_청크에_벡터가_붙으면_거부():
+    """내용 없는 조각에 벡터를 주면 어떤 질의와도 어중간하게 가까워서
+    정답을 밀어낸다. 실수로 붙는 걸 막는다."""
+    with pytest.raises(ValidationError, match="색인 제외 청크에 벡터"):
+        make_chunk(indexable=False, embedding=[0.1] * EMBEDDING_DIM)
+
+
+def test_색인_제외_청크는_벡터가_없어도_embedded를_유지한다():
+    """별지 제목처럼 60자 미만인 조각은 원래 벡터를 안 받는다.
+    그것 때문에 embedded가 거짓이 되면 안 된다."""
+    body = make_chunk(embedding=[0.1] * EMBEDDING_DIM)
+    head = make_chunk(
+        chunk_id="abc123def456-0002", chunk_index=2, indexable=False, embedding=None
+    )
+    doc = DocumentInfo(
+        file_hash=HASH,
+        page_count=3,
+        language="ko",
+        text_source_summary={"TEXT_LAYER": 3},
+        embedding_model="intfloat/multilingual-e5-large",
+        embedded=True,
+        full_text_length=5000,
+    )
+    bundle = make_bundle(chunks=[body, head], document=doc)
+    assert bundle.retrieval.chunk_indexable == 1
+    assert bundle.retrieval.chunk_total == 2
+
+
+def test_chunk_index_정렬이_깨지면_거부():
+    """Worker가 contract_chunk를 문서 순서대로 적재한다."""
+    a = make_chunk(chunk_id="abc123def456-0005", chunk_index=5)
+    b = make_chunk(chunk_id="abc123def456-0002", chunk_index=2)
+    with pytest.raises(ValidationError, match="문서 순서"):
+        make_bundle(chunks=[a, b])
+
+
+def test_chunk_indexable_이_실제와_다르면_거부():
+    b = make_bundle()
+    with pytest.raises(ValidationError, match="chunk_indexable"):
+        make_bundle(retrieval=b.retrieval.model_copy(update={"chunk_indexable": 99}))
 
 
 def test_점수는_0과_1_사이():

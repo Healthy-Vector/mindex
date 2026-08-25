@@ -1,7 +1,7 @@
 # 추출 파이프라인 API 명세 (업로드 → 비동기 추출)
 
 status: 팀 명세 정본 반영본
-date: 2026-08-24
+date: 2026-08-25
 소유: **P1**(접수 API·큐·워커). P3는 이 API를 구현하지 않고, 워커가 호출하는
 `stage=OCR` 함수만 제공한다.
 
@@ -303,7 +303,22 @@ rights_grant.exploitation_mode_span INT4RANGE (not null)
 예시의 "겨울의 신호 영상 및 OST 이용허락계약서" 는 **계약서 문서의 제목**이라
 IP 제목과도 다르다. 화면 표시용이면 `extract_result.payload` 안에만 두면 된다.
 
-### 3.5 간극 D — `stage=OCR` 에서 만든 임베딩이 갈 곳이 없다
+### 3.5 간극 D — ~~`stage=OCR` 에서 만든 임베딩이 갈 곳이 없다~~ **(해소, 2026-08-25)**
+
+> [!success] 벡터를 `extract_result.payload` 에 실어 보내는 것으로 정리됐다
+> 계산한 곳(`stage=OCR` 워커)과 저장할 곳(확정 단계)이 다른 프로세스·다른
+> 시각이라는 점은 그대로다. 다만 그 사이를 **재계산이 아니라 payload 가**
+> 잇는다. 확정 시 `contract` INSERT 로 `contract_id` 를 받은 뒤,
+> `payload->'chunks'` 에서 벡터를 꺼내 `contract_chunk` 에 넣으면 된다.
+>
+> 그러려면 번들이 조항 전량을 담아야 했다. **v0.4 에서 그렇게 바꿨다** —
+> `chunks[]` 가 회수 결과의 부속물이 아니라 계약서 corpus 가 됐다
+> (샘플 10건 132개 → 215개). 상세는 `docs/handoff/README.md` 의 v0.3 → v0.4 절.
+>
+> 아래는 결정 과정의 근거로 남겨 둔다.
+
+<details>
+<summary>당시 분석 (펼치기)</summary>
 
 `contract_chunk` 는 청크 텍스트와 1024차원 벡터의 영구 자리다.
 
@@ -329,9 +344,73 @@ docs/handoff/samples/CTR-EN-0017.retrieval.json
 
 | 안 | 방법 | 비용 |
 |---|---|---|
-| **① 확정 시 재계산 (권장)** | 커밋 단계에서 청킹·임베딩을 다시 돌린다 | 모델 상주 시 계약당 약 0.3초(20청크 / 80청크·s⁻¹). 규격·스키마 무변경 |
-| ② 번들에 전체 청크 포함 | `chunks[]` 에 20개를 다 담고 워커가 들고 있다가 저장 | 규격 변경 + payload 증가 |
+| ① 확정 시 재계산 | 커밋 단계에서 청킹·임베딩을 다시 돌린다 | 모델 상주 시 계약당 약 0.3초. 단 **재계산할 프로세스에 2.2GB 모델이 필요**하다 |
+| **② 번들에 전체 청크 포함 (채택)** | `chunks[]` 에 전량을 담고 payload 로 넘긴다 | 규격 변경(v0.4). payload 증가 |
 | ③ staging 청크 테이블 신설 | `staging.chunk_draft` | 테이블 추가 |
+
+</details>
+
+### 3.5.1 벡터를 payload 에 넣을 때의 실측치 (PostgreSQL 17 + pgvector 0.8.1)
+
+컨테이너를 띄워 직접 확인한 값이다.
+
+**캐스팅이 그대로 된다.** pgvector 입력 형식이 `'[1,2,3]'` 이라 JSON 배열
+텍스트와 모양이 같다. 중간 변환 코드가 필요 없다.
+
+```sql
+SELECT (payload->'chunks'->0->'embedding')::text::vector;
+--  [0.010689,-0.022995,-0.017929]
+```
+
+**정밀도 손실이 없다.** 실제 1024차원 벡터로 `jsonb → text → vector → text`
+왕복 후 1024개 값이 전부 원본과 동일했다(최대 오차 0.0).
+
+**크기는 걱정한 것보다 작다.** 10.6KB 는 텍스트 표현이고 디스크 저장 크기가 아니다.
+
+| | 바이트 | |
+|---|---:|---|
+| JSON 텍스트 | 10,655 | 전송 시 크기 |
+| **JSONB 디스크 저장** | **4,688** | TOAST 압축 후 |
+| pgvector 네이티브 | 4,104 | 1024×4 + 헤더 8 |
+
+**네이티브 대비 14% 클 뿐이다.** base64(float32)로 줄여도 디스크에서 얻는 게
+거의 없으므로 **실수 배열 그대로 두는 것이 맞다.**
+
+**numeric 관련.** JSONB 는 숫자를 `numeric`(임의정밀도 십진수)으로 저장한다.
+
+| 입력 | 저장 | |
+|---|---|---|
+| `0.30000000000000004` | 그대로 | 자릿수를 안 깎는다 |
+| `1e-7` → `0.0000001`, `2E3` → `2000` | 값 동일 | 표기만 정규화 |
+| `-0.0` → `0.0` | 영의 부호 소실 | 무의미 |
+| `NaN` | **ERROR** | JSON 에 NaN 이 없다 |
+
+마지막 줄은 안전장치다. 임베딩에 NaN 이 섞이거나 차원이 안 맞으면
+(`expected 4 dimensions, not 3`) 조용히 들어가지 않고 INSERT 가 실패한다.
+
+대량 INSERT 성능은 측정하지 않았다.
+
+### 3.5.2 조회 응답에서 벡터를 빼야 한다 — **P1·프론트 영역**
+
+명세의 `result` 는 payload 를 그대로 싣는다. 어느 부분만 내보낼지에 대한
+규칙이 없다. 벡터를 payload 에 넣으면 브라우저가 쓰지도 않는 데이터를
+받게 된다(청크 20개면 약 213KB, 30페이지 계약이면 약 640KB).
+
+```sql
+-- DB 에는 벡터를 그대로 두고, 응답에서만 제거
+SELECT jsonb_set(payload, '{chunks}',
+         (SELECT jsonb_agg(c - 'embedding')
+          FROM jsonb_array_elements(payload->'chunks') c))
+FROM staging.extract_result WHERE tmpid = $1;
+```
+
+| payload 키 | 조회 응답 | 이유 |
+|---|---|---|
+| `contractInfo` · `ipCandidates` · `rights[]` · `confidence` | ✅ | 화면이 쓴다 |
+| `chunks[].embedding` | ❌ | 화면이 안 쓴다. 용량의 93% |
+| `rawText` | ❌ 별도 엔드포인트 | 화면이 안 쓴다 |
+
+**이건 조회 API 소유자(P1)와 프론트의 결정 사항이라 P3 는 기록만 한다.**
 
 ### 3.6 간극 E — `file_hash` 와 PDF 암호화가 명세만 있고 구현이 없다
 
@@ -421,10 +500,10 @@ WHERE status='QUEUED'
    - readiness probe 는 첫 로딩이 끝난 뒤 통과시켜야 한다.
    - `UNREADABLE_PDF` 는 파이프라인이 예외로 올리고 워커가 `reason` 에 매핑한다.
 5. **`contract_chunk` 적재는 회수 단계가 아니라 확정 단계의 일이다**(3.5절).
-   `stage=OCR` 에서는 `contract_id` 가 존재하지 않는다. 권장안은 확정 시
-   재계산이며, 그러려면 파이프라인이 "번들 없이 청크 전량만 내놓는" 경로도
-   노출해야 한다 — `chunk_document(pdf_bytes) -> list[Chunk]` 수준.
-   Phase 6 이후 과제로 남긴다.
+   `stage=OCR` 에서는 `contract_id` 가 존재하지 않는다. 번들 v0.4 가 조항
+   전량과 벡터를 실어 보내므로, 확정 시 `contract_id` 를 받은 뒤
+   `payload->'chunks'` 에서 꺼내 넣으면 된다. **재계산도 추가 진입점도
+   필요 없다.**
 
 ---
 
@@ -435,6 +514,7 @@ WHERE status='QUEUED'
 | A | `staging.extract_job` 에 `mode`/`contract_id`/`ip_id` 추가 | P1·P2 |
 | B | `rightsType` 단일 필드 → `legal_right`+`exploitation_mode`+span 2 | Task2·P2 |
 | C | `counterparty` → `grantor`/`grantee` 양측, `title` 자리 결정 | Task2·P2 |
-| D | `contract_chunk` 를 언제 무엇으로 채울지 (권장: 확정 시 재계산) | P3·P1 |
+| D | ~~`contract_chunk` 를 언제 무엇으로 채울지~~ **해소** — 번들 v0.4 가 조항 전량 + 벡터를 payload 로 넘긴다 | — |
 | E | `file_hash` 계산과 PDF 암호화가 명세만 있고 구현이 없음 | P1·P2 |
 | F | 페이지 단위 진행률이 필요하면 `extract_job` 에 컬럼 추가 필요 | P1·프론트 |
+| G | 조회 응답에서 `chunks[].embedding`·`rawText` 제외 (3.5.2절) | P1·프론트 |

@@ -1,6 +1,6 @@
 # RetrievalBundle 샘플 — 구조와 필드 설명
 
-`schema_version: mindex.retrieval-bundle.v0.3`
+`schema_version: mindex.retrieval-bundle.v0.4`
 
 Task1(OCR·파싱·임베딩)이 Task2(LLM 추출·정규화)에 넘기는 형식이다.
 이 폴더만 받아도 읽을 수 있게 자기완결적으로 썼다.
@@ -16,6 +16,13 @@ payload = bundle.model_dump(mode="json")         # 여기 있는 .json 과 같�
 샘플은 [`scripts/ocr_pipeline/make_handoff_samples.py`](../../../scripts/ocr_pipeline/make_handoff_samples.py)로
 재생성하며, **실제 파이프라인 출력 그 자체**다(별도 생성기가 아니다).
 
+> **v0.3 → v0.4**
+> `chunks[]`가 **회수된 청크만**에서 **계약서 조항 전량**으로 바뀌었다
+> (샘플 10건 기준 132개 → 215개). `contract_chunk` 적재·RAG 검색의 원본이
+> 되기 때문이다. 청크에 `indexable: bool`이 붙었고, `chunk_total`이
+> `len(chunks)`와 같아야 한다. `chunk_referenced`는 통계값으로 분리됐다.
+> 자세한 이유는 [상위 README](../README.md#v03---v04-받는-쪽-코드에-영향-있음).
+>
 > **v0.2 → v0.3**
 > 기본 scorer 가 `hybrid-v1` 이 됐다(어휘 + 의미, `semantic_weight` 0.5).
 > `fields[]` 에 `semantic_norm` 이 붙는다 — `score` 를 재현하려면 이 값이 필요하다.
@@ -33,11 +40,11 @@ payload = bundle.model_dump(mode="json")         # 여기 있는 .json 과 같�
 
 ```jsonc
 {
-  "schema_version": "mindex.retrieval-bundle.v0.3",
+  "schema_version": "mindex.retrieval-bundle.v0.4",
   "document":  { ... },   // 이 PDF가 무엇인가
   "retrieval": { ... },   // 어떻게 회수했는가
   "fields":    { ... },   // 필드별로 어디를 봐야 하나  ← 여기서 시작
-  "chunks":    [ ... ]    // 본문 조각 (fields가 가리키는 대상)
+  "chunks":    [ ... ]    // 계약서 전문 corpus (pgvector 적재 대상)
 }
 ```
 
@@ -113,10 +120,15 @@ v0.1 이라면 fields[] 안 본문 6977자 + chunks[] 2945자 = 중복 4032자 (
 
 ---
 
-## 3. `chunks` — 본문 조각
+## 3. `chunks` — 계약서 전문 corpus
 
-`fields`가 **참조한 청크만** 담는다. 문서 전체 청크가 아니다.
-(전체 수는 `retrieval.chunk_total`, 참조된 수는 `retrieval.chunk_referenced`)
+**조항 전량이 문서 순서(`chunk_index` 오름차순)로 담긴다.** 회수 여부와 무관하다.
+`chunk_total == len(chunks)`가 규격상 보장된다.
+
+이게 `contract_chunk`에 그대로 적재되고, 적재 이후 RAG·하이브리드 검색이
+보는 것도 이 집합이다. v0.3까지는 회수된 것만 담았는데, 그대로 넣으면
+계약서의 61.4%만 검색 대상이 되고 비밀유지·준거법 같은 조항이 영영
+사라져서 바꿨다.
 
 ```jsonc
 {
@@ -134,6 +146,7 @@ v0.1 이라면 fields[] 안 본문 6977자 + chunks[] 2945자 = 중복 4032자 (
                     "clause_kind": "FRONT_MATTER", "char_start": 0, "char_end": 581 },
   "char_start":   0,
   "char_end":     581,
+  "indexable":    true,
   "embedding":    [0.0137, -0.0143, ...]   // 1024개
 }
 ```
@@ -151,7 +164,29 @@ v0.1 이라면 fields[] 안 본문 6977자 + chunks[] 2945자 = 중복 4032자 (
 | `page` | DB의 단일 `page` 컬럼 호환값. 항상 `page_start`와 같다 |
 | `location` | 위 값들을 한 덩어리로. Evidence 인용의 좌표 |
 | `char_start` / `char_end` | **문서 전체 텍스트 기준** 문자 offset |
+| `indexable` | 검색 색인 대상인가. `false`면 `embedding`이 `null`인 게 정상 |
 | `embedding` | 1024차원 벡터. L2 정규화돼 있다. 임베딩을 안 돌리면 `null` |
+
+### `indexable: false`인 청크를 어떻게 다루나
+
+별지 제목 줄처럼 **60자 미만**인 조각이다. 샘플 215개 중 3개로, 전부 이런 모양이다.
+
+```
+clause_no='별지 1'  text='별지 1 — 개별 이용허락 명세'  embedding=null
+clause_no='別紙 1'  text='別紙1 — 個別利用許諾明細'      embedding=null
+```
+
+**`embedding: null`은 실패가 아니라 의도다.** 내용 없는 조각에 벡터를 주면
+e5 공간에서 어떤 질의와도 어중간하게 가까워서 상위를 차지하고 정답을 밀어낸다.
+
+`contract_chunk.embedding`이 nullable이므로 **본문은 저장하고 벡터만 NULL**로
+두면 된다. 원문은 보존되고 의미검색 품질은 안 망친다.
+
+> [!warning] 적재 시 `clause_no` 매핑
+> 표제·당사자 부분은 `__FRONT_MATTER__`, 조항 머리를 하나도 못 찾은 문서는
+> `__UNSEGMENTED__`다. 번들 안에서는 종류를 구분하는 값이지만 실제 조항
+> 번호가 아니다. `contract_chunk.clause_no`(nullable)에 넣을 때는
+> **`NULL`로 매핑**하는 것을 권한다.
 
 ### 페이지가 왜 범위인가
 
@@ -221,16 +256,32 @@ v0.1 이라면 fields[] 안 본문 6977자 + chunks[] 2945자 = 중복 4032자 (
   "min_score": 0.15,          // 이 미만은 버린다
   "field_count": 6,
   "clause_total": 24,         // 분해된 조항 수
-  "chunk_total": 24,          // 만들어진 청크 수
-  "chunk_indexable": 23,      // 검색 색인에 들어간 수
-  "chunk_referenced": 13      // fields[]가 참조한 수 = chunks[] 길이
+  "chunk_total": 24,          // 만들어진 청크 수 = chunks[] 길이 (v0.4)
+  "chunk_indexable": 23,      // 그중 벡터를 받은 수
+  "chunk_referenced": 13      // 그중 fields[]가 가리킨 수 (통계값)
 }
+```
+
+세 값의 관계는 **포함 관계**다. v0.3까지는 `chunks[]` 길이가
+`chunk_referenced`와 같았지만, v0.4에서 `chunk_total`과 같아졌다.
+
+```
+chunk_total 24  ─ chunks[] 에 실제로 담기는 수 ─────────────┐
+   └ chunk_indexable 23  ─ embedding 이 채워진 수 ─┐        │
+        └ chunk_referenced 13  ─ fields{} 가 가리킨 수      │
+                                                            │
+   나머지 1개(별지 제목)는 본문만 담기고 embedding 은 null   ┘
 ```
 
 `chunk_indexable`이 `chunk_total`보다 작은 것은 **내용 없는 별지 제목**을
 색인에서 뺐기 때문이다(`별지 1 — 개별 이용허락 명세` 같은 15자짜리).
 86건에서 23건 발생하며 전부 별지 제목이다. 이런 조각은 의미검색에서
 어떤 질의와도 어중간하게 가까워서 상위를 차지하고 정답을 밀어낸다.
+**본문은 `chunks[]`에 그대로 담기므로 원문이 사라지지는 않는다.**
+
+`chunk_referenced`가 훨씬 작은 것은 계약서 대부분이 우리 6개 필드와
+무관하기 때문이다(비밀유지·해지·통지·불가항력·준거법 등). 그래도
+`chunks[]`에는 전부 담긴다 — 그 조항들도 나중에 사용자가 검색할 대상이다.
 
 ---
 
