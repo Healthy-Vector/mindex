@@ -1,0 +1,194 @@
+{
+  "schema_version": "mindex.retrieval-bundle.v0.1",
+  "document": {
+    "file_name": "mock-contract-001.pdf",
+    "file_hash": "mockcontract0001hash",
+    "mime_type": "application/pdf",
+    "page_count": 2,
+    "language": "ko",
+    "text_source_summary": { "TEXT_LAYER": 2 },
+    "embedding_model": "intfloat/multilingual-e5-large",
+    "embedding_dim": 1024,
+    "embedded": false
+  },
+  "retrieval": {
+    "scorer": "lexical-v0",
+    "top_k": 5,
+    "min_score": 0.15,
+    "field_count": 6,
+    "chunk_total": 7,
+    "chunk_referenced": 5
+  },
+  "fields": {
+    "territory": [
+      {
+        "chunk_id": "c-2",
+        "text": "제2조(이용허락의 범위)\n1.대상콘텐츠:겨울의 신호 시즌1 전 회차\n2.허락 지역:일본\n3:이용 형태: 구독형 주문형 비디오(SVOD) 서비스\n4.독점여부:독점",
+        "page": 1,
+        "clause": "제2조 (이용허락의 범위)",
+        "location": {
+          "page": 1, "clause_no": "제2조 (이용허락의 범위)", "clause_kind": "ARTICLE",
+          "char_start": 193, "char_end": 282, "clause_page_span": [1, 1]
+        },
+        "score": 0.94,
+        "matched_field": "territory",
+        "match_reasons": ["+허락 지역", "+일본"]
+      }
+    ],
+    "rights_type": [
+      {
+        "chunk_id": "c-2",
+        "text": "제2조(이용허락의 범위)\n1.대상콘텐츠:겨울의 신호 시즌1 전 회차\n2.허락 지역:일본\n3:이용 형태: 구독형 주문형 비디오(SVOD) 서비스\n4.독점여부:독점",
+        "page": 1,
+        "clause": "제2조 (이용허락의 범위)",
+        "location": {
+          "page": 1, "clause_no": "제2조 (이용허락의 범위)", "clause_kind": "ARTICLE",
+          "char_start": 193, "char_end": 282, "clause_page_span": [1, 1]
+        },
+        "score": 0.79,
+        "matched_field": "rights_type",
+        "match_reasons": ["+이용 형태", "+SVOD"]
+      }
+    ],
+    "period": [
+      {
+        "chunk_id": "c-3",
+        "text": "제3조 (계약기간)\n본 계약에 따른이용허락 기간은2026년1월1일부터\n2027년12월 31일까지로 한다.",
+        "page": 1,
+        "clause": "제3조 (계약기간)",
+        "location": {
+          "page": 1, "clause_no": "제3조 (계약기간)", "clause_kind": "ARTICLE",
+          "char_start": 282, "char_end": 340, "clause_page_span": [1, 1]
+        },
+        "score": 0.92,
+        "matched_field": "period",
+        "match_reasons": ["+계약기간", "+부터"]
+      }
+    ],
+    "exclusivity": [
+      {
+        "chunk_id": "c-2",
+        "text": "제2조(이용허락의 범위)\n1.대상콘텐츠:겨울의 신호 시즌1 전 회차\n2.허락 지역:일본\n3:이용 형태: 구독형 주문형 비디오(SVOD) 서비스\n4.독점여부:독점",
+        "page": 1,
+        "clause": "제2조 (이용허락의 범위)",
+        "location": {
+          "page": 1, "clause_no": "제2조 (이용허락의 범위)", "clause_kind": "ARTICLE",
+          "char_start": 193, "char_end": 282, "clause_page_span": [1, 1]
+        },
+        "score": 0.81,
+        "matched_field": "exclusivity",
+        "match_reasons": ["+독점여부", "+독점"]
+      }
+    ],
+    "payment": [
+      {
+        "chunk_id": "c-4",
+        "text": "제4조 (이용료)\n을은 갑에게 이용료로 금 삼억원(W300,000,000)을 지급한다:",
+        "page": 2,
+        "clause": "제4조 (이용료)",
+        "location": {
+          "page": 2, "clause_no": "제4조 (이용료)", "clause_kind": "ARTICLE",
+          "char_start": 340, "char_end": 388, "clause_page_span": [2, 2]
+        },
+        "score": 0.90,
+        "matched_field": "payment",
+        "match_reasons": ["+이용료", "+지급한다"]
+      }
+    ],
+    "parties": [
+      {
+        "chunk_id": "c-0",
+        "text": "콘텐츠 이용허락 계약서\n한빛스튜디오 주식회사(이하\"갑\"이라 한다)와 Bridge Contents(이하\"을\"이라 한다)는\n드라마「겨울의 신호(이하\"본 콘텐츠\"라 한다)의 이용허락에 관하여\n다음과같이계약을 체결한다.",
+        "page": 1,
+        "clause": "__FRONT_MATTER__",
+        "location": {
+          "page": 1, "clause_no": "__FRONT_MATTER__", "clause_kind": "FRONT_MATTER",
+          "char_start": 0, "char_end": 119, "clause_page_span": [1, 1]
+        },
+        "score": 0.83,
+        "matched_field": "parties",
+        "match_reasons": ["+갑", "+을"]
+      },
+      {
+        "chunk_id": "c-6",
+        "text": "제6초(춘거법)\n본 계약은 대한민국 법률에 따라 해석된다.\n2025년12월15일\n갑:한빛스튜디오 주식화사\n을:Bridge Contents",
+        "page": 2,
+        "clause": "제6조 (준거법)",
+        "location": {
+          "page": 2, "clause_no": "제6조 (준거법)", "clause_kind": "ARTICLE",
+          "char_start": 445, "char_end": 510, "clause_page_span": [2, 2]
+        },
+        "score": 0.58,
+        "matched_field": "parties",
+        "match_reasons": ["+갑:", "+을:"]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "chunk_id": "c-0",
+      "text": "콘텐츠 이용허락 계약서\n한빛스튜디오 주식회사(이하\"갑\"이라 한다)와 Bridge Contents(이하\"을\"이라 한다)는\n드라마「겨울의 신호(이하\"본 콘텐츠\"라 한다)의 이용허락에 관하여\n다음과같이계약을 체결한다.",
+      "page": 1,
+      "clause": "__FRONT_MATTER__",
+      "clause_kind": "FRONT_MATTER",
+      "lang": "ko",
+      "location": {
+        "page": 1, "clause_no": "__FRONT_MATTER__", "clause_kind": "FRONT_MATTER",
+        "char_start": 0, "char_end": 119, "clause_page_span": [1, 1]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "c-2",
+      "text": "제2조(이용허락의 범위)\n1.대상콘텐츠:겨울의 신호 시즌1 전 회차\n2.허락 지역:일본\n3:이용 형태: 구독형 주문형 비디오(SVOD) 서비스\n4.독점여부:독점",
+      "page": 1,
+      "clause": "제2조 (이용허락의 범위)",
+      "clause_kind": "ARTICLE",
+      "lang": "ko",
+      "location": {
+        "page": 1, "clause_no": "제2조 (이용허락의 범위)", "clause_kind": "ARTICLE",
+        "char_start": 193, "char_end": 282, "clause_page_span": [1, 1]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "c-3",
+      "text": "제3조 (계약기간)\n본 계약에 따른이용허락 기간은2026년1월1일부터\n2027년12월 31일까지로 한다.",
+      "page": 1,
+      "clause": "제3조 (계약기간)",
+      "clause_kind": "ARTICLE",
+      "lang": "ko",
+      "location": {
+        "page": 1, "clause_no": "제3조 (계약기간)", "clause_kind": "ARTICLE",
+        "char_start": 282, "char_end": 340, "clause_page_span": [1, 1]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "c-4",
+      "text": "제4조 (이용료)\n을은 갑에게 이용료로 금 삼억원(W300,000,000)을 지급한다:",
+      "page": 2,
+      "clause": "제4조 (이용료)",
+      "clause_kind": "ARTICLE",
+      "lang": "ko",
+      "location": {
+        "page": 2, "clause_no": "제4조 (이용료)", "clause_kind": "ARTICLE",
+        "char_start": 340, "char_end": 388, "clause_page_span": [2, 2]
+      },
+      "embedding": null
+    },
+    {
+      "chunk_id": "c-6",
+      "text": "제6초(춘거법)\n본 계약은 대한민국 법률에 따라 해석된다.\n2025년12월15일\n갑:한빛스튜디오 주식화사\n을:Bridge Contents",
+      "page": 2,
+      "clause": "제6조 (준거법)",
+      "clause_kind": "ARTICLE",
+      "lang": "ko",
+      "location": {
+        "page": 2, "clause_no": "제6조 (준거법)", "clause_kind": "ARTICLE",
+        "char_start": 445, "char_end": 510, "clause_page_span": [2, 2]
+      },
+      "embedding": null
+    }
+  ]
+}
