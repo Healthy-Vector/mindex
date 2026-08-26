@@ -145,9 +145,9 @@ def test_chunk_page_range_is_validated_and_aliased():
         ChunkIn.model_validate({"chunkText": "제8조", "pageStart": 4, "pageEnd": 3})
 
 
-def test_search_period_and_pagination_are_validated():
+def test_search_period_and_limit_are_validated():
     with pytest.raises(ValidationError):
-        SearchRequest.model_validate({"page": 0})
+        SearchRequest.model_validate({"limit": 0})
     with pytest.raises(ValidationError):
         SearchRequest.model_validate({
             "filters": {"period": {"start": "2027-01-02", "end": "2027-01-01"}}

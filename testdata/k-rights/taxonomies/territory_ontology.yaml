@@ -1,0 +1,55 @@
+status: REVIEWED
+version: 0.3
+phase: C
+principles:
+  - country codes are project identifiers, while contract language remains raw evidence
+  - Asia and APAC have no default country membership
+  - worldwide and exception clauses are set expressions, not hard-coded country lists
+
+countries:
+  KR: {name_ko: 대한민국, name_en: South Korea, name_jp: 韓国}
+  JP: {name_ko: 일본, name_en: Japan, name_jp: 日本}
+  US: {name_ko: 미국, name_en: United States, name_jp: 米国}
+  TW: {name_ko: 대만, name_en: Taiwan, name_jp: 台湾}
+  SG: {name_ko: 싱가포르, name_en: Singapore, name_jp: シンガポール}
+
+territory_expression_types:
+  COUNTRY_SET:
+    definition: An explicit set of one or more countries.
+  NAMED_REGION:
+    definition: A named region whose membership is defined in the same contract or incorporated schedule.
+  WORLDWIDE:
+    definition: The worldwide universe used by the contract at evaluation time.
+  SET_DIFFERENCE:
+    definition: A base territory less one or more explicit exclusions.
+
+named_region_tokens:
+  ASIA:
+    aliases: [Asia, 아시아, アジア]
+    membership_mode: CONTRACT_DEFINED
+    default_members: null
+    automatic_expansion: false
+  APAC:
+    aliases: [APAC, Asia-Pacific, 아시아태평양, アジア太平洋]
+    membership_mode: CONTRACT_DEFINED
+    default_members: null
+    automatic_expansion: false
+
+reviewed_contract_definitions:
+  - definition_id: TERR-RB-EN01-APAC
+    scenario_id: RB-EN01
+    raw_label: Asia-Pacific Territories
+    members: [KR, SG]
+    status: REVIEWED
+
+set_expression_examples:
+  - raw: worldwide excluding the United States
+    normalized:
+      type: SET_DIFFERENCE
+      base: WORLDWIDE
+      exclude: [US]
+
+comparison_policy:
+  country_membership: Compare explicit COUNTRY_SET members or a reviewed contract definition.
+  named_region_without_definition: Set the territory field to UNRESOLVED; do not infer members.
+  exception_clause: Apply exclusions before testing overlap.
