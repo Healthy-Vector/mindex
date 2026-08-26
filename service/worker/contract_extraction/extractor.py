@@ -120,6 +120,7 @@ class OllamaExtractor:
                 {"role": "user", "content": user_prompt},
             ],
             "stream": False,
+            "think": False,
             "format": self.schema,
             "options": {"temperature": 0, "num_ctx": 8192},
         }

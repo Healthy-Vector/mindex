@@ -2,11 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /srv/app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-worker-cpu.txt ./
+RUN pip install --no-cache-dir \
+    -r requirements.txt \
+    -r requirements-worker-cpu.txt
 
 COPY app ./app
 COPY service ./service
-COPY scripts ./scripts
 
 CMD ["python", "-m", "service.worker.contract_extraction.worker"]

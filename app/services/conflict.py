@@ -190,6 +190,17 @@ def save_batch(db: Session, req) -> dict[str, Any]:
                 "source_tmpid": str(req.source_tmpid) if req.source_tmpid else None,
             },
         ).mappings().first()
+        # /contracts is the terminal step for an extraction result.  Both an
+        # applied batch and a conflicted history are persisted by the DB
+        # function, so either outcome consumes the staging job.
+        if req.source_tmpid is not None:
+            db.execute(
+                text(
+                    "UPDATE staging.extract_job SET consumed_at=now() "
+                    "WHERE tmpid=:tmpid AND status='DONE'"
+                ),
+                {"tmpid": str(req.source_tmpid)},
+            )
         db.commit()
     except DBAPIError as ex:
         db.rollback()

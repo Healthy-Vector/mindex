@@ -39,14 +39,28 @@ def run_extraction(
 
     if on_stage:
         on_stage("LLM")
-    bundle_dict = bundle.to_dict()  # extractor/validator 는 RetrievalBundle 의 dict 형태를 받는다
+    if hasattr(bundle, "model_dump"):
+        bundle_dict = bundle.model_dump(mode="json")
+    elif hasattr(bundle, "to_dict"):
+        # 기존 테스트 Adapter와의 하위 호환
+        bundle_dict = bundle.to_dict()
+    else:
+        raise TypeError("RetrievalBundle은 model_dump() 또는 to_dict()를 제공해야 합니다.")
+
+    document = bundle_dict.get("document", {})
+    source_document_ref = (
+        document.get("file_hash")
+        or document.get("file_name")
+        or "unknown-document"
+    )
+
     raw = extract_contract(bundle_dict, extractor=extractor)
     validation = validate(raw, bundle_dict)
     normalized = normalize_contract(raw)
     compact = project(
         normalized,
         request_id=request_id or f"req-{uuid.uuid4().hex[:12]}",
-        source_document_ref=bundle.document_id(),
+        source_document_ref=source_document_ref,
     )
 
     return ExtractionResult(raw=raw, validation=validation, normalized=normalized, compact=compact)

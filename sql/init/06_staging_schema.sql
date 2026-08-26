@@ -31,7 +31,7 @@ CREATE TABLE staging.extract_job (
     attempts    int NOT NULL DEFAULT 0,
     reason      text,                 -- FAILED 사유
     consumed_at timestamptz,          -- 확정(contract.source_tmpid 기록)이 끝난 시각.
-                                       -- 확정과 정리(§7 O-15)를 한 트랜잭션으로 묶을지는 미결이라 당분간 유지
+                                       -- 확정 API가 기록하며 실제 TTL 삭제는 별도 작업
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 

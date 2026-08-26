@@ -44,7 +44,7 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 | `lease_until` | RUNNING 점유 만료 시각. 지나면 다른 워커가 자동 회수 |
 | `attempts` | 재시도 횟수 |
 | `reason` | FAILED 사유 |
-| `consumed_at` | 확정(`contract.source_tmpid` 기록)이 끝난 시각. 확정과 정리를 한 트랜잭션으로 묶을지는 아직 미결(O-15, §7)이라 당분간 유지 |
+| `consumed_at` | 확정(`contract.source_tmpid` 기록)이 끝난 시각. `POST /contracts`가 201로 완료될 때 같은 트랜잭션에서 기록 |
 | `created_at` | |
 
 `(status, created_at)` 인덱스가 `SKIP LOCKED` 폴링을 지원한다.
@@ -72,8 +72,8 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 | ⑤ 화면 폴링 | staging | `GET /extract/{tmpid}`. 브라우저를 닫아도 워커는 계속 돈다 |
 | ⑥ 사용자 확인·수정 | — | DB 접근 없음. 수정값은 화면이 들고 있다가 ⑧에서 한 번에 넘어간다 |
 | ⑦ 검증 | public | `SAVEPOINT` 잡고 `rights_grant`를 실제로 INSERT해 본 뒤 무조건 롤백. 충돌 여부만 표시하고 행은 남기지 않는다 |
-| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `staging.extract_result.payload`를 읽어 화면이 보낸 검증 필드와 병합 → `save_rights_batch(..., p_source_tmpid => tmpid)` 호출. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남는다 |
-| ⑨ 정리 | staging | `extract_job.consumed_at = now()` 기록 후 `pdf_blob` 삭제 (CASCADE로 나머지 두 테이블 동반 삭제). ⑧과 별개 트랜잭션(O-15, §7) |
+| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `staging.extract_result.payload`를 읽어 화면이 보낸 검증 필드와 병합 → `save_rights_batch(..., p_source_tmpid => tmpid)` 호출. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남으며, API가 같은 트랜잭션에서 `extract_job.consumed_at = now()`를 기록한다 |
+| ⑨ 정리 | staging | TTL 정리 작업이 소비된 작업의 `pdf_blob`을 삭제한다(CASCADE로 나머지 두 테이블 동반 삭제) |
 | ⑩ 사후 처리 | public | `change_log` 재색인 대상 기록 → 임베딩·검색 인덱스 갱신 (비동기) |
 
 ⑧의 "tmpid로 읽어서 저장 쿼리를 만든다"가 확정된 방식이다(B안) — 화면은 검증 필드만 들고 있고, evidence·conditions_raw 같은 나머지는 확정 API 서버가 `staging.extract_result`에서 직접 읽어 채운다. 화면이 저장 API에 전체 페이로드를 다시 보낼 필요가 없다.
@@ -81,7 +81,7 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 ## 4. `extract_job` 상태 전이
 
 ```text
-QUEUED → RUNNING → DONE → (consumed_at 기록) → 삭제
+QUEUED → RUNNING → DONE → (확정 시 consumed_at 기록) → TTL 삭제
             │  ↑ lease 만료 시 재수령
             └→ FAILED (attempts 초과, reason 기록) → TTL 7일 배치 → 삭제
 ```
@@ -132,17 +132,17 @@ ALTER TABLE contract
 | ⑥ 확인·수정 중 이탈 | 사용자가 고친 값 소실 | 설계상 허용. `extract_result`는 `DONE`으로 남아 재조회 가능 |
 | ⑦ 검증 중 | 운영 DB에 흔적 없음 | 무조건 롤백 |
 | ⑧ 확정 중 | `public` 트랜잭션 롤백 | staging은 `DONE`째 남아 같은 tmpid로 재시도 가능 |
-| ⑧ 커밋 직후 · ⑨ 직전 | `public`은 확정됐는데 `staging` 데이터가 남음 — ⑧·⑨가 별개 트랜잭션인 한 계속 생기는 구간(**O-15**, 아래 참고) | `public` 데이터는 이미 정확. TTL 7일 배치가 정리하고, 재시도해도 `source_tmpid UNIQUE`가 중복 확정을 막음 |
-| ⑨ 정리 중 | `consumed_at`만 찍히고 `pdf_blob` 잔존 가능 | TTL 7일 배치가 정리 |
+| ⑧ 커밋 직후 · ⑨ 직전 | `public` 확정과 `consumed_at` 기록은 끝났고 staging 데이터가 남음 | TTL 정리 작업이 삭제하며 `source_tmpid UNIQUE`가 중복 확정을 막음 |
+| ⑨ 정리 중 | `consumed_at`이 찍힌 `pdf_blob`이 잔존 가능 | TTL 정리 작업이 재시도 |
 | ⑩ 사후 처리 중 | 임베딩·색인 지연 | `change_log` 행이 남아 워커가 재시도. 계약 데이터 자체는 이미 확정 |
 
-**O-15 (신규, D-33)**: 별도 인스턴스일 땐 ⑧(확정)과 ⑨(정리)를 물리적으로 한 트랜잭션으로 묶을 수 없었다. 이제 같은 DB의 스키마 분리이므로 이론적으로는 묶을 수 있다 — 다만 이번 D-33 변경 범위에서는 파이프라인 단계 구조(위 §3, `mindex-임시DB-비동기파이프라인.html` §3) 자체를 재설계하지 않았다. 합칠지 여부는 팀 논의가 필요한 미결 항목으로 남긴다(트랜잭션을 합치면 이 표의 "⑧ 커밋 직후·⑨ 직전" 유실 구간 자체가 사라진다는 게 장점, 반대로 확정 트랜잭션이 더 길어지고 워커·API 프로세스 경계와 어긋난다는 게 트레이드오프).
+**O-15 (신규, D-33)**: `consumed_at` 기록은 ⑧ 확정 트랜잭션에 포함했다. ⑨의 실제 삭제는 TTL 정리 작업의 별도 책임으로 남기며, 삭제 주기와 운영 주체만 팀 논의가 필요하다.
 
-## 8. 아직 없는 것 (O-12 · O-14 · O-15, WORKLOG 2026-08-22 참고)
+## 8. 아직 없는 것 (O-12 · O-14 · TTL 정리, WORKLOG 2026-08-22 참고)
 
 - **워커(P1)**: `SKIP LOCKED` 폴링, OCR→LLM 처리 코드는 존재하지 않는다.
 - **확정 API의 병합 로직(P4)**: `tmpid`로 `staging.extract_result`를 읽어 화면의 검증 필드와 합치는 코드는 존재하지 않는다. 이 문서 §3 ⑧과 §6의 `staging_confirm_api` 롤은 그 로직이 붙을 자리를 미리 정의해 둔 것이다. 이 롤이 `public` 스키마에 필요한 권한(EXECUTE `save_rights_batch()` 등)도 아직 없다.
 - **TTL 7일 정리 배치**: 스케줄러·구현 모두 없다.
 - **`extract_result.payload` 암호화 여부(O-14)**: `pdf_blob.data`는 암호화 대상으로 명시돼 있지만 `payload`(계약서 원문 인용 포함)는 미정. 팀/보안 담당 확인 필요.
-- **⑧+⑨ 트랜잭션 통합 여부(O-15)**: 같은 DB가 되면서 이론적으로 가능해졌지만 팀 논의 없이 이번에 결정하지 않았다. §7 참고.
+- **TTL 7일 정리 배치의 주기·운영 주체**: `consumed_at` 기록은 ⑧에 포함했으며, 실제 삭제 정책만 남아 있다. §7 참고.
 - **로그인 계정 발급**: §6의 NOLOGIN 롤에 실제 로그인 계정을 물리는 작업은 ops/P1 몫이며 아직 안 됐다 — 지금은 여전히 공용 계정으로 접근 중일 것이다.

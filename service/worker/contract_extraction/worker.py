@@ -126,7 +126,12 @@ class PgJobStore:
     권한 전제: staging.extract_job 에 SELECT·UPDATE (체크리스트 6번, sql/staging_schema.sql).
     """
 
-    LEASE_SECONDS = 600  # 워커가 죽었을 때 다른 워커가 재클레임할 수 있는 시간
+    LEASE_SECONDS = int(
+        os.getenv("MINDEX_JOB_LEASE_SECONDS", "600")
+    )  # 워커가 죽었을 때 다른 워커가 재클레임할 수 있는 시간
+
+    if LEASE_SECONDS <= 0:
+        raise ValueError("MINDEX_JOB_LEASE_SECONDS는 1 이상의 정수여야 합니다.")
 
     def __init__(self, dsn: str | None = None):
         from .repository import dsn_from_env
