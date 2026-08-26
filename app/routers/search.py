@@ -30,6 +30,17 @@ e5 코사인이 좁은 구간(실측 0.68~0.86)에 눌려 있어 `1 - dist` 원�
 어휘가 지배해버린다. 후보군(이번 검색의 `contract_chunk` 전체) 안에서
 min-max로 0~1로 펴서 섞는다 — Task1의 `semantic_norm`과 같은 이유·같은 해법.
 
+## PIN 세션이 필요하다
+
+검색 결과의 snippet은 **계약서 원문 인용**이다. 같은 원문을 돌려주는 9번
+(`GET /contracts/{id}/file`)이 세션을 요구하는데 여기만 열려 있는 건 일관성이
+맞지 않았다. `require_session`을 붙인다.
+
+주의 — PIN은 "이 설치에 접근할 자격이 있나"만 확인한다. `team`은 PIN 관리 전용
+테이블이고 `team_id`를 도메인 테이블로 전파하지 않으므로(D-29/D-30, 단일사 온프렘)
+토큰 안의 팀 정보는 **무엇을 볼 수 있는지를 가르지 않는다.** 멀티테넌트가 필요해지면
+스키마에 team_id 전파와 RLS가 따로 필요하다.
+
 ## snippet은 계약당 최상단 1개만
 
 화면에는 계약당 최고 점수 snippet 1개만 싣는다(화면 담당자 전달 포맷 확정,
@@ -48,6 +59,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.deps import require_session
 from app.schemas.search import SearchRequest, SearchResponse, SearchResult, Snippet
 from app.services.embedding import embed_query
 from app.services.query_interpret import interpret
@@ -122,7 +134,11 @@ def _vec(v) -> str:
 
 
 @router.post("/search", response_model=SearchResponse)
-def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse:
+def search(
+    body: SearchRequest,
+    db: Session = Depends(get_db),
+    _team: str = Depends(require_session),
+) -> SearchResponse:
     interp = interpret(db, body.query)          # 1
     eff = _effective(interp, body.filters)      # 2
 

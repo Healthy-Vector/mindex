@@ -2,6 +2,29 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-26 — 15번 검색에 PIN 세션 요구 (D-40)
+
+검색 결과의 snippet이 계약서 원문 인용인데 15번만 세션 없이 열려 있었다. 같은 원문을
+돌려주는 9번은 세션을 요구한다 — 인증 없이 계약서 본문을 조각으로 꺼낼 수 있는
+경로였다.
+
+- `/search`에 `require_session` 추가.
+- 프론트는 영향이 거의 없다. `request()`가 토큰이 있으면 이미 `Authorization`을
+  붙이고 있어서, PIN을 안 넣은 상태로 검색하는 경로만 막힌다.
+- `tests/test_p2_api.py`에 `test_search_requires_pin_session` 추가(401 → 200).
+  이건 임베딩이 필요 없어 **DB만 있으면 CI에서 실제로 돈다** —
+  `test_search_pgvector.py`와 달리.
+
+### 확인만 하고 넘어간 것 — 팀 격리는 없다
+
+"다른 팀 파일이 검색되면?"에 대한 답: **지금 스키마에 팀 경계가 없다.** `team`은 PIN
+관리 전용이고 `contract`·`rights_grant`·`contract_chunk`·`ip` 어디에도 `team_id`가
+없다(D-29/D-30, 단일사 온프렘). `resolve_team_id()`는 `ORDER BY id LIMIT 1`이라 팀이
+여럿이면 두 번째 팀은 로그인 자체가 안 되고, 라우터는 토큰의 팀 정보를 `_team`으로
+받아 버린다. 한 설치 = 한 회사라는 전제가 유지되는 동안은 문제가 없지만, **PIN을
+추가하는 것으로는 멀티테넌트가 되지 않는다.** `app/security/rls.py`가 빈 파일로
+그 자리를 잡고 있다.
+
 ## 2026-08-26 — 검색이 대체된 구세대 조항을 잡던 것 수정 (D-39)
 
 15번 검색의 청크 조회가 `WHERE ch.contract_id = ANY(:cands)`뿐이었다.
