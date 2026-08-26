@@ -18,11 +18,7 @@ alembic==1.13.*
 pdfplumber==0.11.*
 pypdfium2==4.*
 
-# --- AI / 오케스트레이션 ---
-# 0.2/0.3 계열에 미패치 취약점 5건. 아직 코드에서 import하는 곳이 0건이라 지금이 올리기 가장 싼 시점이다.
-# P3가 파이프라인을 얹기 전에 1.x API 기준으로 시작할 것 (0.2 → 1.x는 API 변경이 크다).
-langgraph==1.2.*
-langchain-core==1.5.*
+# --- AI ---
 openai==1.*
 anthropic==0.*
 
