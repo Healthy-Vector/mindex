@@ -3,11 +3,10 @@ import { DISPLAY_STATE_LABEL } from "../labels.js";
 
 const TIER_CLASS = { 90: "mx-status-warn1", 60: "mx-status-warn2", 30: "mx-status-warn3" };
 
-// key는 API 명세서 displayState(BEFORE_TERM/IN_TERM/EXPIRING/EXPIRED)에 맞춘다.
-// before_term은 computeContractStatus가 label만 다르게(계약 전/유효기간 전) 내려줄 수 있어
-// 여기 cls는 공유하고 라벨은 status.label을 그대로 쓴다.
+// key는 API displayState를 소문자로 바꾼 값과 클라이언트 계산값을 함께 받는다.
 const STATE_META = {
   unknown: { cls: "mx-status-muted", label: "기간 정보 없음" },
+  pre_contract: { cls: "mx-status-muted", label: DISPLAY_STATE_LABEL.PRE_CONTRACT },
   before_term: { cls: "mx-status-muted" },
   in_term: { cls: "mx-status-good" },
   conflicted: { cls: "mx-status-critical", label: "충돌" },

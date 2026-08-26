@@ -81,6 +81,71 @@
   align-items: center;
 }
 
+.mx-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--mx-bg-tint);
+  color: var(--mx-muted);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: help;
+}
+.mx-tooltip::after {
+  position: absolute;
+  z-index: 20;
+  left: calc(100% + 10px);
+  top: 50%;
+  width: min(320px, calc(100vw - 72px));
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: oklch(93% 0.03 230 / 86%);
+  box-shadow: var(--mx-shadow-soft);
+  color: var(--mx-info-text);
+  content: attr(data-tooltip);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.mx-tooltip::before {
+  position: absolute;
+  z-index: 21;
+  left: calc(100% + 4px);
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background: oklch(93% 0.03 230 / 86%);
+  box-shadow: -2px 2px 4px rgb(15 23 42 / 0.06);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) rotate(45deg) translateX(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.mx-tooltip:hover::after,
+.mx-tooltip:hover::before,
+.mx-tooltip:focus-visible::after,
+.mx-tooltip:focus-visible::before {
+  opacity: 1;
+}
+.mx-tooltip:hover::after,
+.mx-tooltip:focus-visible::after {
+  transform: translateY(-50%) translateX(0);
+}
+.mx-tooltip:hover::before,
+.mx-tooltip:focus-visible::before {
+  transform: translateY(-50%) rotate(45deg) translateX(0);
+}
+
 /* 모든 페이지의 상단 제목 행: 제목(+설명) 왼쪽, 주요 액션/토글 오른쪽 — flex-start로 위쪽 정렬 */
 .mx-page-header {
   display: flex;

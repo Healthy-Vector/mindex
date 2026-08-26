@@ -152,17 +152,18 @@ export default function ContractListPage() {
               <tbody>
                 {contracts.map((c) => {
                   if (c.kind === "processing") {
+                    const processingTitle = c.title || "추출 작업 진행 중";
                     return (
                       <tr key={`processing-${c.tmpid}`}>
                         <td style={{ paddingLeft: 20 }}>
-                          <Link to={`/upload/${c.tmpid}`} className="list-row-title mx-cell-truncate" title={c.filename}>
-                            {c.filename}
+                          <Link to={`/upload/${c.tmpid}`} className="list-row-title mx-cell-truncate" title={processingTitle}>
+                            {processingTitle}
                           </Link>
                           <div className="list-row-sub">추출 작업: {c.tmpid}</div>
                         </td>
                         <td>—</td>
                         <td><span className="mx-tag mx-tag-outline">{processingLabel(c)}</span></td>
-                        <td colSpan={2} className="mx-muted">업로드 처리를 계속하려면 파일명을 선택하세요.</td>
+                        <td colSpan={2} className="mx-muted">업로드 처리를 계속하려면 진행 중인 행을 선택하세요.</td>
                       </tr>
                     );
                   }
@@ -176,7 +177,6 @@ export default function ContractListPage() {
                         <Link to={`/contracts/${c.contractId}`} className="list-row-title mx-cell-truncate" title={title}>
                           {title}
                         </Link>
-                        <div className="list-row-sub">계약 ID: {c.contractId} · {STATUS_LABEL[c.status] ?? c.status}</div>
                       </td>
                       <td className="mx-cell-truncate" title={`갑: ${grantor} · 을: ${grantee}`}>
                         {grantor} <span className="mx-muted">/</span> {grantee}
@@ -209,7 +209,7 @@ export default function ContractListPage() {
 
 function displayStatus(contract) {
   if (contract.hasConflict) return { key: "conflicted", label: "충돌" };
-  if (contract.status === "draft") return { key: "unknown", label: "미적용" };
+  if (contract.status === "draft") return { key: "pre_contract", label: "미적용" };
   const key = contract.displayState?.toLowerCase() ?? "unknown";
   const agreementDate = contract.agreementDate ?? contract.signedDate;
   if (key === "before_term" && agreementDate && contract.period?.start && contract.period?.end) {

@@ -134,9 +134,7 @@ export default function ConflictCheckPage() {
       <div className="mx-page-header">
         <div>
           <h2 className="mx-heading-lg">충돌 검사 결과</h2>
-          <div className="mx-text-sm mx-muted">
-            {candidate?.title} {candidate?.ip && `· ${candidate.ip}`}
-          </div>
+        
         </div>
       </div>
 

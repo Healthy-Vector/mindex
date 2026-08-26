@@ -21,19 +21,24 @@ const POLLING_STAGES = ["queued", "ocr", "llm"];
 
 // 실 백엔드(k8s 폴링)는 OCR·LLM 추출 둘 다 실패 지점이 될 수 있다 — 실패한 사유에 따라
 // 파이프라인의 어느 단계에서 멈췄는지도 다르다(OCR 단계 vs AI 추출 단계).
-const FAILED_STEP_INDEX = { OCR_TIMEOUT: 1, UNREADABLE_PDF: 1, LLM_TIMEOUT: 2, MAX_ATTEMPTS: 2, UPLOAD_FAILED: 0 };
+const FAILED_STEP_INDEX = {
+  OCR_TIMEOUT: 1,
+  OCR_FAILED: 1,
+  UNREADABLE_PDF: 1,
+  LLM_TIMEOUT: 2,
+  LLM_EXTRACTION_FAILED: 2,
+  MAX_ATTEMPTS: 2,
+  UPLOAD_FAILED: 0,
+};
 const ENTRY_CONTEXT = {
   new: {
     tag: "신규 등록",
-    desc: "새 계약 그룹을 생성합니다. IP는 OCR 자동매칭 또는 신규 등록으로 결정하고, 초안으로 시작합니다.",
   },
   revision: {
     tag: "버전계약 등록",
-    desc: "기존 계약 그룹·IP가 이미 확정되어 있습니다. 같은 그룹에 새 초안이 추가됩니다.",
   },
   final: {
     tag: "최종계약 등록",
-    desc: "기존 계약 그룹·IP가 이미 확정되어 있습니다. 충돌이 없으면 최종 계약(서명 완료)으로 저장되고, 충돌이 있으면 등록되지 않고 충돌 내역만 기록됩니다.",
   },
 };
 
@@ -103,6 +108,8 @@ export default function UploadPage() {
   // 우리 스스로의 setSearchParams 호출로 바뀔 때마다 다시 복원 시도하면 안 된다.
   const resumedRef = useRef(false);
   const pollAttemptRef = useRef(0);
+  // 값/근거조항이 원본 추출 결과와 달라졌는지 비교할 기준선(추출 완료 시점 스냅샷).
+  const originalRightsRef = useRef(null);
 
   useEffect(() => {
     if (validationErrors.length === 0) return undefined;
@@ -142,6 +149,9 @@ export default function UploadPage() {
     setFileMeta(job.fileMeta ?? {});
     setContractInfo(job.contractInfo ?? {});
     setRights(job.rights ?? []);
+    // 값 또는 근거조항이 원본 추출 결과와 달라졌는지 비교할 기준선 — 추출 완료
+    // 시점에 딱 한 번만 스냅샷을 뜨고 이후 편집에는 관여하지 않는다.
+    if (!originalRightsRef.current) originalRightsRef.current = job.rights ?? [];
     setIpCandidates(job.ipCandidates ?? []);
   }, []);
 
@@ -337,6 +347,7 @@ export default function UploadPage() {
     autoMatchedRef.current = false;
     guardPushedRef.current = false;
     pollAttemptRef.current = 0;
+    originalRightsRef.current = null;
   }
 
   const selectedIpId = ipMatch?.ip?.id;
@@ -351,14 +362,6 @@ export default function UploadPage() {
       <h2 className="mx-heading-lg">지능형 파싱 및 분석 파이프라인</h2>
       <div className="upload-context-banner">
         <span className="mx-tag mx-tag-accent">{ctx.tag}</span>
-        <span className="mx-text-sm">{ctx.desc}</span>
-        {(selectedContractId || selectedIpId) && (
-          <span className="mx-text-xs mx-muted">
-            {selectedContractId && `계약 #${selectedContractId}`}
-            {selectedContractId && selectedIpId && " · "}
-            {selectedIpId && `IP #${selectedIpId}`}
-          </span>
-        )}
       </div>
 
       <StepTracker
@@ -374,13 +377,6 @@ export default function UploadPage() {
         <UploadVerificationView
           mode={mode}
           entryMode={entryMode}
-          selectedContractId={selectedContractId}
-          onModeChange={(nextMode) => {
-            if (entryMode === "final") return;
-            setMode(nextMode);
-            if (nextMode === "new") setSelectedContractId(null);
-          }}
-          onContractChange={setSelectedContractId}
           stage={stage}
           fileName={fileName}
           queuePosition={queuePosition}
@@ -388,6 +384,7 @@ export default function UploadPage() {
           contractInfo={contractInfo}
           setContractInfo={setContractInfo}
           rights={rights}
+          originalRights={originalRightsRef.current}
           onUpdateRight={updateRight}
           ipMatch={ipMatch}
           setIpMatch={(nextMatch) => {

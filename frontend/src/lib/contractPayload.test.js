@@ -19,14 +19,17 @@ test("다른 IP의 Content Asset과 evidence 누락을 차단한다", () => {
   assert.ok(violations.some((message) => message.includes("판정 근거")));
 });
 
-test("verify payload를 실 API 계약으로 변환한다", () => {
+test("verify payload를 tmpId와 staging patch로 변환한다", () => {
   const payload = { tmpId: "tmp-1", mode: "final", ipId: 3, contractInfo: { grantor: "A", grantee: "B" }, fileMeta: { fileName: "a.pdf", filePath: "tmp/a.pdf", fileHash: "abc" }, rights: [{ legalRight: "TRANSMISSION", exploitationMode: "SVOD", territories: ["KR"], period: { start: "2026-01-01", end: "2026-12-31" }, exclusivity: "exclusive", evidence }] };
   const verifyPayload = buildVerifyPayload(payload);
-  assert.equal(verifyPayload.contractInfo, undefined);
-  assert.equal(verifyPayload.grantor, "A");
+  assert.equal(verifyPayload.tmpId, "tmp-1");
+  assert.equal(verifyPayload.mode, undefined);
+  assert.equal(verifyPayload.filePath, undefined);
+  assert.equal(verifyPayload.fileHash, undefined);
   assert.equal(verifyPayload.documentKind, "final");
-  assert.deepEqual(verifyPayload.rights[0].evidence.legal_right, quote);
-  assert.equal(verifyPayload.rights[0].legalRight, "TRANSMISSION");
+  assert.equal(verifyPayload.patch.contractInfo.grantor, "A");
+  assert.deepEqual(verifyPayload.patch.rights[0].evidence.legal_right, quote);
+  assert.equal(verifyPayload.patch.rights[0].legalRight, "TRANSMISSION");
   assert.ok(payload.contractInfo);
-  assert.equal(buildConfirmPayload(payload).sourceTmpid, "tmp-1");
+  assert.equal(buildConfirmPayload(payload).tmpId, "tmp-1");
 });
