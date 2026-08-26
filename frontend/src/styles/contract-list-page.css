@@ -55,6 +55,15 @@
   color: var(--mx-text);
 }
 
+.list-processing-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mx-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .list-filter-summary {
   font-size: 12px;
   color: var(--mx-muted);

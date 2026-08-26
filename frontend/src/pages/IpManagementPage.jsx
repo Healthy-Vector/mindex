@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
 import { isIpActive } from "../lib/ip.js";
 import { LANG_LABEL } from "../labels.js";
@@ -10,6 +10,14 @@ import Pagination from "../components/Pagination.jsx";
 import "../styles/ip-management-page.css";
 
 const PAGE_SIZE = 10;
+const CREATED_AT_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 // IP 마스터 데이터 조회. 등록/수정은 목록 위에 뜨는 팝업에서 한다 — 짧은 폼이라 목록의
 // 스크롤·검색 상태를 유지하는 쪽이 전용 페이지 이동보다 낫다고 판단.
@@ -22,6 +30,9 @@ export default function IpManagementPage() {
   const [query, setQuery] = useState("");
   const [showInactive, setShowInactive] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
+  const [selectedIp, setSelectedIp] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(null);
   const [formModal, setFormModal] = useState(null); // null | { mode: "create" } | { mode: "edit", ip }
   const [duplicatePrompt, setDuplicatePrompt] = useState(null); // { title, ipId } | null
   const [page, setPage] = useState(1);
@@ -52,9 +63,38 @@ export default function IpManagementPage() {
     };
   }, [query, showInactive, page, refreshKey]);
 
+  // 목록 행에는 표시용 데이터가 충분히 들어오더라도, 상세 패널은 단건 API를 기준으로
+  // 표시한다. 수정 직후 refreshKey가 바뀌면 선택한 IP 상세도 다시 조회한다.
+  useEffect(() => {
+    if (selectedId == null) {
+      setSelectedIp(null);
+      setDetailError(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setDetailLoading(true);
+    setDetailError(null);
+    api
+      .getIp(selectedId)
+      .then((ip) => {
+        if (!cancelled) setSelectedIp(ip);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setSelectedIp(null);
+          setDetailError(err.message || "IP 상세 정보를 불러오지 못했습니다.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, refreshKey]);
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const pageStart = (page - 1) * PAGE_SIZE;
-  const selected = selectedId != null ? ips.find((ip) => String(ip.id) === String(selectedId)) : null;
 
   function handleSaveForm(form) {
     const save = formModal.mode === "edit" ? api.updateIp(formModal.ip.id, form) : api.createIp(form);
@@ -186,8 +226,12 @@ export default function IpManagementPage() {
         </div>
 
         <div className="ipmgmt-panel">
-          {selected ? (
-            <IpDetail ip={selected} onEdit={() => setFormModal({ mode: "edit", ip: selected })} />
+          {detailLoading ? (
+            <div className="mx-card mx-card-pad"><p className="mx-empty-state">IP 상세 정보를 불러오는 중…</p></div>
+          ) : detailError ? (
+            <div className="mx-card mx-card-pad"><div className="mx-alert-banner">{detailError}</div></div>
+          ) : selectedIp ? (
+            <IpDetail ip={selectedIp} onEdit={() => setFormModal({ mode: "edit", ip: selectedIp })} />
           ) : (
             <div className="mx-card mx-card-pad">
               <p className="mx-empty-state">목록에서 IP를 선택하거나 새로 등록하세요.</p>
@@ -197,8 +241,8 @@ export default function IpManagementPage() {
       </div>
 
       {formModal && (
-        <div className="detail-pin-wrap detail-extend-overlay" onClick={() => setFormModal(null)}>
-          <div className="ipform-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ipform-overlay">
+          <div className="ipform-modal">
             <IpForm
               mode={formModal.mode === "edit" ? "edit" : "create"}
               heading={formModal.mode === "edit" ? "IP 정보 수정" : "새 IP 등록"}
@@ -239,8 +283,8 @@ function IpDetail({ ip, onEdit }) {
         <b>{ipKindLabel[ip.kind] ?? ip.kind ?? "—"}</b>
       </div>
       <div className="ipmgmt-detail-row">
-        <span className="mx-muted">최근 수정</span>
-        <b>{ip.updatedAt}</b>
+        <span className="mx-muted">등록일</span>
+        <b>{formatCreatedAt(ip.createdAt)}</b>
       </div>
 
       <div className="ipmgmt-alias-groups">
@@ -268,4 +312,10 @@ function IpDetail({ ip, onEdit }) {
       </div>
     </div>
   );
+}
+
+function formatCreatedAt(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : CREATED_AT_FORMATTER.format(date);
 }

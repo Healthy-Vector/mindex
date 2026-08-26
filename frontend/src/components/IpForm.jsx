@@ -1,6 +1,6 @@
 import { useState } from "react";
 import CustomSelect from "./CustomSelect.jsx";
-import { LANG_OPTIONS } from "../labels.js";
+import { ASSET_SCOPE_OPTIONS, LANG_OPTIONS } from "../labels.js";
 import { useRefs } from "../lib/useRefs.js";
 import "../styles/ip-form.css";
 
@@ -14,28 +14,28 @@ function emptyAliasRow(lang) {
 }
 
 export function emptyIpForm(prefillTitle = "") {
-  return { title: prefillTitle, kind: "", aliases: REQUIRED_LANGS.map(emptyAliasRow), assets: [] };
+  return { title: prefillTitle, kind: "", aliases: REQUIRED_LANGS.map(emptyAliasRow), assets: [emptyAssetRow()] };
 }
 
 export function ipFormFromIp(ip) {
-  return { title: ip.title, kind: ip.kind, aliases: ip.aliases.map((a) => ({ ...a })), activity: ip.activity };
+  return {
+    title: ip.title,
+    kind: ip.kind,
+    aliases: ip.aliases.map((a) => ({ ...a })),
+    assets: (ip.assets ?? []).map((asset) => ({ ...asset })),
+    activity: ip.activity,
+  };
 }
 
 function emptyAssetRow() {
-  return { scopeType: "", title: "" };
+  return { scopeType: "SERIES_ALL", title: "" };
 }
 
-// mode="create"일 때만 assets 입력을 보여준다 — API 명세서 #13(등록)이 배열 통째로
-// 받는 유일한 엔드포인트이기 때문이다. #14(PATCH /ips/{id})엔 여전히 이 필드가 없고,
-// 이 폼이 그대로 수정 모드에서 보이면 빈 배열로 저장해 기존 assets를 지우는 사고가 난다.
-//
-// 수정 경로는 #18(POST/PATCH/DELETE /ips/{id}/assets)로 열려 있다(client.js의
-// createIpAsset/updateIpAsset/deleteIpAsset). 다만 #18은 배열 교체가 아니라 행 단위라
-// "저장" 한 번에 폼 전체를 PATCH하는 지금의 흐름과 맞지 않는다 — 추가/수정/삭제를 행마다
-// 별도 호출로 쪼개고, 권리가 걸린 행(409 ASSET_IN_USE)과 마지막 한 행을 읽기 전용으로
-// 표시하는 폼 재설계가 필요하다. 그 작업 전까지는 편집 경로에서 계속 숨겨둔다.
+// 등록 API는 assets를 받지만 수정 API는 아직 받지 않는다. 수정 모달에서는 상세 응답의
+// 기존 Asset을 숨기지 않고 읽기 전용으로 보여주며, API 지원 전까지 저장 대상에서는 제외한다.
 export default function IpForm({ heading, initial, onSave, onCancel, mode = "create" }) {
-  const { ipKindOptions, scopeTypeOptions } = useRefs();
+  const refs = useRefs();
+  const scopeTypeOptions = refs.scopeTypeOptions.length ? refs.scopeTypeOptions : ASSET_SCOPE_OPTIONS;
   const [title, setTitle] = useState(initial.title);
   const [kind, setKind] = useState(initial.kind);
   const [aliases, setAliases] = useState(initial.aliases);
@@ -44,7 +44,10 @@ export default function IpForm({ heading, initial, onSave, onCancel, mode = "cre
   // 즉시 반영 토글 대신 "저장" 버튼을 누를 때 나머지 수정 내용과 한 번에 PATCH된다.
   const [activity, setActivity] = useState(initial.activity ?? "active");
 
-  const canSave = Boolean(title.trim() && kind);
+  const invalidAliasIndexes = aliases
+    .map((alias, index) => (alias.text.trim() && !alias.aliasType.trim() ? index : null))
+    .filter((index) => index !== null);
+  const canSave = Boolean(title.trim() && kind.trim() && invalidAliasIndexes.length === 0);
 
   function updateAlias(idx, patch) {
     setAliases((prev) => prev.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
@@ -81,7 +84,13 @@ export default function IpForm({ heading, initial, onSave, onCancel, mode = "cre
           <label className="ipform-field-label">
             유형<span className="ipform-required-mark">*</span>
           </label>
-          <CustomSelect ariaLabel="유형" value={kind} onChange={setKind} options={ipKindOptions} />
+          <input
+            className="mx-input"
+            value={kind}
+            onChange={(event) => setKind(event.target.value)}
+            placeholder="예: TV/OTT 시리즈, 영화, 애니메이션"
+            aria-label="유형"
+          />
         </div>
         {mode === "edit" && (
           <div className="ipform-field">
@@ -118,11 +127,12 @@ export default function IpForm({ heading, initial, onSave, onCancel, mode = "cre
               </div>
               <div className="ipform-alias-type">
                 <input
-                  className="mx-input ipform-alias-type-input"
+                  className={`mx-input ipform-alias-type-input${invalidAliasIndexes.includes(i) ? " ipform-input--error" : ""}`}
                   value={a.aliasType}
                   onChange={(e) => updateAlias(i, { aliasType: e.target.value })}
                   placeholder="정식명/약칭"
                   aria-label="별칭 유형"
+                  aria-invalid={invalidAliasIndexes.includes(i)}
                 />
               </div>
               <input
@@ -138,40 +148,53 @@ export default function IpForm({ heading, initial, onSave, onCancel, mode = "cre
             </div>
           ))}
         </div>
+        {invalidAliasIndexes.length > 0 && (
+          <div className="ipform-validation-message">별칭 텍스트를 입력한 행은 별칭 유형도 필수로 입력해야 합니다.</div>
+        )}
       </section>
 
-      {mode === "create" && (
-        <section className="ipform-section ipform-section--divider">
-          <div className="mx-flex-between">
-            <h6 className="ipform-section-title">권리 대상 (선택)</h6>
+      <section className="ipform-section ipform-section--divider">
+        <div className="mx-flex-between">
+          <h6 className="ipform-section-title">권리 대상 {mode === "create" && "(선택)"}</h6>
+          {mode === "create" && (
             <button type="button" className="mx-link-btn ipform-add-alias" onClick={addAsset}>
               + 권리 대상 추가
             </button>
-          </div>
+          )}
+        </div>
+        {mode === "create" ? (
           <p className="mx-text-xs mx-muted" style={{ marginTop: 0, marginBottom: 10 }}>
             생략하면 "시리즈 전체" 하나만 자동 생성됩니다. 시즌·에피소드 단위로 미리 나눠두려면 여기서 추가하세요.
           </p>
-          <div className="ipform-alias-list">
-            {assets.map((a, i) => (
-              <div key={i} className="ipform-alias-row">
-                <div className="ipform-alias-lang">
-                  <CustomSelect ariaLabel="범위" value={a.scopeType} onChange={(v) => updateAsset(i, { scopeType: v })} options={scopeTypeOptions} />
-                </div>
-                <input
-                  className="mx-input ipform-alias-text-input"
-                  value={a.title}
-                  onChange={(e) => updateAsset(i, { title: e.target.value })}
-                  placeholder="예: 시즌 1 (생략 시 IP 타이틀 사용)"
-                  aria-label="권리 대상 타이틀"
-                />
+        ) : (
+          <div className="ipform-asset-api-notice">
+            기존 Asset 정보입니다. 현재 IP 수정 API가 Asset 변경을 지원하지 않아 이 화면에서는 조회만 가능합니다.
+          </div>
+        )}
+        <div className="ipform-alias-list">
+          {assets.length === 0 && mode === "edit" && <p className="mx-empty-state">등록된 권리 대상이 없습니다.</p>}
+          {assets.map((a, i) => (
+            <div key={a.contentAssetId ?? i} className="ipform-alias-row">
+              <div className="ipform-asset-scope">
+                <CustomSelect ariaLabel="범위" value={a.scopeType} onChange={(v) => updateAsset(i, { scopeType: v })} options={scopeTypeOptions} disabled={mode === "edit"} />
+              </div>
+              <input
+                className="mx-input ipform-alias-text-input"
+                value={a.title ?? ""}
+                onChange={(e) => updateAsset(i, { title: e.target.value })}
+                placeholder="예: 시즌 1 (생략 시 IP 타이틀 사용)"
+                aria-label="권리 대상 타이틀"
+                disabled={mode === "edit"}
+              />
+              {mode === "create" && (
                 <button type="button" className="ipform-remove-alias" onClick={() => removeAsset(i)} aria-label="권리 대상 삭제">
                   ×
                 </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="ipform-actions">
         <button type="button" className="mx-btn mx-btn-secondary" onClick={onCancel}>
@@ -182,13 +205,28 @@ export default function IpForm({ heading, initial, onSave, onCancel, mode = "cre
           className="mx-btn mx-btn-primary"
           disabled={!canSave}
           onClick={() =>
-            onSave({
-              title: title.trim(),
+            {
+              const normalizedTitle = title.trim();
+              const selectedAssets = assets
+                .filter((a) => a.scopeType)
+                .map((asset) => ({
+                  ...asset,
+                  title: asset.title?.trim() || normalizedTitle,
+                }));
+              onSave({
+              title: normalizedTitle,
               kind: kind.trim(),
-              aliases: aliases.filter((a) => a.text.trim()),
-              ...(mode === "create" ? { assets: assets.filter((a) => a.scopeType) } : {}),
+              aliases: aliases
+                .filter((a) => a.text.trim())
+                .map((alias) => ({
+                  ...alias,
+                  text: alias.text.trim(),
+                  aliasType: alias.aliasType.trim(),
+                })),
+              ...(mode === "create" && selectedAssets.length ? { assets: selectedAssets } : {}),
               ...(mode === "edit" ? { activity } : {}),
-            })
+              });
+            }
           }
         >
           저장

@@ -243,3 +243,31 @@
   color: var(--mx-accent-hover);
   font-weight: 600;
 }
+
+/* 확인창/모달 뼈대 — 페이지 전용 CSS가 아니라 여기 둔다. 어느 페이지에서 재사용해도
+   position:fixed 전체화면 오버레이 + 가운데 정렬이 항상 적용되도록 하기 위해서다.
+   .detail-pin-wrap을 단독으로 쓰면(.detail-extend-overlay 없이) 오버레이가 아니라
+   페이지 본문 안에서 가운데 정렬된 블록이 된다(ContractDetailPage의 PIN 진입 화면). */
+.detail-pin-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+.detail-extend-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--mx-dark-overlay);
+  padding: 0;
+  align-items: center;
+}
+.detail-pin-modal {
+  width: 100%;
+  max-width: 380px;
+}
+.detail-pin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
