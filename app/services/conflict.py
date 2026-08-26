@@ -101,17 +101,111 @@ def _reject_internal_overlap(db: Session, rows: list[dict[str, Any]]) -> None:
             )
 
 
-def apply_staging_edit(db: Session, req) -> list:
-    """⑥ — 화면이 보낸 patch를 staging에 반영하고 판정에 쓸 권리 목록을 돌려준다 (D-34).
+def apply_staging_edit(db: Session, req) -> tuple[list, dict[str, Any]]:
+    """⑥ — 화면이 보낸 수정분을 staging에 반영하고 ``(권리 목록, DTO)``를 돌려준다 (D-34).
 
     **여기서 커밋한다.** 뒤따르는 판정은 성공이든 충돌이든 롤백되지만 사용자의
     수정본은 남아야 한다 — 확정(⑧)이 같은 값을 읽어 저장하기 때문이다.
+
+    검증과 확정이 **같은 경로를 쓴다.** 예전에는 검증만 저장값으로 판정하고 확정은
+    요청 body의 `rights`를 우선해서, 화면이 둘 다 보내면 검사한 값과 저장하는 값이
+    갈라질 수 있었다.
     """
     row = staging_edit.load_done_extraction(db, req.source_tmpid)
-    payload, dto = staging_edit.apply_patch(db, row["payload"], req.patch)
+
+    patch = dict(req.patch) if req.patch else {}
+    if req.rights is not None:
+        # 화면이 rights를 통째로 보내는 건 patch의 배열 전체 교체와 같은 뜻이다.
+        # patch에 접어 넣어야 staging에도 남고 확정이 같은 값을 읽는다.
+        patch["rights"] = [r.model_dump(by_alias=True, mode="json") for r in req.rights]
+
+    payload, dto = staging_edit.apply_patch(db, row["payload"], patch or None)
     staging_edit.persist_edited(db, req.source_tmpid, payload)
     db.commit()
-    return staging_edit.rights_from_dto(dto)
+    return staging_edit.rights_from_dto(dto), dto
+
+
+def _staging_context(db: Session, source_tmpid) -> dict[str, Any]:
+    """업로드 시점에 `extract_job`에 저장해 둔 맥락 (D-37)."""
+    row = db.execute(
+        text(
+            "SELECT mode, contract_id, ip_id FROM staging.extract_job WHERE tmpid=:t"
+        ),
+        {"t": str(source_tmpid)},
+    ).mappings().first()
+    return dict(row) if row else {}
+
+
+def _resolve_context(db: Session, req, *, default_kind: str) -> dict[str, Any]:
+    """`contractId`·`ipId`·`documentKind`를 정한다 — 요청이 우선, 없으면 업로드 맥락.
+
+    화면이 아무 상태도 안 들고 있어도(목록의 "처리 중" 클릭, 브라우저 재접속)
+    `tmpId` 하나로 동작하게 하는 게 목적이다(D-37).
+    """
+    job = _staging_context(db, req.source_tmpid) if req.source_tmpid is not None else {}
+    return {
+        "contract_id": req.contract_id if req.contract_id is not None else job.get("contract_id"),
+        "ip_id": req.ip_id if req.ip_id is not None else job.get("ip_id"),
+        "document_kind": req.document_kind or job.get("mode") or default_kind,
+    }
+
+
+def _resolve_parties(req, dto: Optional[dict[str, Any]]) -> tuple[str, str]:
+    """계약 당사자를 정한다 — 요청이 우선, 없으면 추출 결과에서 가져온다 (D-36).
+
+    `parties[]`에 GRANTOR·GRANTEE가 이미 파싱돼 있으므로 화면이 다시 보낼 필요가
+    없다. 화면이 고쳤다면 patch로 `contractInfo.grantor`/`grantee`에 반영돼 여기로
+    들어온다. `contract.grantor`/`grantee`는 NOT NULL이라 끝내 못 정하면 400이다.
+    """
+    info = (dto or {}).get("contractInfo")
+    info = info if isinstance(info, dict) else {}
+    grantor = req.grantor or info.get("grantor")
+    grantee = req.grantee or info.get("grantee") or info.get("counterparty")
+
+    missing = [n for n, v in (("grantor", grantor), ("grantee", grantee)) if not v]
+    if missing:
+        raise ValidationFailed(
+            "계약 당사자를 정할 수 없습니다. 추출 결과에 없으면 직접 보내야 합니다",
+            details={"missing": missing},
+        )
+    return grantor, grantee
+
+
+def _persist_contract_meta(db: Session, contract_id: int, dto: Optional[dict[str, Any]]) -> None:
+    """화면이 고친 계약 메타를 `public.contract`에 반영한다 (D-36).
+
+    `save_rights_batch()`는 P2 소유 DB 함수라 시그니처를 건드리지 않는다. 여기서
+    쓰는 네 컬럼은 이미 존재하므로 평범한 UPDATE로 충분하다 — 판정과 무관한
+    값이라 판정 트랜잭션 안에서 나중에 써도 의미가 같다.
+
+    NULL은 "지우기"가 아니라 "기존 값 유지"다(`COALESCE`) — 화면이 일부만 고쳤을 때
+    나머지를 지우면 안 된다.
+
+    """
+    info = (dto or {}).get("contractInfo")
+    info = info if isinstance(info, dict) else {}
+    params = {
+        "title": info.get("title"),
+        "signed_date": info.get("signedDate"),
+        "lang": info.get("lang"),
+        "amount": info.get("amount"),
+        "currency": info.get("currency"),
+    }
+    if not any(v is not None for v in params.values()):
+        return
+    db.execute(
+        text(
+            "UPDATE contract SET "
+            "  title       = COALESCE(:title, title), "
+            "  signed_date = COALESCE(CAST(:signed_date AS date), signed_date), "
+            "  lang        = COALESCE(:lang, lang), "
+            "  amount      = COALESCE(CAST(:amount AS numeric), amount), "
+            "  currency    = COALESCE(:currency, currency), "
+            "  updated_at  = now() "
+            "WHERE id = :c"
+        ),
+        {**params, "c": contract_id},
+    )
 
 
 def _staging_file_fields(db: Session, source_tmpid) -> tuple[str, str, bytes]:
@@ -135,11 +229,13 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
     반영·커밋한 뒤 **저장된 값으로** 판정한다 — 판정만 롤백되고 수정본은 남는다.
     """
     if req.source_tmpid is not None:
-        rights = apply_staging_edit(db, req)
+        rights, dto = apply_staging_edit(db, req)
     else:
-        rights = req.rights
+        rights, dto = req.rights, None
+    grantor, grantee = _resolve_parties(req, dto)
+    ctx = _resolve_context(db, req, default_kind="draft")
     try:
-        _validate_request_refs(db, req, rights)
+        _validate_request_refs(db, req, rights, ctx)
         rights_json = build_rights_json(db, rights)
         row = db.execute(
             text(
@@ -149,10 +245,10 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
                 "  CAST(:rights AS jsonb), :mime_type, :raw_text, CAST(:document_kind AS contract_document_kind))"
             ),
             {
-                "contract_id": req.contract_id,
-                "grantor": req.grantor,
-                "grantee": req.grantee,
-                "ip_id": req.ip_id,
+                "contract_id": ctx["contract_id"],
+                "grantor": grantor,
+                "grantee": grantee,
+                "ip_id": ctx["ip_id"],
                 # 판정은 통째로 롤백되므로 파일 메타는 NOT NULL만 채우면 된다.
                 # 실제 값은 확정(⑧)에서 서버가 staging 원본으로 채운다(D-34).
                 "file_name": req.file_name or "contract.pdf",
@@ -161,7 +257,7 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
                 "rights": rights_json,
                 "mime_type": req.mime_type or "application/pdf",
                 "raw_text": req.raw_text,
-                "document_kind": req.document_kind or "draft",
+                "document_kind": ctx["document_kind"],
             },
         ).mappings().first()
     except DBAPIError as ex:
@@ -187,17 +283,19 @@ def save_batch(db: Session, req) -> dict[str, Any]:
     저장 배치를 만든다. 원본 PDF도 여기서 서버 저장소로 옮기고 경로를 기록한다.
     """
     pdf_data: Optional[bytes] = None
+    dto: Optional[dict[str, Any]] = None
     if req.source_tmpid is not None:
-        staged = staging_edit.load_done_extraction(db, req.source_tmpid)
-        dto = staging_edit.current_dto(db, staged["payload"])
-        rights = req.rights or staging_edit.rights_from_dto(dto)
+        # 검증과 동일한 경로. 확정만 호출해도 수정분이 staging에 반영된 뒤 저장된다.
+        rights, dto = apply_staging_edit(db, req)
         file_name, file_hash, pdf_data = _staging_file_fields(db, req.source_tmpid)
     else:
         rights = req.rights
         file_name, file_hash = req.file_name, req.file_hash
+    grantor, grantee = _resolve_parties(req, dto)
+    ctx = _resolve_context(db, req, default_kind="final")
 
     try:
-        _validate_request_refs(db, req, rights, lock_contract=True)
+        _validate_request_refs(db, req, rights, ctx, lock_contract=True)
         _validate_source_tmpid(db, req.source_tmpid)
         rights_json = build_rights_json(db, rights)
         chunks_json = (
@@ -229,10 +327,10 @@ def save_batch(db: Session, req) -> dict[str, Any]:
                 "  CAST(:document_kind AS contract_document_kind), CAST(:source_tmpid AS uuid))"
             ),
             {
-                "contract_id": req.contract_id,
-                "grantor": req.grantor,
-                "grantee": req.grantee,
-                "ip_id": req.ip_id,
+                "contract_id": ctx["contract_id"],
+                "grantor": grantor,
+                "grantee": grantee,
+                "ip_id": ctx["ip_id"],
                 "file_name": file_name,
                 # staging 경로에서는 세대 id가 정해진 뒤에 실제 경로로 UPDATE한다.
                 "file_path": req.file_path if pdf_data is None else "pending",
@@ -241,13 +339,14 @@ def save_batch(db: Session, req) -> dict[str, Any]:
                 "mime_type": req.mime_type or "application/pdf",
                 "raw_text": req.raw_text,
                 "chunks": chunks_json,
-                "document_kind": req.document_kind or "final",
+                "document_kind": ctx["document_kind"],
                 "source_tmpid": str(req.source_tmpid) if req.source_tmpid else None,
             },
         ).mappings().first()
         # /contracts is the terminal step for an extraction result.  Both an
         # applied batch and a conflicted history are persisted by the DB
         # function, so either outcome consumes the staging job.
+        _persist_contract_meta(db, row["out_contract_id"], dto)
         if req.source_tmpid is not None:
             # D-34 — 원본 PDF를 서버 저장소로 옮기고 경로를 세대 행에 기록한다.
             # 세대 id는 지금 막 정해졌으므로 INSERT 시점에는 알 수 없었다.
@@ -296,28 +395,30 @@ def terminate_grant(db: Session, grant_id: int, reason: str, note: Optional[str]
         raise ValidationFailed(_clean_db_error(ex)) from ex
 
 
-def _validate_request_refs(db: Session, req, rights: list, *, lock_contract: bool = False) -> None:
+def _validate_request_refs(
+    db: Session, req, rights: list, ctx: dict[str, Any], *, lock_contract: bool = False
+) -> None:
     """P2 함수가 의미상 보장하지 않는 contract/IP/asset 소속을 API 경계에서 확인한다.
 
     `rights`는 요청 body가 아니라 **판정에 실제로 쓸 목록**을 받는다 — staging
     경로에서는 저장된 수정본에서 나오기 때문이다(D-34).
     """
-    if req.contract_id is not None:
+    if ctx["contract_id"] is not None:
         suffix = " FOR UPDATE" if lock_contract else ""
         found = db.execute(
             text("SELECT id FROM contract WHERE id=:c" + suffix),
-            {"c": req.contract_id},
+            {"c": ctx["contract_id"]},
         ).scalar()
         if found is None:
             raise NotFound("계약을 찾을 수 없습니다")
 
     asset_ids = {r.content_asset_id for r in rights if r.content_asset_id is not None}
-    if req.ip_id is None:
+    if ctx["ip_id"] is None:
         if asset_ids:
             raise ValidationFailed("ipId가 없으면 contentAssetId를 지정할 수 없습니다")
         return
 
-    if db.execute(text("SELECT id FROM ip WHERE id=:i"), {"i": req.ip_id}).scalar() is None:
+    if db.execute(text("SELECT id FROM ip WHERE id=:i"), {"i": ctx["ip_id"]}).scalar() is None:
         raise NotFound("IP를 찾을 수 없습니다")
     if not asset_ids:
         return
@@ -329,10 +430,10 @@ def _validate_request_refs(db: Session, req, rights: list, *, lock_contract: boo
     for asset_id in asset_ids:
         if asset_id not in by_id:
             raise NotFound(f"contentAssetId {asset_id}를 찾을 수 없습니다")
-        if by_id[asset_id] != req.ip_id:
+        if by_id[asset_id] != ctx["ip_id"]:
             raise ValidationFailed(
                 "contentAssetId가 요청한 ipId에 속하지 않습니다",
-                details={"contentAssetId": asset_id, "ipId": req.ip_id},
+                details={"contentAssetId": asset_id, "ipId": ctx["ip_id"]},
             )
 
 

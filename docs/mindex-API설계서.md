@@ -144,17 +144,27 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
 |필드|타입|필수|설명|
 |---|---|---|---|
 |`file`|binary|O|PDF. 최대 100MB. 스캔본 권장 상한은 20MB|
-|`mode`|enum|O|`new` / `revision` / `final`|
-|`contractId`|int|△|`revision`·`final` 일 때 필수. 어느 계약의 새 버전인지|
-|`ipId`|int|△|`revision`·`final` 일 때 필수|
+|`mode`|enum|O|`draft` / `final`. 문서 종류만 나타냅니다|
+|`contractId`|int·null|X|기존 계약의 새 버전이면 그 id. 신규 계약이면 생략|
+|`ipId`|int·null|X|아는 경우에만. 신규 작품이면 생략(추출 후 후보에서 고릅니다)|
 
-`mode` 는 화면 진입 컨텍스트를 그대로 받습니다.
+**세 값은 `staging.extract_job`에 저장됩니다(D-37).** 화면 상태 없이 `tmpId`만으로
+들어와도(목록의 "처리 중" 항목 클릭, 브라우저 재접속) 맥락이 복원됩니다. 5·6번에서
+`contractId`·`ipId`·`documentKind`를 생략하면 여기 저장된 값이 쓰입니다.
 
-|값|의미|후속 처리|
-|---|---|---|
-|`new`|신규 계약|`contract` 를 새로 만들고 `status='draft'`|
-|`revision`|기존 계약의 새 초안|같은 `contract` 에 `contract_history` 추가, `version = v(n+1)`|
-|`final`|서명된 최종본|충돌이 없으면 `contract.status='signed'`, `version='final'`|
+`mode`는 **문서가 초안인지 최종본인지**만 나타냅니다. "신규냐 개정이냐"는
+`contractId`의 유무가 말해주므로 `mode`에 섞지 않습니다.
+
+|`mode`|`contractId`|의미|후속 처리|
+|---|---|---|---|
+|`draft`|없음|신규 계약의 초안|`contract` 를 새로 만들고 `status='draft'`|
+|`draft`|있음|기존 계약의 새 초안|같은 `contract` 에 `contract_history` 추가, `version = v(n+1)`|
+|`final`|없음|**신규 계약의 서명본**|`contract` 를 새로 만들고, 충돌이 없으면 `status='signed'`|
+|`final`|있음|기존 계약의 서명본|충돌이 없으면 `contract.status='signed'`|
+
+마지막에서 두 번째 줄이 D-37로 새로 가능해진 경로입니다. 예전 3값 체계
+(`new`/`revision`/`final`)에서는 `final`이 기존 계약을 전제해서, 이미 서명된
+계약서를 처음 등록할 때도 초안으로 한 번 올린 뒤 다시 올려야 했습니다.
 
 ### response
 
@@ -207,7 +217,14 @@ OCR·LLM 추출은 건당 50~60초가 걸리므로 이 API는 기다리지 않�
 |`stage`|enum·null|`RUNNING` 일 때만. `OCR` / `LLM`|
 |`queuePosition`|int·null|`QUEUED` 일 때 앞에 몇 건 있는지|
 |`reason`|string·null|`FAILED` 일 때 사유 코드|
+|`mode`|enum·null|업로드 시 받은 `draft` / `final` (D-37)|
+|`contractId`|int·null|업로드 시 받은 값. 없으면 신규 계약|
+|`ipId`|int·null|업로드 시 받은 값. 없으면 추출 후 후보에서 고름|
 |`result`|object·null|`DONE` 일 때만 채워짐|
+
+`mode`·`contractId`·`ipId`는 **업로드 시점에 저장해 둔 맥락**입니다(D-37). 화면이
+아무 상태도 안 들고 있어도(목록의 "처리 중" 항목에서 진입, 브라우저 재접속) 이
+값으로 이어서 진행할 수 있습니다. 5·6번에 다시 보내지 않아도 서버가 같은 값을 씁니다.
 
 **화면 상태 매핑**
 
@@ -375,7 +392,7 @@ GET /api/ips/match?q=겨울왕국%20시즌2&limit=10&includeInactive=false
 
 | 경로 | 보내는 것 | 서버가 하는 일 |
 |---|---|---|
-| **staging 경로** (업로드에서 이어지는 정상 흐름) | `tmpId` + `patch` + 화면이 확정하는 값(`grantor`/`grantee`/`ipId`/`contractId`) | 사용자가 고친 값을 `staging.extract_result.payload.edited`에 **먼저 반영·커밋**한 뒤, **저장된 값으로** 판정합니다. `rights`·`fileName`·`filePath`·`fileHash`는 보내지 않습니다 |
+| **staging 경로** (업로드에서 이어지는 정상 흐름) | `tmpId` + `patch` + 화면이 확정하는 값(`ipId`/`contractId`) | 사용자가 고친 값을 `staging.extract_result.payload.edited`에 **먼저 반영·커밋**한 뒤, **저장된 값으로** 판정합니다. `rights`·`grantor`·`grantee`·`fileName`·`filePath`·`fileHash`는 서버가 채우므로 보내지 않습니다 |
 | **직접 경로** (수기 등록·테스트) | 종전대로 전체 body | 요청 값 그대로 판정합니다 |
 
 `patch`는 3번 응답의 `result`와 같은 shape에 대한 **JSON Merge Patch(RFC 7386)** 입니다. 사용자가 고친 필드만 보내면 됩니다.
@@ -383,6 +400,8 @@ GET /api/ips/match?q=겨울왕국%20시즌2&limit=10&includeInactive=false
 - `null`을 보내면 그 키를 지웁니다.
 - **배열은 원소 단위로 병합되지 않고 통째로 교체됩니다.** `rights`를 고칠 때는 전체 목록을 보내세요.
 - 재검증하면 이전 수정본 위에 누적됩니다. `GET /extract/{tmpid}`도 이후로는 수정본을 돌려줍니다.
+- `rights`를 top-level로 보내도 됩니다 — `patch`의 배열 전체 교체와 같게 처리되어 staging에 반영됩니다. 그래야 확정이 검증과 같은 값을 저장합니다.
+- `contractInfo`의 `title`·`signedDate`·`amount`·`currency`·`lang`·`grantor`·`grantee`도 patch로 고칠 수 있고, 확정 시 `public.contract` 행에 저장됩니다(D-36).
 
 판정 결과는 롤백되지만 **수정본은 남습니다.** 그래서 확정(6번)에서 같은 값을 다시 보낼 필요가 없습니다.
 
@@ -398,10 +417,10 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 |필드|타입|필수|설명|
 |---|---|---|---|
-|`contractId`|int·null|X|개정판이면 기존 계약 id|
-|`grantor`|string|O|권리를 주는 쪽|
-|`grantee`|string|O|권리를 받는 쪽|
-|`ipId`|int·null|X|확정된 IP. 신규 작품이면 null 가능|
+|`contractId`|int·null|X|개정판이면 기존 계약 id. **staging 경로에서는 생략 가능** — 업로드 시 받은 값이 쓰입니다(D-37)|
+|`grantor`|string·null|△|권리를 주는 쪽. **staging 경로에서는 생략 가능** — 추출 결과의 `parties[]`에서 서버가 뽑습니다(D-36). 보내면 그 값이 우선|
+|`grantee`|string·null|△|권리를 받는 쪽. 위와 동일|
+|`ipId`|int·null|X|확정된 IP. 신규 작품이면 null 가능. **staging 경로에서는 생략 시 업로드 시 받은 값**|
 |`tmpId`|uuid·null|X|추출 작업 id. 있으면 staging 경로|
 |`patch`|object·null|X|화면 DTO 부분수정(RFC 7386). `tmpId`와 함께만 씁니다|
 |`fileName`|string·null|△|직접 경로에서만 필수|
@@ -409,7 +428,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`fileHash`|string·null|△|직접 경로에서만 필수. staging 경로에서는 서버가 원본에서 계산합니다|
 |`mimeType`|string·null|X||
 |`rawText`|string·null|X|추출 원문|
-|`documentKind`|enum|X|`draft` / `final`. 기본 draft|
+|`documentKind`|enum·null|X|`draft` / `final`. 생략하면 업로드 시 받은 `mode`, 그것도 없으면 draft (D-37)|
 |`rights`|array·null|△|직접 경로에서만 필수. staging 경로에서는 저장된 수정본에서 읽습니다|
 
 `rights[]` 원소
@@ -525,11 +544,12 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 |필드|타입|필수|설명|
 |---|---|---|---|
-|`contractId` / `grantor` / `grantee` / `ipId`|-|-|5번과 동일|
+|`contractId` / `ipId`|-|-|5번과 동일|
+|`grantor` / `grantee`|-|△|5번과 동일. staging 경로에서는 서버가 추출 결과에서 뽑습니다|
 |`tmpId`|uuid·null|X|추출 작업 id이자 중복 확정 차단 키. 있으면 staging 경로|
 |`fileName` / `filePath` / `fileHash`|-|△|5번과 동일. **staging 경로에서는 무시되고 서버가 채웁니다**|
 |`mimeType` / `rawText`|-|-|5번과 동일|
-|`documentKind`|enum|X|`draft` / `final`. 기본 final|
+|`documentKind`|enum·null|X|`draft` / `final`. 생략하면 업로드 시 받은 `mode`, 그것도 없으면 final (D-37)|
 |`rights`|array·null|△|직접 경로에서만 필수. staging 경로에서는 저장된 수정본에서 읽습니다|
 |`chunks`|array|X|검색용 문서 청크|
 

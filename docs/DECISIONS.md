@@ -257,6 +257,76 @@ DB 제약이 아니라 애플리케이션 규약에만 의존하게 됐다는 �
 - `parent_id`(시리즈 → 시즌 → 에피소드 계층)는 이번 범위 밖이다. 컬럼은 있지만
   API가 쓰지 않는다.
 
+### D-36 — 화면이 고친 계약 메타를 운영 DB에 저장한다
+
+D-34로 `contractInfo`(계약명·체결일·금액·통화·언어)가 staging에는 남게 됐는데,
+거기서 `public.contract`로 넘어가는 경로가 없었다. 화면 수정이 조용히 버려지고
+있었다 — 이번에 생긴 문제가 아니라 원래 있던 구멍이다.
+
+- **`save_rights_batch()`는 건드리지 않는다.** P2 소유 DB 함수이고, 저장할 네 컬럼
+  (`signed_date`·`lang`·`amount`·`currency`)이 `contract`에 이미 있으므로 API가 함수
+  호출 직후 같은 트랜잭션에서 평범한 `UPDATE`로 쓰면 된다. 판정과 무관한 값이라
+  나중에 써도 의미가 같다.
+- NULL은 "지우기"가 아니라 "기존 값 유지"다(`COALESCE`) — 화면이 일부만 고쳤을 때
+  나머지를 지우면 안 되기 때문이다.
+- **계약명(`title`)은 빠져 있다.** `contract`에 넣을 컬럼이 없다. 목록·상세의 `title`은
+  `contract_history.file_name`(업로드 파일명)이며 그건 파일명이지 계약명이 아니다.
+  `contract.title` 신설은 P2에 요청한다(→ O-16).
+- **`grantor`/`grantee`를 staging 경로에서 선택으로 내렸다.** `payload.raw.contract.parties[]`에
+  GRANTOR·GRANTEE가 이미 파싱돼 있고 `_party_name()`이 뽑고 있었다. 화면이 다시 보낼
+  이유가 없다. 요청에 있으면 우선하고, 화면이 고쳤다면 patch의
+  `contractInfo.grantor`/`grantee`로 들어온다. 둘 다 못 정하면 400이다
+  (`contract.grantor`/`grantee`가 NOT NULL이라 끝내 필요하다).
+- **검증과 확정이 같은 경로를 쓴다.** 종전 구현은 검증만 staging 저장값으로 판정하고
+  확정은 요청 body의 `rights`를 우선해서, 화면이 둘 다 보내면 **검사한 값과 저장하는
+  값이 갈라질 수 있었다.** 이제 top-level `rights`는 patch의 배열 전체 교체로 접혀
+  staging에 반영되고, 확정은 항상 저장된 값을 읽는다.
+
+`contract.amount`는 D-14 기준 애플리케이션 암호화 대상으로 표시돼 있으나 미적용이다 —
+이 경로로 평문 금액이 들어가기 시작한다는 점은 O-14와 같은 성격의 미결이다.
+
+### D-37 — 업로드 맥락을 staging에 저장하고 `mode`를 문서 종류로 좁힌다
+
+`POST /extract`가 `mode`·`contractId`·`ipId`를 Form으로 받아 **검증만 하고 버리고**
+있었다. 저장되는 건 `pdf_blob(data, filename, byte_size)`과 `extract_job(tmpid,
+status)`뿐이었다. 그래서 화면 상태가 없는 진입 경로에서 맥락이 사라졌다 —
+`GET /contracts`의 "처리 중" 항목은 `{tmpid, status, stage, filename, reason,
+createdAt}`만 주므로 목록에서 클릭해 들어오면 `tmpid` 하나뿐이고, 브라우저를 닫았다
+돌아온 경우도 같다. API설계서 §3이 "같은 tmpid로 다시 들어오면 결과를 그대로
+받는다"고 약속하는 바로 그 경로다.
+
+- **`staging.extract_job`에 `mode`·`contract_id`·`ip_id`를 저장한다.** `contract_id`와
+  `ip_id`에는 **FK를 걸지 않는다** — staging이 public을 참조하는 방향은 이 스키마에
+  없고(있는 건 staging 내부 FK와 `contract.source_tmpid → extract_job`뿐), 버려질
+  임시 데이터가 운영 테이블을 참조하게 만들지 않기 위해서다.
+  `rights_grant.lineage_id`와 같은 값 전용 컬럼이다.
+- **`mode`를 `new`/`revision`/`final` 3값에서 `draft`/`final` 2값으로 좁혔다.**
+  "신규냐 개정이냐"는 `contractId`의 유무가 이미 말해주므로 `mode`에 섞을 이유가
+  없었다. `mode`는 문서 종류만 나타내며 `documentKind`와 같은 값 집합이 된다.
+- **부수 효과로 표현력이 늘었다.** `final` + `contractId` 없음 = **신규 계약의
+  서명본**이 표현된다. 예전 3값 체계에서는 `final`이 기존 계약을 전제해(그래서
+  `contractId`를 필수로 요구해) 이미 서명된 계약서를 처음 등록할 때도 초안으로 한 번
+  올린 뒤 다시 올려야 했다. 같은 이유로 "revision/final은 contractId·ipId 필수"
+  검증도 없앴다.
+- **5·6번이 `contractId`·`ipId`·`documentKind`를 생략할 수 있다.** 요청에 있으면
+  우선하고, 없으면 `extract_job`에 저장된 값을 쓴다. 화면이 아무것도 안 들고 있어도
+  `tmpId` 하나로 검증·확정이 된다.
+
+이름은 `mode`로 유지한다. 값 집합이 `documentKind`와 같아졌으니 `document_kind`로
+바꾸는 편이 정확하지만, 팀이 이미 쓰고 있는 이름이라 혼동 비용이 더 크다고 봤다.
+
+### D-38 — `staging.pdf_blob`·`extract_job`에 INSERT 권한을 가진 롤이 없다 (미해소)
+
+`07_staging_roles.sql`의 INSERT GRANT는 `extract_result`(`staging_worker`) 하나뿐인데
+`POST /extract`는 `pdf_blob`과 `extract_job` 둘 다 INSERT한다. 접근 주체를 셋으로
+설계하면서(워커·확정 API·정리 배치) **업로드 주체가 빠졌다.**
+
+지금은 앱이 `DATABASE_URL`의 소유자 계정으로 붙어 모든 권한을 갖고 있어 드러나지
+않는다. 롤은 전부 `NOLOGIN`이고 실제 로그인 계정에 묶는 건 배포 책임이라
+(D-32/D-33) 아직 적용되지 않았다. **SER-002를 실제로 적용하는 순간 업로드가 막힌다.**
+`staging_confirm_api`에 INSERT를 더할지 `staging_upload_api`를 새로 만들지는 P2 판단
+사항이며, 요청은 전달했다.
+
 ## 미결
 
 ### O-06 — 요구사항별 평가 건수 불일치

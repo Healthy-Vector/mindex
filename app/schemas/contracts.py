@@ -65,8 +65,10 @@ class VerifyRequest(CamelModel):
     """
 
     contract_id: Optional[int] = None   # 개정판이면 기존 계약 id, 신규면 None
-    grantor: str
-    grantee: str
+    # staging 경로에서는 생략할 수 있다 — 추출 payload의 parties에서 서버가
+    # 뽑는다(D-36). 보내면 그 값이 우선한다. 직접 경로에서는 여전히 필수다.
+    grantor: Optional[str] = None
+    grantee: Optional[str] = None
     ip_id: Optional[int] = None         # 신규 작품이면 None
     # API 이름은 `tmpId` — 화면과 `GET /extract/{tmpid}`가 쓰는 이름에 맞춘다.
     # 파이썬·DB 쪽은 `source_tmpid`(contract.source_tmpid,
@@ -78,7 +80,8 @@ class VerifyRequest(CamelModel):
     file_hash: Optional[str] = None
     mime_type: Optional[str] = None
     raw_text: Optional[str] = None
-    document_kind: Literal["draft", "final"] = "draft"
+    # 생략하면 extract_job.mode를 쓴다(D-37). staging 경로가 아니면 draft.
+    document_kind: Optional[Literal["draft", "final"]] = None
     rights: Optional[list[RightIn]] = None
 
     @model_validator(mode="after")
@@ -90,6 +93,8 @@ class VerifyRequest(CamelModel):
         missing = [
             name
             for name, value in (
+                ("grantor", self.grantor),
+                ("grantee", self.grantee),
                 ("fileName", self.file_name),
                 ("filePath", self.file_path),
                 ("fileHash", self.file_hash),
@@ -106,7 +111,8 @@ class VerifyRequest(CamelModel):
 
 
 class ConfirmRequest(VerifyRequest):
-    document_kind: Literal["draft", "final"] = "final"
+    # 생략하면 extract_job.mode를 쓴다(D-37). staging 경로가 아니면 final.
+    document_kind: Optional[Literal["draft", "final"]] = None
     chunks: list[ChunkIn] = Field(default_factory=list)
 
 

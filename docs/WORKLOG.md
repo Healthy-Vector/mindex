@@ -2,6 +2,75 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-26 — 계약 메타 저장, 당사자·업로드 맥락 유도 (D-36 · D-37)
+
+D-34 인수인계 중 드러난 것들을 이어서 처리했다. **스키마 변경 3건은 P2에 요청해
+전달했고**(`contract.title`, `extract_job`에 `mode`·`contract_id`·`ip_id`, 그리고
+누락된 INSERT 권한 롤), API는 그 컬럼이 들어온다는 전제로 작성했다.
+
+### 화면이 고친 계약 메타가 버려지고 있었다 (D-36)
+
+`contractInfo`(계약명·체결일·금액·통화·언어)가 `public.contract`로 넘어가는 경로가
+없었다. 원래 있던 구멍인데 D-34로 그 값이 staging에 남게 되면서 드러났다.
+
+- `save_rights_batch()`(P2 소유 DB 함수) 시그니처는 건드리지 않는다. 함수 호출 직후
+  같은 트랜잭션에서 평범한 `UPDATE`로 쓴다 — 판정과 무관한 값이라 나중에 써도 같다.
+- `COALESCE`로 NULL은 "기존 값 유지"다. 부분 수정이 나머지를 지우면 안 된다.
+- 계약명은 `contract.title`이 들어오면 채워진다. 목록·상세는
+  `COALESCE(contract.title, contract_history.file_name)`.
+
+### 목록과 상세가 다른 title을 보여줄 수 있었다
+
+`title`이 `contract_history.file_name`(업로드 파일명)이라 세대마다 바뀌는데, 목록은
+최신 세대를, 상세는 `current_history_id` 세대를 본다. 개정판이 CONFLICTED면
+`current`는 이전 세대에 머물러(트리거가 applied만 허용) 둘이 갈라진다.
+`contract.title`이 생기면 둘 다 그 값을 쓴다.
+
+### grantor/grantee를 화면이 다시 보낼 이유가 없었다 (D-36)
+
+`payload.raw.contract.parties[]`에 GRANTOR·GRANTEE가 파싱돼 있고 `_party_name()`이
+이미 뽑고 있었는데 `VerifyRequest`가 둘을 필수로 두고 있었다. staging 경로에서
+선택으로 내리고 서버가 유도한다. DTO `contractInfo`에도 실어 화면이 patch로 고칠 수
+있게 했다. 둘 다 못 정하면 400(컬럼이 NOT NULL이라 끝내 필요).
+
+### 업로드 맥락이 버려지고 있었다 (D-37)
+
+`POST /extract`가 `mode`·`contractId`·`ipId`를 받아 검증만 하고 버렸다. 목록의
+"처리 중" 항목에서 진입하면 `tmpid` 하나뿐이라 맥락이 없다.
+
+- 세 값을 `extract_job`에 저장하고 `GET /extract/{tmpid}` 응답에 실었다.
+- 5·6번이 `contractId`·`ipId`·`documentKind`를 생략하면 저장된 값을 쓴다.
+- **`mode`를 `draft`/`final` 2값으로 좁혔다.** 신규/개정은 `contractId` 유무가 이미
+  말해준다. 덕분에 `final` + `contractId` 없음 = **신규 계약의 서명본**이 표현된다 —
+  예전엔 초안으로 한 번 올린 뒤에야 final을 올릴 수 있었다.
+- "revision/final은 contractId·ipId 필수" 검증은 없앴다.
+
+### 검증과 확정이 다른 값을 볼 수 있었다 (이번 세션에 들어간 버그)
+
+D-34 구현에서 검증은 `tmpId`가 있으면 top-level `rights`를 무시하고 staging 저장값을
+쓰는데, 확정은 `req.rights or ...`로 요청 body를 우선했다. 화면이 둘 다 보내면
+**검사한 값과 저장하는 값이 갈라진다.** 이제 top-level `rights`는 patch의 배열 전체
+교체로 접혀 staging에 반영되고, 검증·확정이 같은 `apply_staging_edit()`을 탄다.
+
+### 검증
+
+- `ruff check app/ tests/` → All checks passed.
+  `pytest tests/test_unit_pure.py tests/test_staging_merge_unit.py
+  tests/test_staging_verify_api.py -q` → 29 passed, 15 skipped.
+- **이 브랜치는 P2의 스키마 변경에 의존한다.** `contract.title`과 `extract_job`의
+  세 컬럼이 없으면 확정·업로드가 SQL 오류로 실패한다. 컬럼이 들어오기 전에는
+  CI도 통과하지 못한다.
+- 새 DB 테스트 4건(당사자 유도, 계약 메타 저장, rights 반영, 업로드 맥락 유도)은
+  이 세션에 PostgreSQL이 없어 **실행되지 않았다.**
+
+### 남은 일
+
+- 프론트가 `mode`를 `new`/`revision`/`final`로 쓰고 있다(UploadPage·HitlEditors·
+  contractPayload·client.js). `draft`/`final`로 맞춰야 한다 — 프론트 담당이 확인 중.
+- D-38 — `pdf_blob`·`extract_job`에 INSERT 권한을 가진 롤이 없다. SER-002 적용 시
+  업로드가 막힌다.
+- `contract.amount`는 D-14 암호화 대상 표시인데 미적용이다(O-14와 같은 성격).
+
 ## 2026-08-26 — verify/confirm의 staging 병합(D-34), 원본 PDF 서버 저장소(D-34b), 세대별 조회
 
 팀장 확인으로 D-32/D-33의 ⑥·⑦ 단계를 재설계했다. 함께 확인한 두 가지가 드러나

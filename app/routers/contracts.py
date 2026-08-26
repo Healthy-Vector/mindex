@@ -114,7 +114,8 @@ def list_contracts(
     rows = db.execute(
         text(
             "SELECT c.id, c.grantor, c.grantee, c.status, c.signed_date, c.created_at, "
-            "       lh.file_name AS title, lh.status AS latest_status "
+            # D-36 — 계약명이 있으면 그것, 없으면 업로드 파일명으로 대체한다.
+            "       COALESCE(c.title, lh.file_name) AS title, lh.status AS latest_status "
             "FROM contract c "
             "LEFT JOIN LATERAL ("
             "  SELECT file_name, status FROM contract_history "
@@ -208,8 +209,9 @@ def get_contract(
     latest = histories[-1] if histories else None
     has_conflict = bool(latest and latest["status"] == "conflicted")
     conflict_report = camelize_json_keys(latest["conflict_report"]) if has_conflict else None
-    title = None
-    if cur_id:
+    # D-36 — 계약명이 있으면 그것, 없으면 세대의 업로드 파일명으로 대체한다.
+    title = c["title"]
+    if title is None and cur_id:
         cur = next((h for h in histories if h["id"] == cur_id), None)
         title = cur["file_name"] if cur else None
     if title is None and latest:

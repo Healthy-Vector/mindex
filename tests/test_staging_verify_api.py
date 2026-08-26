@@ -117,7 +117,7 @@ def storage_dir(tmp_path, monkeypatch):
 def done_job(conn):
     """DONE 상태의 staging 작업 한 벌(pdf_blob + extract_job + extract_result)."""
 
-    def _make(payload=None):
+    def _make(payload=None, mode="draft", ip_id=None):
         tmpid = str(uuid.uuid4())
         cur = conn.cursor()
         cur.execute(
@@ -126,8 +126,9 @@ def done_job(conn):
             (tmpid, PDF_BYTES, "계약서.pdf", len(PDF_BYTES)),
         )
         cur.execute(
-            "INSERT INTO staging.extract_job (tmpid, status) VALUES (%s::uuid, 'DONE')",
-            (tmpid,),
+            "INSERT INTO staging.extract_job (tmpid, status, mode, ip_id) "
+            "VALUES (%s::uuid, 'DONE', %s, %s)",
+            (tmpid, mode, ip_id),
         )
         cur.execute(
             "INSERT INTO staging.extract_result (tmpid, payload) VALUES (%s::uuid, %s::jsonb)",
@@ -158,8 +159,6 @@ def test_verify_persists_edit_and_judges_stored_value(client, clean_db, conn, do
         "/api/contracts/verify",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "patch": {"contractInfo": {"title": "사용자가 고친 제목"}},
         },
@@ -180,8 +179,6 @@ def test_verify_accumulates_patches(client, clean_db, conn, done_job):
     tmpid = done_job()
     base = {
         "tmpId": tmpid,
-        "grantor": "해솔미디어",
-        "grantee": "웨이브플랫폼",
         "ipId": clean_db["ip_id"],
     }
     client.post("/api/contracts/verify", json={**base, "patch": {"contractInfo": {"title": "1차"}}})
@@ -200,8 +197,6 @@ def test_verify_rejects_unknown_tmpid(client, clean_db):
         "/api/contracts/verify",
         json={
             "tmpId": str(uuid.uuid4()),
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
         },
     )
@@ -226,8 +221,6 @@ def test_extract_polling_returns_edited(client, clean_db, conn, done_job):
         "/api/contracts/verify",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "patch": {"contractInfo": {"title": "고친 제목"}},
         },
@@ -247,8 +240,6 @@ def test_confirm_reads_staging_and_stores_pdf(client, clean_db, conn, done_job, 
         "/api/contracts/verify",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
         },
     )
@@ -258,8 +249,6 @@ def test_confirm_reads_staging_and_stores_pdf(client, clean_db, conn, done_job, 
         "/api/contracts",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
         },
@@ -291,8 +280,6 @@ def test_confirm_ignores_client_supplied_file_path(client, clean_db, conn, done_
         "/api/contracts",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "filePath": "/etc/passwd",
             "fileHash": "deadbeef",
@@ -315,8 +302,6 @@ def test_file_endpoint_serves_requested_version(client, clean_db, conn, done_job
         "/api/contracts",
         json={
             "tmpId": tmpid,
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
         },
@@ -341,8 +326,6 @@ def test_file_endpoint_rejects_history_of_other_contract(
         "/api/contracts",
         json={
             "tmpId": done_job(),
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
         },
@@ -351,7 +334,6 @@ def test_file_endpoint_rejects_history_of_other_contract(
         "/api/contracts",
         json={
             "tmpId": done_job(worker_payload(territory="JP")),
-            "grantor": "해솔미디어",
             "grantee": "다른상대",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
@@ -406,8 +388,6 @@ def test_detail_by_history_id_returns_that_generation(
         "/api/contracts",
         json={
             "tmpId": done_job(),
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
         },
@@ -429,8 +409,6 @@ def test_detail_rejects_history_of_other_contract(client, clean_db, conn, done_j
         "/api/contracts",
         json={
             "tmpId": done_job(),
-            "grantor": "해솔미디어",
-            "grantee": "웨이브플랫폼",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
         },
@@ -439,7 +417,6 @@ def test_detail_rejects_history_of_other_contract(client, clean_db, conn, done_j
         "/api/contracts",
         json={
             "tmpId": done_job(worker_payload(territory="JP")),
-            "grantor": "해솔미디어",
             "grantee": "다른상대",
             "ipId": clean_db["ip_id"],
             "documentKind": "final",
@@ -453,3 +430,86 @@ def test_detail_rejects_history_of_other_contract(client, clean_db, conn, done_j
         headers={"Authorization": f"Bearer {token}"},
     )
     assert detail.status_code == 404
+
+# ── D-36 당사자 유도와 계약 메타 저장 ─────────────────────────
+@requires_db
+def test_verify_derives_parties_from_payload(client, clean_db, done_job):
+    """grantor/grantee를 안 보내도 추출 payload의 parties에서 서버가 뽑는다."""
+    response = client.post(
+        "/api/contracts/verify",
+        json={"tmpId": done_job(), "ipId": clean_db["ip_id"]},
+    )
+    assert response.status_code == 200, response.text
+
+
+@requires_db
+def test_confirm_persists_contract_info(client, clean_db, conn, done_job, storage_dir):
+    """화면이 고친 계약명·체결일·금액·통화·언어가 public.contract에 저장된다."""
+    tmpid = done_job()
+    client.post(
+        "/api/contracts/verify",
+        json={
+            "tmpId": tmpid,
+            "ipId": clean_db["ip_id"],
+            "patch": {
+                "contractInfo": {
+                    "title": "겨울의 신호 배급 계약",
+                    "signedDate": "2026-12-01",
+                    "amount": 5000000,
+                    "currency": "KRW",
+                    "lang": "ko",
+                }
+            },
+        },
+    )
+    saved = client.post(
+        "/api/contracts",
+        json={"tmpId": tmpid, "ipId": clean_db["ip_id"], "documentKind": "final"},
+    )
+    assert saved.status_code == 201, saved.text
+
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT title, signed_date, amount, currency, lang, grantor, grantee "
+        "FROM contract WHERE id=%s",
+        (saved.json()["contractId"],),
+    )
+    title, signed_date, amount, currency, lang, grantor, grantee = cur.fetchone()
+    assert title == "겨울의 신호 배급 계약"
+    assert signed_date.isoformat() == "2026-12-01"
+    assert int(amount) == 5000000
+    assert currency.strip() == "KRW"
+    assert lang.strip() == "ko"
+    # 당사자도 payload에서 유도된다.
+    assert grantor == "해솔미디어"
+    assert grantee == "웨이브플랫폼"
+
+
+@requires_db
+def test_top_level_rights_and_stored_value_agree(client, clean_db, conn, done_job, storage_dir):
+    """rights를 top-level로 보내도 staging에 반영돼 확정이 같은 값을 저장한다."""
+    tmpid = done_job()
+    verify = client.post(
+        "/api/contracts/verify",
+        json={"tmpId": tmpid, "ipId": clean_db["ip_id"]},
+    )
+    assert verify.status_code == 200
+
+    edited = stored_payload(conn, tmpid)["edited"]
+    assert edited["rights"], "검증이 rights를 staging에 남겨야 한다"
+
+
+@requires_db
+def test_context_falls_back_to_upload_job(client, clean_db, conn, done_job, storage_dir):
+    """화면이 ipId·documentKind를 안 보내도 업로드 시점 맥락으로 동작한다 (D-37)."""
+    tmpid = done_job(mode="final", ip_id=clean_db["ip_id"])
+
+    saved = client.post("/api/contracts", json={"tmpId": tmpid})
+
+    assert saved.status_code == 201, saved.text
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT document_kind FROM contract_history WHERE id=%s",
+        (saved.json()["contractHistoryId"],),
+    )
+    assert cur.fetchone()[0] == "final"

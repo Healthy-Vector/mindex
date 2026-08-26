@@ -266,6 +266,11 @@ def to_upload_result(
     return {
         "contractInfo": {
             "title": _field_value(contract.get("contract_title")),
+            # D-36 — 판정·저장에 쓰는 당사자를 DTO에도 싣는다. 화면이 patch로 고칠 수
+            # 있고, 안 고치면 서버가 이 값을 그대로 쓴다. counterparty는 화면이 이미
+            # 쓰고 있는 이름이라 grantee와 같은 값으로 남겨둔다.
+            "grantor": _party_name(parties, "GRANTOR"),
+            "grantee": _party_name(parties, "GRANTEE"),
             "counterparty": _party_name(parties, "GRANTEE"),
             "signedDate": _field_value(contract.get("agreement_date")),
             "lang": str(raw.get("document", {}).get("language") or "").lower() or None,
