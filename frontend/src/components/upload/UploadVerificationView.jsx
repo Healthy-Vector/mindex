@@ -4,12 +4,14 @@ import { HitlReviewEditor, RegistrationContextEditor } from "./HitlEditors.jsx";
 const FAIL_REASON_LABEL = {
   UPLOAD_FAILED: "PDF 업로드 요청에 실패했습니다.",
   OCR_TIMEOUT: "OCR 처리 시간이 초과되었습니다.",
+  OCR_FAILED: "OCR 처리에 실패했습니다.",
   LLM_TIMEOUT: "AI 추출 처리 시간이 초과되었습니다.",
+  LLM_EXTRACTION_FAILED: "AI 추출 처리에 실패했습니다.",
   UNREADABLE_PDF: "PDF에서 읽을 수 있는 텍스트를 찾지 못했습니다.",
   MAX_ATTEMPTS: "최대 재시도 횟수를 초과했습니다.",
 };
 
-export default function UploadVerificationView({ mode, entryMode, selectedContractId, onModeChange, onContractChange, stage, fileName, queuePosition, fileError, contractInfo, setContractInfo, rights, onUpdateRight, ipMatch, setIpMatch, canSubmit, validationErrors, pollError, verifyError, onFile, onReset, onSubmit, onCancel }) {
+export default function UploadVerificationView({ mode, entryMode, stage, fileName, queuePosition, fileError, contractInfo, setContractInfo, rights, originalRights, onUpdateRight, ipMatch, setIpMatch, canSubmit, validationErrors, pollError, verifyError, onFile, onReset, onSubmit, onCancel }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [confirmReplace, setConfirmReplace] = useState(false);
@@ -41,8 +43,8 @@ export default function UploadVerificationView({ mode, entryMode, selectedContra
                 <div className="upload-panel-header"><h4 className="mx-heading-card" style={{ margin: 0 }}>AI 추출 결과 검증</h4></div>
                 <div className="upload-panel-desc">OCR 파싱을 거쳐 분석된 계약 정보와 권리 조건입니다. 각 값과 근거 원문을 직접 수정할 수 있습니다.</div>
               </div>
-              <RegistrationContextEditor mode={mode} entryMode={entryMode} ipMatch={ipMatch} selectedContractId={selectedContractId} onModeChange={onModeChange} onContractChange={onContractChange} />
-              <HitlReviewEditor contractInfo={contractInfo} setContractInfo={setContractInfo} rights={rights} onUpdateRight={onUpdateRight} ipMatch={ipMatch} setIpMatch={setIpMatch} ipLocked={entryMode === "final"} />
+              <RegistrationContextEditor mode={mode} />
+              <HitlReviewEditor contractInfo={contractInfo} setContractInfo={setContractInfo} rights={rights} originalRights={originalRights} onUpdateRight={onUpdateRight} ipMatch={ipMatch} setIpMatch={setIpMatch} ipLocked={entryMode === "final"} />
             </>
           )}
         </div>

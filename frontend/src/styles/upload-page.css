@@ -249,6 +249,18 @@
   color: var(--mx-alert-text);
   margin-left: 2px;
 }
+.upload-review-flag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--mx-warn1-bg);
+  color: var(--mx-warn1-text);
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: middle;
+  cursor: help;
+}
 .upload-review-value,
 .upload-review-evidence {
   min-width: 0;
@@ -343,14 +355,14 @@
   .upload-review-period > span { display: none; }
 }
 
-.upload-registration-context { border-bottom: 0; }
+.upload-registration-context {
+  padding: 6px 2px 2px;
+  border-bottom: 0;
+}
 .upload-mode-selector { width: min(100%, 520px); margin-top: 6px; }
 .upload-mode-selector .mx-seg-opt { flex: 1; }
 .upload-mode-selector .mx-seg-opt:disabled:not(.active) { opacity: 0.4; cursor: not-allowed; }
 .upload-mode-selector .mx-seg-opt:disabled.active { cursor: default; }
-.upload-mode-help { margin-top: 8px; }
-.upload-readonly-target { margin-top: 16px; }
-.upload-target-contract { margin-top: 14px; }
 
 /* 파이프라인 실패 결과 — conflict-summary-banner/list-toast와 같은 색상 배너 톤 */
 .upload-failed-banner {
