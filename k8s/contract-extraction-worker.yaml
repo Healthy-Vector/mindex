@@ -36,8 +36,8 @@ spec:
                   key: DATABASE_URL
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: "2"
+              memory: 4Gi
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: "4"
+              memory: 6Gi
