@@ -22,6 +22,65 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+### 전체 구동 순서 (PDF 업로드 → 자동 추출까지)
+
+화면·일반 API만 확인한다면 위 빠른 시작(PostgreSQL → Backend → Frontend)으로
+충분합니다. **PDF 업로드부터 자동 추출 결과 확인까지** 하려면 Ollama와 Kubernetes
+추출 워커가 추가로 필요합니다.
+
+```text
+PostgreSQL
+  └─ Backend API
+      └─ Frontend
+
+Ollama 서버
+  └─ Kubernetes의 추출 워커
+      └─ Backend가 만든 staging 작업을 처리
+```
+
+**1. PostgreSQL** — DB 기동. 최초 실행 시 `sql/init/*.sql`이 자동 적재됩니다.
+
+| 순서 | 명령어 | 설명 |
+|---|---|---|
+| ① | `cp .env.example .env` | 환경변수 파일 생성 (DB 접속정보 등 입력) |
+| ② | `docker compose up -d` | DB 컨테이너 실행 + 스키마 자동 생성 |
+
+**2. Ollama** — 워커가 LLM 추출에 사용합니다 (호스트에서 실행).
+
+| 순서 | 명령어 | 설명 |
+|---|---|---|
+| ① | `ollama serve` | Ollama 서버 기동 |
+| ② | `ollama pull qwen3:8b` | 추출용 LLM 모델 내려받기 |
+
+**3. 추출 워커 (Kubernetes)** — staging 큐를 폴링해 OCR·LLM 추출을 수행합니다.
+
+| 순서 | 명령어 | 설명 |
+|---|---|---|
+| ① | `docker build -f Dockerfile.worker -t mindex-contract-extraction-worker:local .` | 워커 이미지 빌드 |
+| ② | `kubectl create secret generic mindex-worker-secret --from-literal=DATABASE_URL=<DB주소>` | 워커용 DB 접속정보 등록 |
+| ③ | `kubectl apply -f k8s/contract-extraction-worker.yaml` | 워커 배포 |
+
+**4. Backend API** — 업로드 접수·검증·확정·검색 (`:8000`)
+
+| 순서 | 명령어 | 설명 |
+|---|---|---|
+| ① | `pip install -r requirements.txt` | 백엔드 의존성 설치 |
+| ② | `uvicorn app.main:app --host 0.0.0.0 --port 8000` | API 서버 실행 |
+
+**5. Frontend** — 사용자 화면 (`:5173`, `/api`는 `:8000`으로 프록시)
+
+| 순서 | 명령어 | 설명 |
+|---|---|---|
+| ① | `cd frontend` | 프론트엔드 디렉터리 이동 |
+| ② | `npm install` | 프론트엔드 의존성 설치 |
+| ③ | `npm run dev` | 개발 서버 실행 → http://localhost:5173 |
+
+> Kubernetes/Docker Desktop이 실행 중인 PC에서 Ollama도 함께 켜야 합니다 — 워커
+> 배포 설정이 `host.docker.internal:11434`로 로컬 Ollama를 바라봅니다
+> ([k8s/contract-extraction-worker.yaml](k8s/contract-extraction-worker.yaml)).
+> `kubectl` 명령은 클러스터 종류(kind/minikube/Docker Desktop)에 따라 이미지 로드
+> 단계가 하나 더 필요할 수 있습니다.
+
 ### 자연어 검색(벡터 랭킹) — 기본 켜짐
 
 검색 벡터 랭킹은 **기본으로 켜져 있다**(`EMBEDDINGS_ENABLED=true`). 켜져 있으면 ML
