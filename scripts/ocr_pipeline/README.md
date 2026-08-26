@@ -20,7 +20,8 @@ PYTHONPATH=. .venv/Scripts/python scripts/ocr_pipeline/<script>.py
 |---|---|---|
 | `check_ml_env.py` | 실행 환경 진단 | **새 PC 세팅 직후 제일 먼저** |
 | `run_e2e.py` | **전건 end-to-end 실행** | **PR 전 · 파이프라인을 건드린 뒤** |
-| `build_goldset.py` | 회수 정답지 생성 | 원본 Evidence가 바뀌었을 때 |
+| `build_goldset.py` | **회수** 정답지 생성 (Task1) | 원본 Evidence가 바뀌었을 때 |
+| `build_extraction_goldset.py` | **추출** 정답지 생성 (Task2) | `ground_truth.json` 이 바뀌었을 때 |
 | `paraphrase.py` | held-out 집합 생성 | `eval_retrieval.py` 가 내부에서 호출 |
 | `eval_retrieval.py` | 회수 품질 측정 | 청킹·스코어러를 건드린 뒤 |
 | `make_handoff_samples.py` | Task2 인계 샘플 생성 | 규격이 바뀌었을 때 |
@@ -109,6 +110,35 @@ python scripts/ocr_pipeline/build_goldset.py
 
 `parties` 는 정답 라벨이 0건이라 **측정 불가**로 명시해 둔다. 조용히 0%로
 집계되면 결함처럼 보인다.
+
+## 3-1. `build_extraction_goldset.py` — 추출 정답지 (Task2용)
+
+```bash
+python scripts/ocr_pipeline/build_extraction_goldset.py
+```
+
+`ground_truth.json` 에서 **필드 추출 채점에 필요한 것만** 추려
+`eval/extraction_goldset.json` 으로 편다. 충돌 판정(scenarios·findings)과
+Evidence 위치는 뺀다.
+
+| | 무엇을 채점하나 |
+|---|---|
+| `retrieval_goldset.json` | "이 필드의 근거가 **어느 조항**인가" — Task1 |
+| `extraction_goldset.json` | "그 조항에서 **어떤 값**을 뽑아야 하나" — Task2 |
+
+**`field_status` 를 그대로 남긴다.** `ABSENT`·`UNRESOLVED` 는 오답이 아니라
+정답이기 때문이다. `UNRESOLVED` 인 기간에 날짜를 지어내면 **오답이자 위험한
+오답**이다 — 없는 권리기간을 만들어내는 것이다. 그래서 채점이 두 축이다.
+
+    ① status 를 맞혔는가   확정 가능/불가를 옳게 판단했는가
+    ② values 를 맞혔는가   status 가 PRESENT_* 일 때만 의미가 있다
+
+**작품은 제목으로 대조한다.** GT 는 `C007` 같은 dataset ID 로 가리키는데 이
+ID 는 DB payload 에 넣지 않기로 규격이 정했다. `content_registry.yaml` 에서
+계약서 언어의 제목을 끌어와 `titles` 에 넣어 둔다.
+
+**payment 는 측정 불가**다. 86건 전부 `NOT_YET_PROJECTED` 라 정답 값이 없다.
+조용히 0% 로 집계되면 결함처럼 보이므로 정답지에 명시해 뒀다.
 
 ## 4. `paraphrase.py` — held-out 집합
 
