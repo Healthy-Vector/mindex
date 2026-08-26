@@ -17,7 +17,7 @@ AI는 추출만 합니다. 최종 판정은 데이터베이스가 합니다.
 
 ```bash
 cp .env.example .env          # 값 채우기
-docker compose up -d          # OpenSQL 대신 pgvector/pgvector:0.8.1-pg17 로 개발 (동일 버전 기반)
+docker compose up -d          # OpenSQL 대신 pgvector/pgvector:0.8.1-pg17 로 개발 (동일 PostgreSQL 17 기반)
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -82,12 +82,16 @@ mindex/
 
 ## 지켜야 하는 것
 
-- **PostgreSQL 17 고정** — OpenSQL 실물이 **17.8 + pgvector 0.8.1** 기반입니다.
-  (RFP v3의 "16.8 기반" 기술은 오기였습니다)
+- **PostgreSQL 17 고정** — 실물 OpenSQL이 17.8 + pgvector 0.8.1 기반입니다(RFP v3의 "16.8 기반" 기술은 오기였습니다)
 - **PyMuPDF 금지** — AGPL 라이선스라 프로젝트 전체 라이선스가 오염됩니다. `pdfplumber` + `pypdfium2` 사용
 - **`.env`·라이선스 파일 커밋 금지** — `.gitignore` 참조
 - 라이선스: **Apache 2.0**
 
 ## 문서
 
-프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에 있습니다. 이 저장소는 코드 전용입니다.
+- 데이터 모델 정본: [`docs/mindex_remastered.dbml`](docs/mindex_remastered.dbml) (운영 `public` 스키마 + 비동기 추출용 `staging` 스키마)
+- DB 구조와 서비스 플로우: [`docs/mindex DB 설명서.md`](docs/mindex%20DB%20설명서.md)
+- staging 스키마(비동기 OCR/LLM 파이프라인): [`docs/mindex_staging DB 설명서.md`](docs/mindex_staging%20DB%20설명서.md)
+- 문서 목록: [`docs/README.md`](docs/README.md)
+
+프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에서 관리합니다.

@@ -1,0 +1,172 @@
+.app-shell {
+  min-height: 100vh;
+  /* 모바일 브라우저의 주소창/툴바가 접혔다 펼쳐졌다 하면서 100vh가 실제 보이는
+     영역보다 커지는 문제(그 결과로 하단 콘텐츠가 스크롤해도 안 닿는 것처럼 느껴짐) —
+     동적 뷰포트 단위를 지원하는 브라우저에서는 이 값이 100vh를 덮어써서 실제 보이는
+     높이를 따라간다. 미지원 브라우저는 이 줄을 무시하고 위 100vh를 그대로 쓴다. */
+  min-height: 100dvh;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 18px 32px;
+  border-bottom: 1px solid var(--mx-border-soft);
+  background: var(--mx-surface);
+  /* 좁은 화면에서 다 안 들어가면 줄바꿈(글자 세로 쪼개짐) 대신 가로 스크롤로 빠진다. */
+  overflow-x: auto;
+}
+
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* 넓은 화면에서는 항상 숨김 — 좁은 화면에서만 나타나는 사이드바 메뉴 버튼. */
+.app-nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.app-nav-hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--mx-text);
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 800;
+  font-size: 18px;
+  margin-right: 8px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-logo-mark {
+  width: 18px;
+  height: 18px;
+  background: var(--mx-accent);
+  border-radius: 5px;
+  display: inline-block;
+  /* flex-shrink 기본값(1)이면 가로만 눌려 정사각형이 찌그러진다 — 모양 고정. */
+  flex-shrink: 0;
+}
+
+.app-nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  /* flex-shrink 기본값(1)이면 가로만 눌려 원이 타원으로 찌그러진다 — 모양 고정. */
+  flex-shrink: 0;
+}
+.app-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.app-user-team {
+  font-size: 11px;
+  color: var(--mx-muted);
+  white-space: nowrap;
+}
+
+.app-main {
+  padding: 36px;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    /* 하단 여백을 좀 더 넉넉히 — 마지막 요소(예: IP 상세의 "수정" 버튼)가 화면 끝에
+       바짝 붙으면 실제로는 스크롤이 다 됐는데도 잘린 것처럼 느껴진다. */
+    padding: 20px 16px 48px;
+  }
+  .app-nav {
+    padding: 14px 16px;
+    gap: 20px;
+  }
+  /* 좁은 화면에서는 이름/팀 텍스트를 빼고 아바타만 남겨 내비게이션 폭을 줄인다. */
+  .app-user-name,
+  .app-user-team {
+    display: none;
+  }
+
+  .app-nav-hamburger {
+    display: flex;
+  }
+
+  /* 평소엔 화면 밖(왼쪽)에 숨겨뒀다가, 열리면 사이드바로 슬라이드 인. */
+  .app-nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 240px;
+    padding: 20px 16px;
+    background: var(--mx-surface);
+    box-shadow: 2px 0 16px rgba(27, 33, 29, 0.14);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+  .app-nav-links--open {
+    transform: translateX(0);
+  }
+  .app-nav-links .mx-nav-link {
+    width: 100%;
+    padding: 10px 8px;
+    border-bottom: none;
+    border-radius: 7px;
+  }
+  .app-nav-links .mx-nav-link.active {
+    background: var(--mx-accent-bg);
+  }
+
+  .app-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(27, 33, 29, 0.32);
+  }
+}

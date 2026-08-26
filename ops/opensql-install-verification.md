@@ -60,6 +60,34 @@ cat $OPENSQL_LICENSE_PATH | grep edition
 - `credcheck`
 - `pg_profile`
 
+## 6. IP 유사도 검색용 pg_trgm 확인
+
+OpenSQL 3은 PostgreSQL 기반이고 PostgreSQL Extension Framework를 사용한다. 다만 OpenSQL 매뉴얼은 `pg_trgm`의 패키지 포함 여부를 별도로 보장하지 않으므로, 라이선스 환경에서 다음 순서로 확인한다.
+
+```sql
+SELECT name, default_version, installed_version
+FROM pg_available_extensions
+WHERE name = 'pg_trgm';
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+SELECT similarity('겨울왕국', '겨울왕국 시즌2') AS title_similarity,
+       strict_word_similarity('겨울왕국', '겨울왕국 시즌2') AS word_similarity;
+
+\dx pg_trgm
+```
+
+첫 조회 결과가 없으면 해당 OpenSQL PostgreSQL 버전에 맞는 contrib 패키지에 `pg_trgm.control`이 포함되도록 설치 이미지·패키지를 보완한 후 init SQL을 다시 적용한다. HA 구성에서는 모든 DB 노드에 같은 확장 파일 버전이 설치되어 있어야 한다.
+
+신규 DB 컨테이너는 최초 기동 시 `sql/init/08_ip_search.sql`을 자동 실행한다. 이미 생성된 DB에는 DB 확장 생성 권한이 있는 계정으로 다음 파일을 한 번 적용한다.
+
+```bash
+psql "postgresql://<admin>:<password>@<host>:<port>/<database>" \
+  -v ON_ERROR_STOP=1 -f sql/init/08_ip_search.sql
+```
+
+적용 후 API의 `GET /api/ips?q=겨울왕국%20시즌2` 또는 `GET /api/ips/match?q=겨울왕국%20시즌2`로 검색 결과와 `score`를 확인한다. 애플리케이션 계정은 초기 설정이 끝난 뒤 `CREATE EXTENSION` 권한이 필요하지 않다.
+
 ## 트러블슈팅 참고 (매뉴얼 기준)
 
 | 증상 | 원인 |
@@ -73,3 +101,4 @@ cat $OPENSQL_LICENSE_PATH | grep edition
 
 - [ ] 라이선스 확보 후 실제 설치 진행 (단일노드안: `--mode single`)
 - [ ] 위 1~5번 절차 실제로 수행하고 스크린샷/로그 팀 공유
+- [ ] 6번 `pg_trgm` 가용성·유사도 쿼리 확인

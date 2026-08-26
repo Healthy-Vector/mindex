@@ -30,7 +30,22 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: psql "postgresql://mindex:mindex_ci@localhost:5432/mindex" -f sql/init/01_schema.sql
+      # sql/init/ 전체를 파일명 순으로 실행한다 (D-10에서 7개로 분할 예정).
+      # 파일 하나만 지정하면 새로 추가한 .sql이 조용히 건너뛰어진다.
+      # ON_ERROR_STOP=1이 없으면 문 단위 에러가 나도 psql이 exit 0을 반환해 CI가 초록이 된다.
+      - name: Load schema (sql/init/*.sql)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(sql/init/*.sql)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::sql/init/ 에 .sql 파일이 없다"
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "== $f"
+            psql -v ON_ERROR_STOP=1 "postgresql://mindex:mindex_ci@localhost:5432/mindex" -f "$f"
+          done
         env:
           PGPASSWORD: mindex_ci
       - run: ruff check .

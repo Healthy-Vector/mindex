@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 470" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" role="img" aria-labelledby="erd-title erd-desc">
+<title id="erd-title">mindex DB — staging 스키마 ERD</title><desc id="erd-desc">pdf_blob 한 행에 extract_job 한 행, extract_result 한 행이 1:1 · ON DELETE CASCADE로 연결된다. 같은 mindex DB 안의 staging 스키마이며(별도 인스턴스 아님, D-33), 여기 그려진 FK는 모두 실제 FK다. public 스키마 contract.source_tmpid → staging.extract_job.tmpid도 실제 FK(ON DELETE SET NULL)로, 정본은 mindex_remastered.dbml 참고.</desc>
+
+<defs>
+  <marker id="one-tick" markerWidth="14" markerHeight="14" refX="7" refY="7" orient="auto">
+    <line x1="7" y1="1" x2="7" y2="13" stroke="#64748b" stroke-width="1.6"/>
+  </marker>
+</defs>
+<style>
+  .tbl-title { fill: #ffffff; font-size: 14px; font-weight: 700; }
+  .col-name  { font-family: Consolas, 'SF Mono', Menlo, monospace; font-size: 12.5px; fill: #1e293b; }
+  .col-name.fk { fill: #1d4ed8; font-weight: 600; }
+  .col-name.pk { fill: #b45309; font-weight: 700; }
+  .col-type  { font-family: Consolas, 'SF Mono', Menlo, monospace; font-size: 11px; fill: #64748b; text-anchor: end; }
+  .badge-pk  { fill: #b45309; font-size: 10px; font-weight: 700; font-family: Consolas, 'SF Mono', Menlo, monospace; }
+  .badge-fk  { fill: #1d4ed8; font-size: 10px; font-weight: 700; font-family: Consolas, 'SF Mono', Menlo, monospace; }
+  .rel-label { font-size: 10.5px; font-weight: 700; font-family: Consolas, 'SF Mono', Menlo, monospace; }
+  .legend    { font-size: 12px; fill: #334155; }
+  .cap       { font-size: 12.5px; fill: #64748b; }
+  .sub       { font-size: 12.5px; fill: #64748b; }
+</style>
+
+<rect x="0" y="0" width="1400" height="470" fill="#f8fafc"/>
+<text x="700.0" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">mindex DB — staging 스키마 ERD</text>
+<text x="700.0" y="52" text-anchor="middle" class="sub">같은 mindex DB 안의 staging 스키마(별도 인스턴스 아님, D-33) · 3테이블 · 비동기 추출 큐</text>
+
+<rect x="50" y="68" width="14" height="14" rx="3" fill="#b45309"/>
+<text x="72" y="80" class="legend">PK 기본키</text>
+<rect x="160" y="68" width="14" height="14" rx="3" fill="#1d4ed8"/>
+<text x="182" y="80" class="legend">FK 외래키</text>
+<path d="M 280 75 L 330 75" stroke="#64748b" stroke-width="2" marker-start="url(#one-tick)" marker-end="url(#one-tick)"/>
+<text x="340" y="80" class="legend">1 : 1 · ON DELETE CASCADE</text>
+
+<path d="M350,154.0 L480,154.0" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" marker-start="url(#one-tick)" marker-end="url(#one-tick)"/>
+<text x="364" y="146.0" class="rel-label" fill="#7c3aed">1</text>
+<text x="460" y="146.0" class="rel-label" fill="#7c3aed">1</text>
+<text x="415.0" y="142.0" text-anchor="middle" class="rel-label" fill="#7c3aed">CASCADE</text>
+<path d="M840,154.0 L990,154.0" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" marker-start="url(#one-tick)" marker-end="url(#one-tick)"/>
+<text x="854" y="146.0" class="rel-label" fill="#0891b2">1</text>
+<text x="970" y="146.0" class="rel-label" fill="#0891b2">1</text>
+<text x="915.0" y="142.0" text-anchor="middle" class="rel-label" fill="#0891b2">CASCADE</text>
+
+<g>
+<rect x="50" y="108" width="300" height="156" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<path d="M50,115 q0,-7 7,-7 h286 q7,0 7,7 v25 h-300 z" fill="#2563eb"/>
+<text x="200.0" y="129" text-anchor="middle" class="tbl-title">pdf_blob</text>
+<text x="62" y="162.0" class="col-name pk"><tspan class="badge-pk">PK </tspan>tmpid</text>
+<text x="340" y="162.0" class="col-type">uuid</text>
+<line x1="51.2" y1="168" x2="348.8" y2="168" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="51.2" y="168" width="297.6" height="22" fill="#f1f5f9"/>
+<text x="62" y="183.0" class="col-name">data</text>
+<text x="340" y="183.0" class="col-type">bytea  NOT NULL</text>
+<line x1="51.2" y1="190" x2="348.8" y2="190" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62" y="205.0" class="col-name">filename</text>
+<text x="340" y="205.0" class="col-type">text</text>
+<line x1="51.2" y1="212" x2="348.8" y2="212" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="51.2" y="212" width="297.6" height="22" fill="#f1f5f9"/>
+<text x="62" y="227.0" class="col-name">byte_size</text>
+<text x="340" y="227.0" class="col-type">int</text>
+<line x1="51.2" y1="234" x2="348.8" y2="234" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62" y="249.0" class="col-name">created_at</text>
+<text x="340" y="249.0" class="col-type">timestamptz  NOT NULL</text>
+<line x1="51.2" y1="256" x2="348.8" y2="256" stroke="#e2e8f0" stroke-width="1"/>
+</g>
+<g>
+<rect x="480" y="108" width="360" height="222" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<path d="M480,115 q0,-7 7,-7 h346 q7,0 7,7 v25 h-360 z" fill="#7c3aed"/>
+<text x="660.0" y="129" text-anchor="middle" class="tbl-title">extract_job</text>
+<text x="492" y="162.0" class="col-name pk"><tspan class="badge-pk">PK</tspan><tspan class="badge-fk"> FK </tspan>tmpid</text>
+<text x="830" y="162.0" class="col-type">uuid → pdf_blob</text>
+<line x1="481.2" y1="168" x2="838.8" y2="168" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="481.2" y="168" width="357.6" height="22" fill="#f1f5f9"/>
+<text x="492" y="183.0" class="col-name">status</text>
+<text x="830" y="183.0" class="col-type">text  DEFAULT 'QUEUED'</text>
+<line x1="481.2" y1="190" x2="838.8" y2="190" stroke="#e2e8f0" stroke-width="1"/>
+<text x="492" y="205.0" class="col-name">stage</text>
+<text x="830" y="205.0" class="col-type">text  OCR / LLM</text>
+<line x1="481.2" y1="212" x2="838.8" y2="212" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="481.2" y="212" width="357.6" height="22" fill="#f1f5f9"/>
+<text x="492" y="227.0" class="col-name">lease_until</text>
+<text x="830" y="227.0" class="col-type">timestamptz</text>
+<line x1="481.2" y1="234" x2="838.8" y2="234" stroke="#e2e8f0" stroke-width="1"/>
+<text x="492" y="249.0" class="col-name">attempts</text>
+<text x="830" y="249.0" class="col-type">int  DEFAULT 0</text>
+<line x1="481.2" y1="256" x2="838.8" y2="256" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="481.2" y="256" width="357.6" height="22" fill="#f1f5f9"/>
+<text x="492" y="271.0" class="col-name">reason</text>
+<text x="830" y="271.0" class="col-type">text</text>
+<line x1="481.2" y1="278" x2="838.8" y2="278" stroke="#e2e8f0" stroke-width="1"/>
+<text x="492" y="293.0" class="col-name">consumed_at</text>
+<text x="830" y="293.0" class="col-type">timestamptz</text>
+<line x1="481.2" y1="300" x2="838.8" y2="300" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="481.2" y="300" width="357.6" height="22" fill="#f1f5f9"/>
+<text x="492" y="315.0" class="col-name">created_at</text>
+<text x="830" y="315.0" class="col-type">timestamptz  NOT NULL</text>
+<line x1="481.2" y1="322" x2="838.8" y2="322" stroke="#e2e8f0" stroke-width="1"/>
+</g>
+<rect x="480" y="344" width="360" height="30" rx="8" fill="#eef2f7"/>
+<text x="494" y="364" font-size="12.5" font-weight="700" fill="#3d4a58">INDEX (status, created_at) — SKIP LOCKED 폴링용</text>
+<g>
+<rect x="990" y="108" width="320" height="134" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<path d="M990,115 q0,-7 7,-7 h306 q7,0 7,7 v25 h-320 z" fill="#0891b2"/>
+<text x="1150.0" y="129" text-anchor="middle" class="tbl-title">extract_result</text>
+<text x="1002" y="162.0" class="col-name pk"><tspan class="badge-pk">PK</tspan><tspan class="badge-fk"> FK </tspan>tmpid</text>
+<text x="1300" y="162.0" class="col-type">uuid → extract_job</text>
+<line x1="991.2" y1="168" x2="1308.8" y2="168" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="991.2" y="168" width="317.6" height="22" fill="#f1f5f9"/>
+<text x="1002" y="183.0" class="col-name">payload</text>
+<text x="1300" y="183.0" class="col-type">jsonb  NOT NULL</text>
+<line x1="991.2" y1="190" x2="1308.8" y2="190" stroke="#e2e8f0" stroke-width="1"/>
+<text x="1002" y="205.0" class="col-name">confidence</text>
+<text x="1300" y="205.0" class="col-type">numeric(4,3)</text>
+<line x1="991.2" y1="212" x2="1308.8" y2="212" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="991.2" y="212" width="317.6" height="22" fill="#f1f5f9"/>
+<text x="1002" y="227.0" class="col-name">created_at</text>
+<text x="1300" y="227.0" class="col-type">timestamptz  NOT NULL</text>
+<line x1="991.2" y1="234" x2="1308.8" y2="234" stroke="#e2e8f0" stroke-width="1"/>
+</g>
+
+<text x="50" y="290" class="cap">암호화된 PDF 원본. 확정 후 정리 배치가 이 행을</text>
+<text x="50" y="308" class="cap">지우면 CASCADE로 나머지 두 테이블도 함께 사라진다.</text>
+
+<text x="990" y="268" class="cap">화면은 payload를 읽어 보여주고, 사용자가 고친 값은</text>
+<text x="990" y="286" class="cap">여기 다시 쓰지 않는다 — 확정 시점에 한 번에 넘어간다.</text>
+
+<text x="700.0" y="456" text-anchor="middle" class="cap">이 3테이블은 mindex DB의 staging 스키마다 · public.contract.source_tmpid → staging.extract_job.tmpid도 같은 DB라 실제 FK다(ON DELETE SET NULL)</text>
+</svg>
