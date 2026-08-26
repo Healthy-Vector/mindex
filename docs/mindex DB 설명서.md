@@ -64,7 +64,9 @@ candidate, evaluation, 개별 승인 계층은 없다. PDF 한 건의 권리 배
 
 ## 3. 계약과 PDF 세대
 
-`contract`는 grantor, grantee, signed date, amount 같은 업무 메타데이터를 가진다. 상태는
+`contract`는 grantor, grantee, signed date, amount 같은 업무 메타데이터를 가진다.
+`title`은 계약 목록 화면 표시용 라벨로, `ip.title`(작품명)과는 별개다 — nullable이며
+판정 로직에는 관여하지 않는다. 상태는
 `draft | signed | cancelled`다. signed에는 applied 세대를 가리키는
 `current_history_id`가 필요하다. 취소·해지·협의 결렬은 모두 cancelled로 처리한다.
 cancelled는 종결 상태이며 draft나 signed로 되돌릴 수 없다.
@@ -179,4 +181,4 @@ contract가 `cancelled`로 전환되면 해당 계약의 active grant는 자동�
 
 ## 10. 검색과 운영
 
-`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 행의 INSERT/UPDATE/DELETE trigger는 `change_log`를 생성한다. 이를 소비해 원문을 다시 청킹·임베딩할 worker 골격은 있으나, 실제 재처리 함수는 아직 구현되지 않았다. `schema_meta`의 현재 D-31 버전 태그는 `2026-08-21.1`이다.
+`contract_chunk`는 contract와 contract_history를 함께 참조해 개정 전후의 조항이 섞이지 않게 한다. `contract_history` 행의 INSERT/UPDATE/DELETE trigger는 `change_log`를 생성한다. 이를 소비해 원문을 다시 청킹·임베딩할 worker 골격은 있으나, 실제 재처리 함수는 아직 구현되지 않았다. `schema_meta`의 현재 최신 버전 태그는 `2026-08-26.1`이다.

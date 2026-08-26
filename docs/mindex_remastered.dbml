@@ -158,6 +158,7 @@ Table team {
 }
 Table contract {
   id BIGSERIAL [pk]
+  title TEXT [note: '계약 목록 화면 표시용 라벨. ip.title과 별개']
   grantor TEXT [not null, note: '권리를 주는 쪽(갑)']
   grantee TEXT [not null, note: '권리를 받는 쪽(을)']
   signed_date DATE
