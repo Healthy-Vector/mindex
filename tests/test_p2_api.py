@@ -6,6 +6,7 @@ import uuid
 from datetime import date, timedelta
 
 from tests.conftest import requires_db, body
+from tests.test_staging_verify_api import worker_payload
 
 
 @requires_db
@@ -250,7 +251,10 @@ def test_source_tmpid_must_be_done_and_cannot_be_reused(client, conn, clean_db):
     )
     cur.execute(
         "INSERT INTO staging.extract_result(tmpid,payload) VALUES (%s,%s::jsonb)",
-        (str(tmpid), json.dumps({"rights": []})),
+        (
+            str(tmpid),
+            json.dumps(worker_payload(), ensure_ascii=False),
+        ),
     )
     conn.commit()
 

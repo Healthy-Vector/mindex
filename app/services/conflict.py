@@ -47,7 +47,19 @@ def build_rights_json(db: Session, rights: list) -> str:
                     "exploitation_mode": r.exploitation_mode,
                     "period": to_daterange_literal(r.period.start, r.period.end),
                     "exclusivity": r.exclusivity,
-                    "evidence": r.evidence,
+                    "evidence": {
+                        "legal_right": r.evidence.get(
+                            "legal_right",
+                            r.evidence.get("legalRight"),
+                        ),
+                        "exploitation_mode": r.evidence.get(
+                            "exploitation_mode",
+                            r.evidence.get("exploitationMode"),
+                        ),
+                        "territory": r.evidence.get("territory"),
+                        "period": r.evidence.get("period"),
+                        "exclusivity": r.evidence.get("exclusivity"),
+                    },
                     "conditions_raw": r.conditions_raw,
                 }
             )
