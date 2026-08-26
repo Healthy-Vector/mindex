@@ -26,7 +26,9 @@ def test_upload_enqueues_pdf_and_returns_queued_job(client, conn, clean_db):
         "WHERE b.tmpid=%s",
         (accepted["tmpid"],),
     )
-    assert cur.fetchone() == (b"%PDF-1.7 test document", "source.pdf", 22, "QUEUED")
+    stored_data, filename, byte_size, status = cur.fetchone()
+    assert bytes(stored_data) == b"%PDF-1.7 test document"
+    assert (filename, byte_size, status) == ("source.pdf", 22, "QUEUED")
 
     polled = client.get(f"/api/extract/{accepted['tmpid']}")
     assert polled.status_code == 200
