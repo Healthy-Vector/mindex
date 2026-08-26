@@ -1357,7 +1357,7 @@ GET /api/ips?page=1&size=20
 1. 자연어 질의를 `legalRights`·`exploitationModes`·지역·기간·독점여부로 해석
 2. UI가 명시한 `filters`를 자연어 해석보다 우선 적용
 3. `confirmed_rights_grant`의 서명 완료 계약을 SQL로 축소
-4. 남은 후보 안에서만 `contract_chunk.embedding` 벡터 랭킹
+4. 남은 후보 안에서만 `contract_chunk` 어휘(pg_trgm) + `embedding` 벡터 하이브리드 랭킹. **현재 세대(`contract.current_history_id`)의 조항만 봅니다** — 청크는 세대마다 쌓이고 구세대 행이 지워지지 않아, 이 조건이 없으면 개정판에서 이미 대체된 문구가 근거로 잡힙니다
 
 벡터 검색 후 SQL 필터를 적용하면 안 됩니다.
 

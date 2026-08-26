@@ -178,3 +178,43 @@ def test_cross_mode_excludes_contracts_matching_query_language(client, conn, cle
     cross_ids = [row["contractId"] for row in r_cross.json()["results"]]
     assert en_id in cross_ids
     assert ko_id not in cross_ids, "질의가 한국어면 원문도 한국어(lang=ko)인 계약은 cross 모드에서 빠져야 한다"
+
+
+def test_superseded_generation_chunks_are_not_searched(client, conn, clean_db):
+    """개정판으로 대체된 구세대 조항은 검색되지 않는다.
+
+    `contract_chunk`는 세대마다 쌓이고 구세대 행이 지워지지 않으므로, 계약 id로만
+    조회하면 이미 대체된 문구가 근거로 잡힌다. `contract.current_history_id`로
+    한 세대만 남기는지 확인한다.
+    """
+    contract_id, old_history_id = _confirm_contract(client, clean_db)
+
+    # 개정판 세대를 만들고 현재 세대로 올린다.
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO contract_history "
+        "  (contract_id, version, document_kind, status, file_name, file_path, file_hash) "
+        "VALUES (%s, 2, 'final', 'applied', 'v2.pdf', %s, 'h2') RETURNING id",
+        (contract_id, f"{contract_id}/2.pdf"),
+    )
+    new_history_id = cur.fetchone()[0]
+    cur.execute(
+        "UPDATE contract SET current_history_id=%s WHERE id=%s",
+        (new_history_id, contract_id),
+    )
+    conn.commit()
+
+    # 질의에 딱 맞는 문구는 대체된 구세대에만, 현재 세대에는 무관한 문구만 둔다.
+    _insert_chunk(
+        conn, contract_id=contract_id, history_id=old_history_id,
+        clause_no="제5조", page=5, text=RELEVANT_TEXT,
+    )
+    _insert_chunk(
+        conn, contract_id=contract_id, history_id=new_history_id,
+        clause_no="제9조", page=9, text=OTHER_TEXT,
+    )
+
+    found = client.post("/api/search", json={"query": QUERY}).json()
+    hit = next((r for r in found["results"] if r["contractId"] == contract_id), None)
+
+    assert hit is None, "대체된 구세대 조항이 근거로 잡히면 안 된다"

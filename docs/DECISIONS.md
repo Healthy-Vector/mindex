@@ -327,6 +327,21 @@ createdAt}`만 주므로 목록에서 클릭해 들어오면 `tmpid` 하나뿐�
 `staging_confirm_api`에 INSERT를 더할지 `staging_upload_api`를 새로 만들지는 P2 판단
 사항이며, 요청은 전달했다.
 
+### D-39 — 검색은 현재 세대의 조항만 본다
+
+`contract_chunk`는 세대(`contract_history`)마다 쌓이고 구세대 행이 지워지지 않는데,
+15번 검색의 청크 조회가 `WHERE ch.contract_id = ANY(:cands)`뿐이라 **개정판에서 이미
+대체된 옛 조항이 그대로 검색 결과로 잡혔다.** 사용자에게는 지금 유효하지 않은 문구가
+근거(snippet)로 보인다.
+
+`ch.contract_history_id = contract.current_history_id` 조건을 더한다.
+`current_history_id`는 `validate_contract_signing()` 트리거가 applied 세대만
+가리키도록 강제하고, 후보는 `confirmed_rights_grant`(= `contract.status='signed'`)에서
+나오므로 이 값이 NULL인 계약은 애초에 후보에 들어오지 않는다 — 별도 폴백이 필요 없다.
+
+구세대 청크를 지우지는 않는다. 세대별 원문 조회(D-34)와 같은 이유로 이력은
+보존하되, **검색 대상에서만 뺀다.**
+
 ## 미결
 
 ### O-06 — 요구사항별 평가 건수 불일치

@@ -4,6 +4,17 @@
 4) 후보 안에서만 contract_chunk 어휘(pg_trgm) + 벡터(pgvector) 하이브리드 랭킹.
 벡터를 먼저 하지 않는다(§10-11) — 후보 축소 후에만 청크를 본다는 규칙은 그대로다.
 
+## 현재 세대의 조항만 검색한다
+
+`contract_chunk`는 세대(`contract_history`)마다 쌓이고 구세대 행이 지워지지
+않는다. 계약 id로만 조회하면 **개정판에서 이미 대체된 옛 조항이 그대로 검색
+결과로 잡힌다** — 사용자에게는 지금 유효하지 않은 문구가 근거로 보인다.
+그래서 `contract.current_history_id`로 한 세대만 남긴다.
+
+`current_history_id`는 트리거가 applied 세대만 가리키도록 강제하고, 후보는
+`confirmed_rights_grant`(= `contract.status='signed'`)에서 나오므로 이 값이
+NULL인 계약은 애초에 후보에 들어오지 않는다.
+
 ## 어휘 + 벡터를 섞는 이유
 
 `contract_chunk`에 `pg_trgm`(09_chunk_search.sql)과 `vector`(04_vector.sql)가
@@ -211,7 +222,12 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
                         ch.embedding <=> CAST(:qv AS vector) AS dist,
                         word_similarity(lower(ch.chunk_text), :q) AS lex
                     FROM contract_chunk ch
+                    JOIN contract c ON c.id = ch.contract_id
                     WHERE ch.contract_id = ANY(:cands)
+                      -- 현재 세대의 조항만 본다. contract_chunk는 세대마다 쌓이고
+                      -- 구세대 행이 지워지지 않으므로, 이 조건이 없으면 개정판에서
+                      -- 이미 대체된 옛 조항이 검색 결과로 잡힌다.
+                      AND ch.contract_history_id = c.current_history_id
                 ),
                 norm AS (
                     SELECT
