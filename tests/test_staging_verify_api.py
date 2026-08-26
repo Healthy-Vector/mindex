@@ -103,6 +103,19 @@ def worker_payload(
             },
         },
         "validation": {"confidence": 0.91},
+        "chunks": [
+            {
+                "chunk_id": "chunk-0001",
+                "clause_no": "제3조",
+                "text": "제3조(권리의 범위) 본 계약에 따라 ...",
+                "lang": "ko",
+                "page_start": 2,
+                "page_end": 2,
+                "page": 2,
+                "indexable": True,
+                "embedding": [0.01] + [0.0] * 1023,
+            }
+        ],
     }
 
 
@@ -270,6 +283,13 @@ def test_confirm_reads_staging_and_stores_pdf(client, clean_db, conn, done_job, 
     assert file_name == "계약서.pdf"
     assert len(file_hash) == 64
     assert (storage_dir / file_path).read_bytes() == PDF_BYTES
+
+    cur.execute(
+        "SELECT clause_no, chunk_text, embedding IS NOT NULL "
+        "FROM contract_chunk WHERE contract_history_id=%s",
+        (history_id,),
+    )
+    assert cur.fetchall() == [("제3조", "제3조(권리의 범위) 본 계약에 따라 ...", True)]
 
 
 @requires_db

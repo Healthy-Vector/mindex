@@ -37,21 +37,6 @@ class RightIn(CamelModel):
     conditions_raw: Optional[dict[str, Any]] = None
 
 
-class ChunkIn(CamelModel):
-    clause_no: Optional[str] = None
-    chunk_text: str
-    lang: Optional[str] = None
-    page_start: Optional[int] = Field(default=None, ge=1)
-    page_end: Optional[int] = Field(default=None, ge=1)
-    embedding: Optional[list[float]] = None
-
-    @model_validator(mode="after")
-    def page_order(self) -> "ChunkIn":
-        if self.page_start is not None and self.page_end is not None and self.page_end < self.page_start:
-            raise ValueError("pageEnd는 pageStart보다 빠를 수 없습니다")
-        return self
-
-
 class VerifyRequest(CamelModel):
     """5번 검증 요청. 두 경로를 받는다 (D-34).
 
@@ -113,7 +98,6 @@ class VerifyRequest(CamelModel):
 class ConfirmRequest(VerifyRequest):
     # 생략하면 extract_job.mode를 쓴다(D-37). staging 경로가 아니면 final.
     document_kind: Optional[Literal["draft", "final"]] = None
-    chunks: list[ChunkIn] = Field(default_factory=list)
 
 
 class VerifyResponse(CamelModel):

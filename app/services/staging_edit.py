@@ -20,6 +20,7 @@ shape 그대로 넣는다. `raw`가 남아 있어 `to_upload_result()`가 계속
 from __future__ import annotations
 
 from collections import defaultdict
+import math
 from typing import Any, Mapping, Optional
 from uuid import UUID
 
@@ -28,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from app.errors import ExtractNotReady, ValidationFailed
 from app.schemas.contracts import RightIn
+from app.schemas.pipeline import EMBEDDING_DIM
 from app.services.extraction_result import to_upload_result
 from app.services.merge_patch import apply_merge_patch
 
@@ -110,6 +112,57 @@ def persist_edited(db: Session, tmpid: UUID, payload: Mapping[str, Any]) -> None
         ),
         {"t": str(tmpid), "payload": json.dumps(payload, ensure_ascii=False, default=str)},
     )
+
+
+def index_chunks(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """워커 payload의 chunks를 save_rights_batch(p_chunks) 입력으로 변환한다."""
+    source = payload.get("chunks")
+    if not isinstance(source, list) or not source:
+        raise ExtractNotReady(
+            "추출 결과에 검색 인덱스 청크가 없습니다. 최신 추출 워커로 다시 처리하세요"
+        )
+
+    rows: list[dict[str, Any]] = []
+    for index, item in enumerate(source):
+        if not isinstance(item, Mapping):
+            raise ValidationFailed("추출 청크 형식이 올바르지 않습니다", details={"index": index})
+        chunk_text = item.get("text", item.get("chunk_text"))
+        if not isinstance(chunk_text, str) or not chunk_text.strip():
+            raise ValidationFailed("추출 청크 본문이 없습니다", details={"index": index})
+
+        page_start = item.get("page_start", item.get("page"))
+        page_end = item.get("page_end", page_start)
+        if page_start is not None and (not isinstance(page_start, int) or page_start < 1):
+            raise ValidationFailed("추출 청크 시작 페이지가 올바르지 않습니다", details={"index": index})
+        if page_end is not None and (not isinstance(page_end, int) or page_end < 1):
+            raise ValidationFailed("추출 청크 종료 페이지가 올바르지 않습니다", details={"index": index})
+        if page_start is not None and page_end is not None and page_end < page_start:
+            raise ValidationFailed("추출 청크 페이지 범위가 올바르지 않습니다", details={"index": index})
+
+        embedding = item.get("embedding")
+        if embedding is not None:
+            if (
+                not isinstance(embedding, list)
+                or len(embedding) != EMBEDDING_DIM
+                or any(
+                    not isinstance(value, (int, float)) or not math.isfinite(float(value))
+                    for value in embedding
+                )
+            ):
+                raise ValidationFailed("추출 청크 임베딩 형식이 올바르지 않습니다", details={"index": index})
+            embedding = "[" + ",".join(str(float(value)) for value in embedding) + "]"
+
+        rows.append(
+            {
+                "clause_no": item.get("clause_no", item.get("clause")),
+                "chunk_text": chunk_text,
+                "lang": item.get("lang"),
+                "page_start": page_start,
+                "page_end": page_end,
+                "embedding": embedding,
+            }
+        )
+    return rows
 
 
 def rights_from_dto(dto: Mapping[str, Any]) -> list[RightIn]:

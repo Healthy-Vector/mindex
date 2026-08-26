@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from app.schemas.auth import PinRequest, TokenResponse
 from app.schemas.common import camelize_json_keys
-from app.schemas.contracts import ChunkIn, VerifyRequest
+from app.schemas.contracts import ConfirmRequest, VerifyRequest
 from app.schemas.ips import AssetIn, AssetPatch, IpListItem, IpOut
 from app.schemas.search import SearchRequest
 from app.services.territory import to_daterange_literal, end_inclusive_from_upper
@@ -134,15 +134,8 @@ def test_conflict_report_json_keys_are_recursively_camelized():
     assert conflict["blockingLayer"] == "no_exclusive_overlap"
 
 
-def test_chunk_page_range_is_validated_and_aliased():
-    chunk = ChunkIn.model_validate({
-        "chunkText": "제8조",
-        "pageStart": 3,
-        "pageEnd": 4,
-    })
-    assert chunk.model_dump(by_alias=True)["pageStart"] == 3
-    with pytest.raises(ValidationError):
-        ChunkIn.model_validate({"chunkText": "제8조", "pageStart": 4, "pageEnd": 3})
+def test_confirm_request_does_not_expose_client_chunks():
+    assert "chunks" not in ConfirmRequest.model_json_schema()["properties"]
 
 
 def test_search_period_and_limit_are_validated():

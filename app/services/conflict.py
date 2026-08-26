@@ -296,9 +296,14 @@ def save_batch(db: Session, req) -> dict[str, Any]:
     """
     pdf_data: Optional[bytes] = None
     dto: Optional[dict[str, Any]] = None
+    chunks_json: Optional[str] = None
     if req.source_tmpid is not None:
         # 검증과 동일한 경로. 확정만 호출해도 수정분이 staging에 반영된 뒤 저장된다.
         rights, dto = apply_staging_edit(db, req)
+        extraction = staging_edit.load_done_extraction(db, req.source_tmpid)
+        chunks_json = json.dumps(
+            staging_edit.index_chunks(extraction["payload"]), ensure_ascii=False
+        )
         file_name, file_hash, pdf_data = _staging_file_fields(db, req.source_tmpid)
     else:
         rights = req.rights
@@ -310,26 +315,6 @@ def save_batch(db: Session, req) -> dict[str, Any]:
         _validate_request_refs(db, req, rights, ctx, lock_contract=True)
         _validate_source_tmpid(db, req.source_tmpid)
         rights_json = build_rights_json(db, rights)
-        chunks_json = (
-            json.dumps(
-                [
-                    {
-                        "clause_no": c.clause_no,
-                        "chunk_text": c.chunk_text,
-                        "lang": c.lang,
-                        "page_start": c.page_start,
-                        "page_end": c.page_end,
-                        "embedding": ("[" + ",".join(str(float(x)) for x in c.embedding) + "]")
-                        if c.embedding
-                        else None,
-                    }
-                    for c in req.chunks
-                ],
-                ensure_ascii=False,
-            )
-            if getattr(req, "chunks", None)
-            else None
-        )
         row = db.execute(
             text(
                 "SELECT batch_result, out_contract_id, out_history_id, constraint_name, conflict_report "

@@ -152,6 +152,7 @@ class ExtractionResult:
     validation: dict      # validator.validate() 리포트
     normalized: dict       # normalizer.normalize_contract() 출력
     compact: dict          # projector.project() 출력 (Compact DB Projection)
+    chunks: list[dict]     # search index chunks and embeddings
 
     def to_dict(self) -> dict:
         return {
@@ -159,4 +160,5 @@ class ExtractionResult:
             "validation": self.validation,
             "normalized": self.normalized,
             "compact": self.compact,
+            "chunks": self.chunks,
         }

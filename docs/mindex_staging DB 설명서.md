@@ -78,13 +78,13 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 | ① 업로드 접수 | staging | `pdf_blob` INSERT + `extract_job` INSERT(`QUEUED`)를 한 트랜잭션으로. 커밋 후 `202 {tmpid, "QUEUED"}` 반환 |
 | ② 워커 수령 | staging | `SELECT ... FOR UPDATE SKIP LOCKED`로 `QUEUED` 한 건을 집어감. `status='RUNNING'`, `lease_until` 갱신, `attempts+1` |
 | ③ OCR → LLM 처리 | staging | 50~60초 구간. `stage`를 `OCR`→`LLM`으로 갱신하며 `lease_until` 연장 |
-| ④ 결과 커밋 | staging | `extract_result` UPSERT + `extract_job.status='DONE'`을 한 트랜잭션으로. 결과와 상태 중 하나만 있는 어중간한 상태는 존재할 수 없다 |
+| ④ 결과 커밋 | staging | `extract_result` UPSERT + `extract_job.status='DONE'`을 한 트랜잭션으로. `payload.chunks`에는 워커가 만든 검색 청크·임베딩도 함께 보존한다. 결과와 상태 중 하나만 있는 어중간한 상태는 존재할 수 없다 |
 | ⑤ 화면 폴링 | staging | `GET /extract/{tmpid}`. 브라우저를 닫아도 워커는 계속 돈다 |
 | ⑥ 사용자 확인·수정 | staging | 화면이 값을 고치면 ⑦ 호출에 부분수정(patch)으로 실려 `extract_result.payload.edited`에 반영된다(D-34). 예전에는 DB 접근이 없었다 |
 | ⑦ 검증 | staging + public | `tmpId`가 오면 먼저 수정본을 `extract_result`에 반영·커밋한다. 그 다음 **저장된 값으로** `SAVEPOINT` 잡고 `rights_grant`를 실제로 INSERT해 본 뒤 무조건 롤백. 판정은 롤백되지만 수정본은 남는다(D-34) |
-| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `payload.edited`(없으면 `raw`)를 읽어 화면이 보낸 검증 필드와 병합 → `save_rights_batch(..., p_source_tmpid => tmpid)` 호출. 이어서 **`pdf_blob.data`를 서버 저장소로 옮기고**(`{contract_id}/{history_id}.pdf`, D-34b) 그 상대 경로를 `contract_history.file_path`에 UPDATE한다. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남으며, API가 같은 트랜잭션에서 `extract_job.consumed_at = now()`를 기록한다 |
+| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `payload.edited`(없으면 `raw`)와 워커의 `payload.chunks`를 읽는다. 화면은 청크를 보내지 않으며, 서버가 청크·임베딩을 `p_chunks`로 넣어 `save_rights_batch(..., p_source_tmpid => tmpid)`를 호출한다. 이어서 **`pdf_blob.data`를 서버 저장소로 옮기고**(`{contract_id}/{history_id}.pdf`, D-34b) 그 상대 경로를 `contract_history.file_path`에 UPDATE한다. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남으며, API가 같은 트랜잭션에서 `extract_job.consumed_at = now()`를 기록한다 |
 | ⑨ 정리 | staging | TTL 정리 작업이 소비된 작업의 `pdf_blob`을 삭제한다(CASCADE로 나머지 두 테이블 동반 삭제) |
-| ⑩ 사후 처리 | public | `change_log` 재색인 대상 기록 → 임베딩·검색 인덱스 갱신 (비동기) |
+| ⑩ 사후 처리 | public | `change_log` 재색인 대상 기록 등 후속 처리 |
 
 ⑧의 "tmpid로 읽어서 저장 쿼리를 만든다"가 확정된 방식이다(B안) — 화면은 검증 필드만 들고 있고, evidence·conditions_raw 같은 나머지는 확정 API 서버가 `staging.extract_result`에서 직접 읽어 채운다. 화면이 저장 API에 전체 페이로드를 다시 보낼 필요가 없다. **이 B안은 D-34에서 실제로 코드에 반영됐다** — 그 전까지 구현은 요청 body만 쓰는 A안이었다.
 
