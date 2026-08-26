@@ -372,6 +372,11 @@ function RightsGrantGroups({ contract }) {
   );
 }
 
+// 저장된 evidence는 API 명세(§5)의 와이어 포맷 그대로 snake_case 키(legal_right/
+// exploitation_mode)로 온다 — HITL 쪽 EVIDENCE_FIELDS는 camelCase만 갖고 있어서
+// 여기서만 별도로 매핑한다.
+const EVIDENCE_FIELD_ALIAS = { legal_right: "legalRight", exploitation_mode: "exploitationMode" };
+
 function EvidenceList({ evidence }) {
   const groups = groupEvidenceByQuote(evidence);
   if (groups.length === 0) return <div className="rights-card-meta" style={{ marginTop: 4 }}>근거: —</div>;
@@ -379,7 +384,8 @@ function EvidenceList({ evidence }) {
     <>
       {groups.map((group) => (
         <div key={group.quote} className="rights-card-meta" style={{ marginTop: 4 }} title={group.quote}>
-          근거({group.fields.map((field) => EVIDENCE_FIELDS[field] ?? field).join("·")}): {group.clauses[0] ?? "—"}
+          근거({group.fields.map((field) => EVIDENCE_FIELDS[EVIDENCE_FIELD_ALIAS[field] ?? field] ?? field).join("·")})
+          {group.clauses[0] ? ` (${group.clauses[0]})` : ""}: {group.quote}
         </div>
       ))}
     </>
@@ -400,13 +406,17 @@ function formatAuthorityValue(value) {
   return value == null || value === "" ? "—" : String(value);
 }
 
+// conditionsRaw는 OCR/LLM 워커가 추출한 원본 구조(scopeModifiers/authorityConstraints)
+// 그대로다 — field_status·dimension·modifier_type·workerGrantRef 같은 내부 필드는
+// 화면에 보일 필요가 없고, 사람이 읽을 원문 설명(raw_expression)만 뽑아서 보여준다.
 function formatConditions(conditions) {
-  const values = [];
-  if (conditions.sublicense === "prior_written_consent") values.push("재허락 시 사전 서면 동의 필요");
-  else if (conditions.sublicense) values.push(`재허락: ${conditions.sublicense}`);
-  if (conditions.marketingClipAllowed != null) values.push(`마케팅 클립 사용 ${conditions.marketingClipAllowed ? "허용" : "불가"}`);
-  if (conditions.note) values.push(conditions.note);
-  return values.length ? values.join(" · ") : JSON.stringify(conditions);
+  if (!conditions || typeof conditions !== "object") return "—";
+  const parts = [];
+  for (const modifier of conditions.scopeModifiers ?? []) {
+    if (modifier?.raw_expression) parts.push(modifier.raw_expression);
+  }
+  if (conditions.authorityConstraints?.raw_expression) parts.push(conditions.authorityConstraints.raw_expression);
+  return parts.length ? parts.join(" · ") : "—";
 }
 
 function activeHistoryForDisplay(contract) {

@@ -81,6 +81,8 @@
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 10px;
+  /* 사이드바가 flex 컬럼이라 기본 min-width:auto론 긴 근거문 한 줄이 카드 밖으로 넘친다. */
+  min-width: 0;
 }
 .rights-card--terminated {
   opacity: 0.6;
@@ -99,6 +101,7 @@
 .rights-card-meta {
   font-size: 12px;
   color: var(--mx-muted);
+  overflow-wrap: anywhere;
 }
 
 /* 높이는 JS(ResizeObserver)가 오른쪽 상세 영역 실측 높이를 인라인 style로 넣어준다 —
