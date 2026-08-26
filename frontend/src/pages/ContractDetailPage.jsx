@@ -131,7 +131,7 @@ function PinGate({ id }) {
   if (error) return <div className="mx-alert-banner">API 연결 실패: {error}</div>;
   if (!contract) return <p>불러오는 중…</p>;
 
-  return <ContractDetailContent contract={contract} onContractUpdate={setContract} />;
+  return <ContractDetailContent contract={contract} />;
 }
 
 function formatDuration(ms) {

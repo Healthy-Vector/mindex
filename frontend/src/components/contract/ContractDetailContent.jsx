@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
 import CustomSelect from "../CustomSelect.jsx";
 import ConflictBadge from "../ConflictBadge.jsx";
@@ -47,7 +47,8 @@ function usePdfSource(contractId, activeHistory) {
   return source;
 }
 
-export default function ContractDetailContent({ contract, onContractUpdate }) {
+export default function ContractDetailContent({ contract }) {
+  const navigate = useNavigate();
   const uploadContext = new URLSearchParams({ contractId: String(contract.id), ipId: String(contract.ipId) });
   const registerHref = `/upload?mode=revision&${uploadContext}`;
   // 이미 서명 완료(signed)된 계약을 다시 "최종계약 등록"하는 건 기간 연장이다 —
@@ -113,13 +114,11 @@ export default function ContractDetailContent({ contract, onContractUpdate }) {
     setCancelError(null);
     api
       .cancelContract(contract.id, { reason: cancelReason, note: cancelNote.trim() || undefined })
-      .then(() => api.getContract(contract.id))
-      .then((updated) => {
-        onContractUpdate?.(updated);
-        setCancelModalOpen(false);
-      })
-      .catch((err) => setCancelError(err.message))
-      .finally(() => setCancelSaving(false));
+      .then(() => navigate("/", { replace: true, state: { toast: "계약이 종료되었습니다." } }))
+      .catch((err) => {
+        setCancelError(err.message);
+        setCancelSaving(false);
+      });
   }
   // contract 자체엔 exclusivity 컬럼이 없다 — 목록 페이지와 같은 규칙으로 대표
   // grant(배열 마지막 항목)의 독점 여부를 상단 태그에 보여준다.
