@@ -71,8 +71,11 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  listContracts: async ({ includeProcessing = true, page, size } = {}) => {
-    const res = await request(withQuery("/contracts", { include_processing: includeProcessing, page, size }));
+  // displayStates — 권리 유효 상태 필터(PRE_CONTRACT/BEFORE_TERM/IN_TERM/EXPIRING/EXPIRED,
+  // 콤마로 복수 지정 가능). feat/staging-verify-merge에서 추가된 파라미터로, alias가
+  // camelCase라 include_processing과 달리 그대로 displayStates로 보낸다.
+  listContracts: async ({ includeProcessing = true, displayStates, page, size } = {}) => {
+    const res = await request(withQuery("/contracts", { include_processing: includeProcessing, displayStates, page, size }));
     return { ...res, items: (res.items ?? []).map(normalizeContractListItem) };
   },
   getContract: async (id, { historyId } = {}) => {
@@ -115,12 +118,13 @@ export const api = {
   //                            → 200 { tmpid, status: "DONE", result: {...} }     (Rich Extraction)
   //                            → 200 { tmpid, status: "FAILED", reason: "OCR_TIMEOUT" }
   // normalizeJob이 status/stage를 UI 단계 이름(queued/ocr/llm/extract/failed)으로 맞춘다.
-  // mode(new/revision/final)는 필수다. HTML 명세 #2에 따라 revision·final은 기존
-  // contractId와 ipId를 모두 보낸다.
+  // 화면은 등록 유형을 신규/버전/최종 3가지로 보여주지만, API의 mode는 draft/final
+  // 2값이다 — "신규냐 개정이냐"는 contractId 유무로 이미 구분되기 때문이다(D-37).
+  // 그래서 신규·버전 계약은 모두 draft로, 최종 계약만 final로 보낸다.
   startUploadJob: async (file, { mode = "new", contractId, ipId } = {}) => {
     const form = new FormData();
     form.append("file", file);
-    form.append("mode", mode);
+    form.append("mode", mode === "final" ? "final" : "draft");
     if (contractId) form.append("contractId", contractId);
     if (ipId) form.append("ipId", ipId);
     const res = await fetch(`${BASE_URL}/extract`, { method: "POST", headers: { "x-api-key": API_KEY, ...authHeaders() }, body: form });
@@ -176,7 +180,7 @@ export const api = {
   // 같은 shape으로 실려있다(UploadPage.jsx 참고).
   matchIps: async (query, { limit, includeInactive } = {}) => {
     const res = await request(withQuery("/ips/match", { q: query, limit, includeInactive }));
-    return (res.items ?? res).map(normalizeIp);
+    return (res.matches ?? res).map(normalizeIp);
   },
 
   // 참조 코드 — API 명세서 #16 GET /refs. 지역·지역그룹·IP유형·범위유형·관계유형·충돌코드는
