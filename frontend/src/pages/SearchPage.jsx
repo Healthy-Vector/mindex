@@ -8,11 +8,10 @@ import "../styles/search-page.css";
 // 통합검색 — 자연어 검색과 교차언어 검색을 화면상 한 모드로 통합했다(Notion "통합검색
 // 백엔드 개발 가이드" §0). 원문 언어가 한국어가 아닌 결과에는 카드별로 "교차언어 매칭"
 // 배지만 붙이고, 질의는 항상 같은 입력창·같은 엔드포인트(POST /search)로 보낸다.
-const DEFAULT_QUERY = "동남아시아 지역 내에서 독점적으로 모바일 게임 배포 권리를 허용하는 2024년 이후 체결된 모든 계약을 보여줘";
 
 export default function SearchPage() {
   const { territoryLabel } = useRefs();
-  const [query, setQuery] = useState(DEFAULT_QUERY);
+  const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -100,7 +99,6 @@ export default function SearchPage() {
             <div className="result-list">
               {results.map((r) => {
                 const crossLingual = r.sourceLang && r.sourceLang !== "ko";
-                const snippet = r.snippets?.[0];
                 return (
                   <div key={r.contractId} className="mx-card mx-card-pad">
                     <div className="result-card-header">
@@ -132,11 +130,6 @@ export default function SearchPage() {
                             </span>
                           );
                         })}
-                      </div>
-                    )}
-                    {snippet && (
-                      <div className="mx-quote-box">
-                        근거문({snippet.clauseNo}): "{snippet.text}"
                       </div>
                     )}
                   </div>
