@@ -241,8 +241,8 @@ export default function IpManagementPage() {
       </div>
 
       {formModal && (
-        <div className="ipform-overlay" onClick={() => setFormModal(null)}>
-          <div className="ipform-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ipform-overlay">
+          <div className="ipform-modal">
             <IpForm
               mode={formModal.mode === "edit" ? "edit" : "create"}
               heading={formModal.mode === "edit" ? "IP 정보 수정" : "새 IP 등록"}

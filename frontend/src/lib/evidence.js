@@ -1,8 +1,6 @@
 export const EVIDENCE_FIELDS = {
   legalRight: "법적 권리",
-  legal_right: "법적 권리",
   exploitationMode: "사업적 이용형태",
-  exploitation_mode: "사업적 이용형태",
   territory: "지역",
   period: "기간",
   exclusivity: "독점 형태",
