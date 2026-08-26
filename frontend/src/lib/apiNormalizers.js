@@ -1,5 +1,25 @@
 const REAL_JOB_STAGE = { QUEUED: "queued", DONE: "extract", FAILED: "failed" };
 
+// 계약체결일 등 OCR/LLM이 뽑은 날짜가 "2026년 7월 19일"처럼 원문 자연어 그대로 올 수
+// 있다 — <input type="date">는 ISO(YYYY-MM-DD)가 아니면 빈 값으로 보여서 사람이
+// "값이 없나?" 하고 지나치기 쉽다. 흔한 표기만 최선을 다해 ISO로 바꿔 미리 채워두고,
+// 못 알아보는 형식은 원본 그대로 둔다(파싱 실패를 숨기지 않고 사람이 직접 채우게 한다).
+function normalizeDateString(value) {
+  if (!value || typeof value !== "string") return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const korean = value.match(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+  if (korean) {
+    const [, y, m, d] = korean;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+  const delimited = value.match(/^(\d{4})[./](\d{1,2})[./](\d{1,2})$/);
+  if (delimited) {
+    const [, y, m, d] = delimited;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+  return value;
+}
+
 export function normalizeJob(json) {
   const stage = json.status === "RUNNING" ? json.stage?.toLowerCase() : (REAL_JOB_STAGE[json.status] ?? "failed");
   const result = json.result ?? null;
@@ -19,8 +39,9 @@ export function normalizeJob(json) {
       ...(result?.contractInfo ?? {}),
       grantor: result?.contractInfo?.grantor ?? result?.grantor ?? "",
       grantee: result?.contractInfo?.grantee ?? result?.contractInfo?.counterparty ?? result?.grantee ?? "",
+      signedDate: normalizeDateString(result?.contractInfo?.signedDate),
     },
-    rights: result?.rights ?? [],
+    rights: (result?.rights ?? []).slice(0, 1),
     ipCandidates: result?.ipCandidates ?? [],
     rawText: result?.rawText ?? "",
     confidence: result?.confidence ?? null,
@@ -107,7 +128,12 @@ export function normalizeContract(contract) {
 }
 
 export function normalizeContractListItem(item) {
-  if (item.kind === "processing") return item;
+  if (item.kind === "processing") {
+    return {
+      ...item,
+      title: item.title ?? "추출 작업 진행 중",
+    };
+  }
   return {
     ...item,
     kind: item.kind ?? "contract",

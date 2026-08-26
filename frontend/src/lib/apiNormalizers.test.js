@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeContract, normalizeJob, normalizeVerifyResult } from "./apiNormalizers.js";
+import { normalizeContract, normalizeContractListItem, normalizeJob, normalizeVerifyResult } from "./apiNormalizers.js";
 
 test("extract result를 화면 상태로 분리한다", () => {
   const normalized = normalizeJob({ tmpid: "tmp-1", status: "DONE", result: { contractInfo: { title: "계약" }, rights: [{ contentAssetId: 1 }] } });
@@ -26,4 +26,19 @@ test("계약 상세의 중첩 contentAsset과 기존 rightsType을 정규화한�
   assert.equal(normalized.rightsGrants[0].scopeType, "SEASON");
   assert.equal(normalized.rightsGrants[0].legalRight, "TRANSMISSION");
   assert.deepEqual(normalized.rightsGrants[0].period, { start: "2026-01-01", end: "2026-12-31" });
+});
+
+test("처리 중 계약 목록 항목은 고정 임시 title을 사용한다", () => {
+  const normalized = normalizeContractListItem({ kind: "processing", tmpid: "tmp-1", filename: "CTR-KO-9004.pdf" });
+  assert.equal(normalized.title, "추출 작업 진행 중");
+});
+
+test("업로드 추출 결과는 대표 권리 1건만 화면 상태로 사용한다", () => {
+  const normalized = normalizeJob({
+    tmpid: "tmp-1",
+    status: "DONE",
+    result: { rights: [{ legalRight: "A" }, { legalRight: "B" }] },
+  });
+  assert.equal(normalized.rights.length, 1);
+  assert.equal(normalized.rights[0].legalRight, "A");
 });

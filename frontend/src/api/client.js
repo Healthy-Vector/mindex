@@ -134,23 +134,20 @@ export const api = {
     if (!res.ok) throw new ApiError(res.status, await res.text().catch(() => ""));
     return normalizeJob(await res.json());
   },
-  // 폴링 응답엔 fileName이 없다 — 새로고침 후 tmpId로 복원해도 파일명을 보여주려면
-  // 업로드 시점부터 프론트가 별도로 들고 있어야 한다.
+  // 폴링 응답은 tmpId로 업로드 맥락(mode/contractId/ipId)과 추출 결과를 복원한다.
+  // 검증 이후에는 서버 staging에 저장된 사용자 수정본이 result로 돌아온다.
   getUploadJob: async (tmpId) => {
     return normalizeJob(await request(`/extract/${tmpId}`));
   },
   // HITL 검증 화면 → "충돌검사 실행" 클릭 시 호출. API 명세서 #5 POST /contracts/verify —
-  // master 스키마에 실제로 INSERT를 시도해보고 무조건 롤백한다(결과만 받고 아무것도 안 남음).
-  // HITL에서 고친 값은 서버에 저장하지 않고 화면 상태로만 들고 있다가 이 호출과
-  // saveContract 호출에만 실어 보낸다.
+  // tmpId와 patch를 보내면 서버가 사용자 수정본을 staging에 저장한 뒤 그 값으로 판정한다.
+  // 이 단계는 예상 충돌검사라 최종 계약/권리 INSERT는 하지 않는다.
   verifyContract: async (payload) => {
-    // 화면 상태는 그대로 유지하고, 실제 요청 직전에 API가 요구하는 grantor/grantee와
-    // 파일 메타데이터 중심의 스키마로 변환한다.
     const result = await request(`/contracts/verify`, { method: "POST", body: JSON.stringify(buildVerifyPayload(payload)) });
     return normalizeVerifyResult(result, payload);
   },
-  // "저장" 버튼 → API 명세서 #6 POST /contracts. 충돌 여부와 무관하게 항상 커밋된다
-  // (충돌이면 draft/conflicted로, 아니면 mode에 따라 draft·signed/applied로).
+  // "저장" 버튼 → API 명세서 #6 POST /contracts. 서버가 staging 수정본과 원본 PDF를 읽어
+  // contract_history를 먼저 남기고, 가능한 경우 rights_grant를 확정한다.
   saveContract: async (payload) => {
     return request(`/contracts`, { method: "POST", body: JSON.stringify(buildConfirmPayload(payload)) });
   },
