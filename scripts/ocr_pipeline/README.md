@@ -117,28 +117,69 @@ python scripts/ocr_pipeline/build_goldset.py
 python scripts/ocr_pipeline/build_extraction_goldset.py
 ```
 
-`ground_truth.json` 에서 **필드 추출 채점에 필요한 것만** 추려
-`eval/extraction_goldset.json` 으로 편다. 충돌 판정(scenarios·findings)과
-Evidence 위치는 뺀다.
+**Task2 출력과 같은 모양으로 정답을 만든다.** 목표 형식은
+`k-rights.db-contract-projection.v0.1` 이라 필드 경로를 그대로 맞대면 된다.
 
 | | 무엇을 채점하나 |
 |---|---|
 | `retrieval_goldset.json` | "이 필드의 근거가 **어느 조항**인가" — Task1 |
-| `extraction_goldset.json` | "그 조항에서 **어떤 값**을 뽑아야 하나" — Task2 |
+| `extraction_goldset.json` | "그 조항에서 **어떤 값**을 뽑나" — Task2 |
 
-**`field_status` 를 그대로 남긴다.** `ABSENT`·`UNRESOLVED` 는 오답이 아니라
-정답이기 때문이다. `UNRESOLVED` 인 기간에 날짜를 지어내면 **오답이자 위험한
-오답**이다 — 없는 권리기간을 만들어내는 것이다. 그래서 채점이 두 축이다.
+### 정답이 네 곳에 흩어져 있다
 
-    ① status 를 맞혔는가   확정 가능/불가를 옳게 판단했는가
-    ② values 를 맞혔는가   status 가 PRESENT_* 일 때만 의미가 있다
+`ground_truth.json` 하나로는 안 된다. **계약 기본 정보와 금액이 거기 없다.**
 
-**작품은 제목으로 대조한다.** GT 는 `C007` 같은 dataset ID 로 가리키는데 이
-ID 는 DB payload 에 넣지 않기로 규격이 정했다. `content_registry.yaml` 에서
-계약서 언어의 제목을 끌어와 `titles` 에 넣어 둔다.
+| 출처 | 무엇 |
+|---|---|
+| `annotations/ground_truth.json` | 권리(grant) 필드 + `field_status` |
+| `manifests/contract_pdf_manifest.json` | `document_title` |
+| `authoring/contract_generation.yaml` | `agreement_date` · `parties` · **금액** |
+| `authoring/content_registry.yaml` | 작품 제목(언어별) |
+| `taxonomies/territory_ontology.yaml` | 지역 용어 전개 규칙 |
 
-**payment 는 측정 불가**다. 86건 전부 `NOT_YET_PROJECTED` 라 정답 값이 없다.
-조용히 0% 로 집계되면 결함처럼 보이므로 정답지에 명시해 뒀다.
+`ground_truth.json` 의 `payment_projection` 은 86건 전부 `NOT_YET_PROJECTED` 라
+쓸 수 없다. 실제 금액은 `commercial_terms.contract_value` 에 있고 86/86 이
+`PRESENT_EXPLICIT` 다.
+
+### `field_status` 를 따로 싣는다
+
+**`ABSENT` 와 `UNRESOLVED` 는 오답이 아니라 정답이다.** `UNRESOLVED` 인 기간에
+날짜를 지어내면 **오답이자 위험한 오답**이다 — 없는 권리기간을 만들어내는 것이다.
+그래서 채점이 두 축이다.
+
+    ① status  확정 가능/불가를 옳게 판단했는가   field_status 블록
+    ② value   status 가 PRESENT_* 일 때만 의미   expected 블록
+
+규격이 `field_status` 를 DB payload 에서 제외하라고 했으므로 `expected` 밖으로
+분리해 뒀다. 채점 보조값이지 정답 payload 의 일부가 아니다.
+
+### 변환에서 주의할 것
+
+**`territory_scopes` 의 `values` 는 최종 국가 목록이 아니다.**
+
+    {"values":["ASIA"],      "defined_values":["JP","SG"]}  -> term ASIA,      members [JP,SG]
+    {"values":["KR"],        "defined_values":[]}           -> term KR,        members [KR]
+    {"values":["WORLDWIDE"], "excluded_values":["US"]}      -> term WORLDWIDE, members null
+    {"values":["APAC"],      "defined_values":[]}           -> term APAC,      members null
+
+`members: null` 은 **열거할 수 없음**이고 빈 배열은 **제외 후 남은 국가가 없음**
+이다. 구분해야 한다. ASIA·APAC 은 기본 멤버가 없고 자동 전개도 하지 않는다
+(`territory_ontology.yaml`).
+
+**작품은 제목으로 대조한다.** GT 는 `C007` 같은 dataset ID 로 가리키는데 그 ID 는
+DB payload 에 넣지 않기로 규격이 정했다. 계약서 언어의 제목으로 바꿔 둔다.
+
+**`_` 로 시작하는 키**(`_grant_id`, `_excluded`)는 정답 payload 의 일부가 아니다.
+추적·채점 보조용이므로 대조에서 뺀다.
+
+### 열린 질문 2건 (정답지 안에 `open_questions` 로 기록)
+
+- **`scope_type` 의 `DERIVATIVE`(7건)에 대응하는 규격값이 없다.** 규격 허용값은
+  `SERIES|SEASON|EPISODE|EDIT|MANIFESTATION|OST_MASTER|UNSPECIFIED` 다.
+  `UNSPECIFIED` 로 접으면 리메이크 계약과 범위 미특정 계약이 구분되지 않아
+  원값을 그대로 뒀다.
+- **`{term, members}` 만으로는 "전세계에서 미국 제외"를 표현할 수 없다.**
+  `members: null` + `_excluded: ["US"]` 로 뒀다.
 
 ## 4. `paraphrase.py` — held-out 집합
 
