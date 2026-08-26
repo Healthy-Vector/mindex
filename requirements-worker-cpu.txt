@@ -1,0 +1,10 @@
+# Kubernetes CPU Worker 전용 ML 의존성
+#
+# P3의 requirements-ml.txt는 개발 GPU·macOS 환경 설정을 유지한다.
+# 이 파일은 Docker Desktop Linux arm64 Worker에서 실제 Embedding을
+# 실행하기 위한 P1 배포 프로파일이다.
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.13.0+cpu
+sentence-transformers==6.0.*

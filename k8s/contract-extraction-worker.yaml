@@ -26,7 +26,7 @@ spec:
             - name: MINDEX_REPOSITORY
               value: pg
             - name: MINDEX_RETRIEVE_FN
-              value: service.worker.contract_extraction.retrieval_adapter:retrieve_contract_chunks
+              value: app.pipeline.service:retrieve_contract_chunks
             - name: OLLAMA_BASE_URL
               value: http://host.docker.internal:11434
             - name: DATABASE_URL

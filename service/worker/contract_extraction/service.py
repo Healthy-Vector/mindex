@@ -39,14 +39,14 @@ def run_extraction(
 
     if on_stage:
         on_stage("LLM")
-    bundle_dict = bundle.to_dict()  # extractor/validator 는 RetrievalBundle 의 dict 형태를 받는다
+    bundle_dict = bundle.model_dump(mode="json")  # extractor/validator 는 RetrievalBundle 의 dict 형태를 받는다
     raw = extract_contract(bundle_dict, extractor=extractor)
     validation = validate(raw, bundle_dict)
     normalized = normalize_contract(raw)
     compact = project(
         normalized,
         request_id=request_id or f"req-{uuid.uuid4().hex[:12]}",
-        source_document_ref=bundle.document_id(),
+        source_document_ref=bundle.document.file_hash,
     )
 
     return ExtractionResult(raw=raw, validation=validation, normalized=normalized, compact=compact)
