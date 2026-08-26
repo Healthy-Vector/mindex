@@ -86,6 +86,20 @@ class IpDuplicate(AppError):
     http_status = 409
 
 
+class AssetInUse(AppError):
+    """권리 대상(content_asset)을 더 이상 바꿀 수 없는 상태.
+
+    두 경우를 같은 코드로 묶되 message 로 구분한다:
+    ① rights_grant 가 참조 중 — 이미 판정된 권리의 대상 범위가 사후에 바뀌면
+       판정 결과가 거짓이 된다(details.rightsGrantCount).
+    ② IP 의 마지막 자산 — 사라지면 save_rights_batch() 의 기본 자산 조회가
+       깨진다(details.assetCount).
+    """
+
+    code = "ASSET_IN_USE"
+    http_status = 409
+
+
 class AlreadyCancelled(AppError):
     code = "ALREADY_CANCELLED"
     http_status = 422

@@ -2,6 +2,178 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-26 — verify/confirm의 staging 병합(D-34), 원본 PDF 서버 저장소(D-34b), 세대별 조회
+
+팀장 확인으로 D-32/D-33의 ⑥·⑦ 단계를 재설계했다. 함께 확인한 두 가지가 드러나
+같이 처리했다 — ⑧(확정)의 B안이 문서에만 있고 코드에 없었던 것, 그리고 계약 원본
+PDF의 저장 위치가 어디에도 정해져 있지 않았던 것.
+
+### ⑥·⑦ — verify가 수정본을 staging에 반영하고 저장된 값으로 판정한다
+
+- `POST /contracts/verify`가 `tmpId` + `patch`를 받는다. patch는 화면 DTO
+  shape의 JSON Merge Patch(RFC 7386, `app/services/merge_patch.py`)다. 서버가
+  `staging.extract_result.payload`에 반영해 **먼저 커밋**한 뒤 저장된 값으로
+  `validate_rights_batch()`를 부른다. 판정은 종전대로 롤백되고 수정본만 남는다.
+- **`payload`를 덮어쓰지 않고 `edited` 키를 더한다.** `to_upload_result()`(워커 원본
+  → 화면 DTO)가 단방향·손실 변환이라 역변환기를 만들 수 없다 — DTO로 덮어쓰면
+  `_raw()`가 `raw.contract`를 못 찾아 재조회 자체가 깨진다. `{raw, validation,
+  edited}` 구조로 두고 `GET /extract/{tmpid}`는 `edited`가 있으면 그걸 돌려준다.
+  `ipCandidates`는 저장값이 아니라 조회 시점에 매번 다시 뽑는다.
+- `rights` 배열은 부분수정하지 않고 통째로 교체한다(RFC 7386 규정). staging payload의
+  권리 행에 안정적인 식별자가 없어 원소 단위 병합 규칙을 세울 근거가 없다.
+- 기존 전체 body 직접 호출 경로는 그대로 받는다(수기 등록·테스트).
+
+### ⑧ — B안이 코드에 없었다
+
+`mindex_staging DB 설명서` §3 ⑧과 WORKLOG(2026-08-22 "팀장 확인: B안 확정")에
+"tmpid로 `extract_result`를 읽어 저장 쿼리를 만든다"로 확정돼 있었는데, 구현은
+요청 body만 쓰는 A안이었고 `payload`를 SELECT해놓고 `status`만 보고 버리고 있었다.
+이제 `tmpId`가 오면 `edited`(없으면 `raw`)를 읽어 배치를 만든다 — 화면이
+`rights`를 되보내지 않아도 되고 `evidence`·`conditionsRaw`도 서버가 채운다.
+
+### 원본 PDF 저장소 — 아예 없었다
+
+`Settings`·`.env.example`·`docker-compose.yml` 어디에도 저장 디렉터리가 없었고
+`contract_history.file_path`는 **클라이언트가 보낸 자유 문자열**이었다. 테스트마다
+값이 제각각(`/tmp/contract.pdf`, `s3://batch/1.pdf`, `contracts/a.pdf`)인 게 그
+증거다. 그리고 `GET /contracts/{id}/file`이 그 문자열에 `os.path.isfile()`을 걸어
+그대로 `FileResponse`로 내려주고 있었다 — **`filePath`에 `/etc/passwd`를 넣어
+확정한 뒤 조회하면 서버 파일이 그대로 나가는 임의 파일 읽기였다.**
+
+- `CONTRACT_STORAGE_DIR`(기본 `./data/contracts`)을 신설했다. 확정 시
+  `staging.pdf_blob.data`를 `{contract_id}/{history_id}.pdf`로 쓰고
+  `contract_history.file_path`에는 저장소 기준 **상대 경로**만 남긴다. `file_hash`는
+  서버가 SHA-256으로 계산한다. object storage는 도입하지 않는다.
+- 읽을 때 `resolve_contract_pdf()`가 저장소 경계 밖(절대 경로·`..`)을 거부한다.
+  과거 자유 문자열 행도 같은 이유로 `404 NO_SOURCE_FILE`이 된다.
+- 세대 id는 INSERT 시점에 모르므로 `file_path`를 `pending`으로 넣고 같은 트랜잭션에서
+  UPDATE한다.
+
+### 세대별 조회 (이전 버전 상세)
+
+데이터는 원래 다 있었다 — `rights_grant.contract_history_id`가 세대를 물고 있고
+구세대 행은 `superseded`로 남는다. API가 `WHERE rg.status='active'`로 현재 세대만
+보여주고 있었을 뿐이다.
+
+- `GET /contracts/{id}?historyId=N` — 그 세대의 권리(terminated 포함).
+- `GET /contracts/{id}/file?historyId=N` — 그 세대의 원본 PDF.
+- 둘 다 세대가 이 계약 소속인지 확인한다. 안 하면 id만 갈아끼워 남의 계약을
+  들여다볼 수 있다(IDOR).
+
+### 권한 경계 — 넓혔다 (D-34c)
+
+`staging_confirm_api`에 `extract_result` UPDATE(수정본 반영)와 `pdf_blob`
+SELECT(원본 이관)를 줬다. 후자는 D-32/D-33이 "확정 단계에 PDF 원본 바이트는 필요
+없다"며 의도적으로 막아뒀던 권한이다. **P-4 기준에서는 후퇴다** — `raw` 보존이 DB
+제약이 아니라 애플리케이션 규약에만 의존하게 됐다. 좁히려면 `edited`를 별도 컬럼으로
+분리해야 하는데 payload 한 컬럼 유지가 이번 결정이라 후속 과제로 남긴다.
+
+### 검증
+
+- `python -m pytest tests/test_unit_pure.py tests/test_staging_merge_unit.py
+  tests/test_staging_verify_api.py -q` → **29 passed, 11 skipped**.
+  `ruff check app/ tests/` → All checks passed.
+- 통과한 것 중 이번 작업 몫은 `tests/test_staging_merge_unit.py` 14건이다 — merge
+  patch 규칙(스칼라 치환·null 삭제·배열 전체교체·target 불변)과 저장 경로 해석
+  (저장소 안/절대 경로 거부/`..` 거부/파일 없음).
+- **`tests/test_staging_verify_api.py`의 `@requires_db` 11건은 이 세션에 PostgreSQL이
+  없어 전부 skip됐다 — 실행된 적이 없다.** verify가 수정본을 남기는지, patch가
+  누적되는지, 확정이 staging을 읽고 PDF를 옮기는지, 세대별 조회와 IDOR 차단,
+  저장소 밖 경로 거부가 전부 여기 있다. **DB 있는 환경에서 반드시 한 번 돌려야 한다.**
+- `sql/init/07_staging_roles.sql` 변경도 실행 검증을 못 했다. `docker compose down -v
+  && docker compose up`으로 초기화 스크립트가 실제로 도는지 확인이 필요하다.
+
+### 남은 일
+
+- staging 경유로 들어오지 않은 계약(수기 등록)은 `filePath`가 여전히 클라이언트
+  값이다. 저장은 되지만 조회에서 거부되므로 원본을 볼 수 없다 — 수기 등록에 업로드
+  경로를 붙일지는 따로 정해야 한다.
+- 프론트가 verify를 patch 방식으로 호출하도록 바꾸는 작업(현재 `api/client.js`는
+  전체 body 전송).
+- O-14(payload 평문 원문 인용 암호화 여부)는 그대로 미결이고, `edited`가 생기면서
+  평문 범위가 한 겹 늘었다.
+
+## 2026-08-26 — IP 자산(권리 대상) 수정 API (D-35)
+
+`PATCH /ips/{id}`에 자산 필드가 없어 화면에서 "권리 대상"을 등록만 하고 수정은
+못 하던 것을 열었다. 설계서 §14의 "자산 수정은 이 API 범위가 아닙니다"부터 고쳤다.
+
+- 행 단위 별도 엔드포인트 3개(§18): `POST /ips/{id}/assets`(201),
+  `PATCH /ips/{id}/assets/{assetId}`(200), `DELETE /ips/{id}/assets/{assetId}`(204).
+  등록 API의 `assets`처럼 배열 전체를 받는 경로를 만들지 않았다 — 빈 배열이 기존
+  자산을 지우는 사고를 구조적으로 막는 게 이 형태를 고른 이유다.
+- 권리가 걸린 자산과 IP의 마지막 자산은 `409 ASSET_IN_USE`(`app/errors.py` 신설).
+  `details`의 `rightsGrantCount` / `assetCount`로 두 경우를 구분한다. `terminated`
+  권리도 센다 — 종료됐어도 판정 이력은 남는다.
+- 부분 수정은 기존 행과 병합한 뒤 scope 정합성을 검증한다(`AssetPatch.merged_with()`).
+  DB CHECK 위반이 500으로 새지 않고 `400 VALIDATION_FAILED`가 되게 하려는 것이다.
+- `frontend/src/api/client.js`에 함수 3개를 추가하면서 `request()`에 204 분기를
+  넣었다 — 기존 구현이 무조건 `res.json()`을 호출해 204에서 파싱 에러가 났다.
+
+### 검증
+
+- `python -m pytest tests/test_p2_api.py tests/test_unit_pure.py -q` → **14 passed,
+  23 skipped**. 이번 몫으로 실제 실행된 건 `AssetPatch` 병합·검증 순수 테스트 2건이다.
+- **통합 테스트 6건은 PostgreSQL이 없어 전부 skip됐다 — 실행된 적이 없다.**
+  추가·부분수정 성공, 다른 IP 자산 접근 404, 권리 걸린 자산 409, 마지막 자산 삭제
+  409, scope 병합 위반 400이 여기 있다. DB 있는 환경에서 확인이 필요하다.
+
+### 남은 일
+
+- `IpForm.jsx`의 edit 모드 assets 입력은 여전히 숨겨져 있다. 행 단위 API에 맞춰 폼
+  저장 흐름을 재설계해야 켤 수 있고, `mock/ipDirectory.js` 대응 구현도 그때 함께
+  채워야 한다.
+- `content_asset.parent_id`(시리즈 → 시즌 → 에피소드 계층)는 컬럼만 있고 API가 쓰지
+  않는다.
+
+## 2026-08-26 — 계약 목록 기간별 상태값 5종과 displayStates 필터
+
+- `compute_display()`가 `(displayState, daysToExpiry, expiringTier)` 3-튜플을 돌려주도록
+  바꿨다. 상태는 `PRE_CONTRACT | BEFORE_TERM | IN_TERM | EXPIRING | EXPIRED` 5종이며,
+  `contract.status='draft'`면 기간과 무관하게 `PRE_CONTRACT`가 우선한다. 계약 체결일
+  (`signed_date`)은 상태 판정에 쓰지 않는다 — 업무 상태 컬럼 하나만 보는 편이 화면과
+  API의 기준이 어긋나지 않는다.
+- `BEFORE_TERM`의 의미를 "유효기간 전"으로 좁혔다. 예전에는 계약 체결 전까지 포함하는
+  값이었고, 그 몫은 이제 `PRE_CONTRACT`가 받는다.
+- 만료임박 3단계를 `expiringTier(30 | 60 | 90)`로 API에 노출했다. 경계는 프론트
+  `lib/contractStatus.js`와 동일하다 — 잔여 90일 이상이면 `IN_TERM`, 미만이면
+  `EXPIRING`이고 tier는 잔여 30일 이하 30, 60일 이하 60, 그 외 90이다.
+- `GET /contracts`에 `displayStates` 쿼리 파라미터를 추가했다. 콤마 구분 다중값이고
+  대문자로 정규화하며, 미지원 값이 하나라도 섞이면 `400 VALIDATION_FAILED`다. 목록이
+  전건 조회 후 파이썬에서 페이징하는 구조라 필터를 items 조립 루프에서 걸어 `total`도
+  필터를 반영한다. `displayStates`가 오면 처리 중(processing) 항목은
+  `includeProcessing`과 무관하게 빠진다 — 그쪽엔 `displayState`가 없다.
+- 목록 응답에 `periodStart` / `periodEnd`(포함값) / `expiringTier`를, 상세 응답에
+  `expiringTier`를 추가했다.
+- `_parse_display_states()`가 쓰는 `ValidationFailed`가 `app/routers/contracts.py`
+  import에 빠져 있어 필터를 쓰면 `NameError`가 나던 것을 고쳤다.
+- `frontend/src/labels.js` — `DISPLAY_STATE_LABEL`에 `PRE_CONTRACT: "계약 전"`을 넣고
+  `BEFORE_TERM`을 "계약/유효기간 전" → "유효기간 전"으로 바꿨다.
+  `lib/contractStatus.js`의 계산 로직은 그대로 두고 상단 설명 주석만 현행에 맞췄다.
+- `docs/mindex-API설계서.md` §7·§8 — enum 5종, `displayStates` 파라미터, 응답 필드와
+  JSON 예시, 판정 순서와 `BEFORE_TERM` 의미 변경을 반영했다.
+
+### 검증
+
+- `python -m pytest -q` → **19 passed, 90 skipped, 0 failed**(전체 109건).
+  `python -m pytest tests/test_unit_pure.py tests/test_p2_api.py -q` → **12 passed,
+  17 skipped**. 통과한 12건은 DB 없이 도는 순수 단위 테스트이고, `test_display_states`
+  (draft·기간 없음·BEFORE_TERM·IN_TERM·EXPIRED)와 새로 넣은
+  `test_display_expiring_tier_boundaries`(잔여 91/90/89/61/60/31/30/1/0일의 state와
+  tier)가 여기 포함된다.
+- **`tests/test_p2_api.py`는 이 세션에 PostgreSQL이 없어 전부 skip됐다** — 새로 넣은
+  `displayStates` 단일/다중 필터, 400 응답, 목록의 periodStart·periodEnd·expiringTier,
+  상세의 expiringTier 4건은 아직 실제로 돌지 않았다. DB 기동 후 재실행이 필요하다.
+- `node --test frontend/src/lib/contractStatus.test.js` → 1 pass. 계산 로직을 건드리지
+  않았음을 확인했다.
+
+### 남은 일
+
+- 목록 API는 계약 1건마다 rights_grant 집계 쿼리를 한 번씩 돌린다(N+1). 이번 범위
+  밖으로 두기로 했고, 필터를 SQL로 내리려면 이 집계부터 한 번에 모아야 한다.
+- `components/StatusBadge.jsx` 상단 주석이 아직 4단계 enum을 설명한다. 컴포넌트
+  동작에는 영향이 없어 이번엔 그대로 뒀다.
+
 ## 2026-08-22 — D-32 임시 DB 비동기 파이프라인 도입 (pdf_cache 대체)
 
 팀장이 확정한 `docs/mindex-임시DB-비동기파이프라인.html` 설계를 반영했다.

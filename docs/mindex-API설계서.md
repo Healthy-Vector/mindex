@@ -70,6 +70,7 @@
 |17|GET|`/ips/{id}`|IP 상세 조회|P4|㉯ IP 상세 조회|`/ips` 상세 패널|
 |13|POST|`/ips`|IP 등록|P4|㉰ IP 신규 등록|UI-D-002 · 업로드 중 등록|
 |14|PATCH|`/ips/{id}`|IP 수정·활성화|P4|㉯ IP 상세·수정|`/ips` 상세 패널|
+|18|POST·PATCH·DELETE|`/ips/{id}/assets[/{assetId}]`|권리 대상 관리|P4|㉯ IP 상세·수정|`/ips` 상세 패널|
 |15|POST|`/search`|통합 검색|P4|Ⓐ 진입|`/search`|
 |16|GET|`/refs`|참조 코드 목록|P4|전 구간|드롭다운·필터|
 
@@ -79,7 +80,7 @@
 |---|---|---|
 |**계약서 등록** ①~⑥|있음|2 → 3(폴링) → 4 → 5 → 6|
 |**계약서 열람** Ⓐ~Ⓓ|있음|7·15 → 1 → 8 → 9·10|
-|**IP 관리** ㉮~㉰|없음|12 / 17·14 / 13|
+|**IP 관리** ㉮~㉰|없음|12 / 17·14·18 / 13|
 
 **상태를 바꾸는 동작** — 11(계약 종료), 그리고 계약 상세의 "버전·최종 계약 등록" 버튼(2번으로 등록 흐름 재진입). 열람 중 계약 상세에서 갈라져 나갑니다.
 
@@ -370,6 +371,21 @@ GET /api/ips/match?q=겨울왕국%20시즌2&limit=10&includeInactive=false
 
 사용자가 값을 다 확인한 뒤 "충돌검사 실행"을 누르면 호출됩니다. `public.validate_rights_batch()`가 실제 저장과 같은 INSERT·제약 경로로 판정한 뒤 내부 서브트랜잭션을 항상 되돌립니다. Python에서 별도의 충돌 알고리즘을 만들지 않습니다.
 
+**호출 방식이 두 가지입니다(D-34).**
+
+| 경로 | 보내는 것 | 서버가 하는 일 |
+|---|---|---|
+| **staging 경로** (업로드에서 이어지는 정상 흐름) | `tmpId` + `patch` + 화면이 확정하는 값(`grantor`/`grantee`/`ipId`/`contractId`) | 사용자가 고친 값을 `staging.extract_result.payload.edited`에 **먼저 반영·커밋**한 뒤, **저장된 값으로** 판정합니다. `rights`·`fileName`·`filePath`·`fileHash`는 보내지 않습니다 |
+| **직접 경로** (수기 등록·테스트) | 종전대로 전체 body | 요청 값 그대로 판정합니다 |
+
+`patch`는 3번 응답의 `result`와 같은 shape에 대한 **JSON Merge Patch(RFC 7386)** 입니다. 사용자가 고친 필드만 보내면 됩니다.
+
+- `null`을 보내면 그 키를 지웁니다.
+- **배열은 원소 단위로 병합되지 않고 통째로 교체됩니다.** `rights`를 고칠 때는 전체 목록을 보내세요.
+- 재검증하면 이전 수정본 위에 누적됩니다. `GET /extract/{tmpid}`도 이후로는 수정본을 돌려줍니다.
+
+판정 결과는 롤백되지만 **수정본은 남습니다.** 그래서 확정(6번)에서 같은 값을 다시 보낼 필요가 없습니다.
+
 권리 한 행은 다음 원자 단위로 판정합니다.
 
 ```text
@@ -386,13 +402,15 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`grantor`|string|O|권리를 주는 쪽|
 |`grantee`|string|O|권리를 받는 쪽|
 |`ipId`|int·null|X|확정된 IP. 신규 작품이면 null 가능|
-|`fileName`|string|O|원본 파일명|
-|`filePath`|string|O|원본 저장 경로|
-|`fileHash`|string|O|원본 해시|
+|`tmpId`|uuid·null|X|추출 작업 id. 있으면 staging 경로|
+|`patch`|object·null|X|화면 DTO 부분수정(RFC 7386). `tmpId`와 함께만 씁니다|
+|`fileName`|string·null|△|직접 경로에서만 필수|
+|`filePath`|string·null|△|직접 경로에서만 필수. **staging 경로에서는 무시됩니다** — 저장 경로는 서버가 정합니다(D-34b)|
+|`fileHash`|string·null|△|직접 경로에서만 필수. staging 경로에서는 서버가 원본에서 계산합니다|
 |`mimeType`|string·null|X||
 |`rawText`|string·null|X|추출 원문|
 |`documentKind`|enum|X|`draft` / `final`. 기본 draft|
-|`rights`|array|O|한 건 이상인 최종 조건 목록|
+|`rights`|array·null|△|직접 경로에서만 필수. staging 경로에서는 저장된 수정본에서 읽습니다|
 
 `rights[]` 원소
 
@@ -489,11 +507,11 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 `public.save_rights_batch()`가 계약 세대와 권리를 한 트랜잭션으로 처리합니다.
 
-1. `sourceTmpid`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 확인
+1. `tmpId`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 확인
 2. 이미 `contract.source_tmpid`에 사용 중인 값인지 검사 — 재사용이면 `409 ALREADY_CONFIRMED`
 3. 같은 계약의 동시 버전 등록은 contract 행을 `FOR UPDATE`로 잠금
 4. 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
-5. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 `staging.extract_job.consumed_at`을 기록
+5. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 **원본 PDF를 서버 저장소로 옮기고**(`staging.pdf_blob.data` → `{contract_id}/{history_id}.pdf`) `contract_history.file_path`·`file_hash`를 기록한 뒤 `staging.extract_job.consumed_at`을 기록
 5. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
 6. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
 
@@ -501,17 +519,19 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 ### payload
 
-5번 검증 API와 같은 필드에 선택 `chunks[]`와 `sourceTmpid`가 추가됩니다. 검증 이후 값을 수정했을 수 있으므로 계약과 권리 전체를 다시 보냅니다.
+5번 검증 API와 같은 필드에 선택 `chunks[]`가 추가됩니다.
+
+**`tmpId`를 보내면 화면이 계약과 권리 전체를 다시 보낼 필요가 없습니다(D-34).** 서버가 `staging.extract_result.payload.edited`(검증 때 반영된 수정본, 없으면 워커 원본)를 읽어 저장 배치를 만듭니다. `evidence`·`conditionsRaw`처럼 화면이 들고 있지 않은 값도 서버가 채웁니다.
 
 |필드|타입|필수|설명|
 |---|---|---|---|
 |`contractId` / `grantor` / `grantee` / `ipId`|-|-|5번과 동일|
-|`fileName` / `filePath` / `fileHash`|-|-|5번과 동일|
+|`tmpId`|uuid·null|X|추출 작업 id이자 중복 확정 차단 키. 있으면 staging 경로|
+|`fileName` / `filePath` / `fileHash`|-|△|5번과 동일. **staging 경로에서는 무시되고 서버가 채웁니다**|
 |`mimeType` / `rawText`|-|-|5번과 동일|
 |`documentKind`|enum|X|`draft` / `final`. 기본 final|
-|`rights`|array|O|5번과 동일한 2축 권리 목록|
+|`rights`|array·null|△|직접 경로에서만 필수. staging 경로에서는 저장된 수정본에서 읽습니다|
 |`chunks`|array|X|검색용 문서 청크|
-|`sourceTmpid`|uuid·null|X|추출 작업 id이자 중복 확정 차단 키|
 
 `chunks[]`
 
@@ -560,7 +580,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
       "embedding": null
     }
   ],
-  "sourceTmpid": "0a7c3f2e-9b41-4d55-8c10-2f4b7e1d9a33"
+  "tmpId": "0a7c3f2e-9b41-4d55-8c10-2f4b7e1d9a33"
 }
 ```
 
@@ -633,7 +653,10 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |파라미터|타입|필수|설명|
 |---|---|---|---|
 |`includeProcessing`|bool|X|기본 true. 처리 중 업로드 포함 여부|
+|`displayStates`|string|X|`displayState` 필터. 콤마로 여러 값(`EXPIRING,EXPIRED`), 대소문자 무시. 미지원 값이 하나라도 있으면 `400 VALIDATION_FAILED`|
 |`page` / `size`|int|X|기본 1 / 설정값, size 최대 100|
+
+`displayStates`를 주면 처리 중 항목은 `includeProcessing`과 무관하게 제외됩니다 — 처리 중인 건에는 `displayState`가 없기 때문입니다. 필터는 페이징 전에 적용되므로 `total`도 필터를 반영합니다.
 
 ### response
 
@@ -653,8 +676,11 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`grantor` / `grantee`|string|권리를 주는 쪽 / 받는 쪽|
 |`status`|enum|`draft` / `signed` / `cancelled`|
 |`hasConflict`|bool|최신 이력이 `conflicted`인지|
-|`displayState`|enum·null|`BEFORE_TERM` / `IN_TERM` / `EXPIRING` / `EXPIRED`|
-|`daysToExpiry`|int·null|만료까지 남은 일수|
+|`displayState`|enum·null|`PRE_CONTRACT` / `BEFORE_TERM` / `IN_TERM` / `EXPIRING` / `EXPIRED`|
+|`daysToExpiry`|int·null|종료일(포함)까지 남은 일수. 만료 후에는 음수, `BEFORE_TERM`이면 시작일까지 남은 일수|
+|`expiringTier`|int·null|`EXPIRING`일 때만 `30` / `60` / `90`. 그 밖에는 null|
+|`periodStart`|date·null|active 권리 중 가장 이른 시작일|
+|`periodEnd`|date·null|active 권리 중 가장 늦은 종료일. 포함값|
 |`serviceTitle`|null|스키마 미확정|
 |`signedDate` / `createdAt`|-||
 
@@ -692,6 +718,9 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
       "hasConflict": false,
       "displayState": "EXPIRING",
       "daysToExpiry": 17,
+      "expiringTier": 30,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-09-11",
       "serviceTitle": null,
       "signedDate": "2026-01-01",
       "createdAt": "2026-01-01T09:00:00+09:00"
@@ -703,7 +732,11 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 }
 ```
 
-`displayState`와 `daysToExpiry`는 저장된 값이 아니라 active 권리 기간으로 계산합니다.
+`displayState` · `daysToExpiry` · `expiringTier` · `periodStart` · `periodEnd`는 저장된 값이 아니라 active 권리 기간으로 계산합니다.
+
+`displayState` 판정 순서는 다음과 같습니다. `contract.status`가 `draft`면 기간과 무관하게 `PRE_CONTRACT`이고(계약 체결일은 판정에 쓰지 않습니다), active 권리가 없어 기간을 못 구하면 null입니다. 그 밖에는 오늘이 시작일 전이면 `BEFORE_TERM`, 종료일(포함)을 지났으면 `EXPIRED`, 잔여 90일 이상이면 `IN_TERM`, 90일 미만이면 `EXPIRING`이며 `expiringTier`는 잔여 30일 이하 `30`, 60일 이하 `60`, 그 외 `90`입니다.
+
+`BEFORE_TERM`의 의미가 좁아졌습니다 — 예전에는 계약 체결 전까지 포함하는 값이었지만, 지금은 "권리 유효기간이 아직 시작되지 않음"만 뜻하고 계약 체결 전은 `PRE_CONTRACT`로 따로 나갑니다.
 ---
 
 ## 8. 계약 상세 — `GET /contracts/{id}`
@@ -713,6 +746,15 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 **Ⓒ 계약서 상세.** Ⓑ PIN 세션이 선행됩니다.
 
 기본 정보, IP, active 권리, 전체 버전 이력, 최신 충돌 리포트를 한 번에 반환합니다. 충돌 세대에는 grant가 없으므로 사용자가 입력한 충돌 조건은 `histories[].conflictReport`에서 읽습니다.
+
+**`?historyId=N`을 붙이면 그 세대 기준으로 권리를 돌려줍니다(D-34).** 생략하면 종전대로 현재 점유 중인 active 권리입니다. 세대를 지정하면 `rights_grant.contract_history_id`로 묶어 **그 버전에 실제로 있었던 권리**를 보여주며, 개정판에서 `superseded`로 내려간 행도 포함됩니다(`rights[].status`로 구분).
+
+|파라미터|타입|필수|설명|
+|---|---|---|---|
+|`id`|int|O|계약 id|
+|`historyId`|int·null|X|이 계약의 세대 id. 다른 계약의 세대를 넣으면 `404 NOT_FOUND`|
+
+충돌(`conflicted`) 세대에는 `rights_grant` 행이 애초에 없으므로 `rights`는 빈 배열이고, 그 세대에 무엇을 입력했었는지는 `histories[].conflictReport`에서 읽습니다.
 
 ### payload
 
@@ -731,7 +773,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`currentVersion`|int·null|현재 유효 이력 버전|
 |`hasConflict`|bool|최신 이력이 conflicted인지|
 |`conflictReport`|object·null|최신 충돌 세대의 P2 리포트|
-|`displayState` / `daysToExpiry`|-|active 권리 기간 기반 화면 파생값|
+|`displayState` / `daysToExpiry` / `expiringTier`|-|active 권리 기간 기반 화면 파생값. 값의 정의는 §7과 같다|
 |`serviceTitle`|null|스키마 미확정|
 |`ips`|array|active 권리에서 참조한 IP 목록|
 |`rights`|array|현재 active 권리|
@@ -782,6 +824,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
   "conflictReport": null,
   "displayState": "IN_TERM",
   "daysToExpiry": 480,
+  "expiringTier": null,
   "serviceTitle": null,
   "ips": [{ "ipId": 12, "title": "겨울의 신호", "kind": "DRAMA" }],
   "rights": [
@@ -839,19 +882,29 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 **Ⓓ 원문·이력 열람.** 좌측 원본 문서 미리보기 패널에서 사용합니다. PIN 세션이 필요합니다.
 
-현재 이력의 `contract_history.file_path`, 없으면 최신 이력의 경로가 가리키는 원본을 반환합니다. 현재 구현은 로컬 파일 어댑터이며 object storage 연결은 남은 통합 작업입니다.
+현재 이력의 `contract_history.file_path`, 없으면 최신 이력의 경로가 가리키는 원본을 반환합니다.
+
+**`?historyId=N`으로 이전 버전 원본을 받을 수 있습니다(D-34).** 확정 시 서버가 세대마다 파일을 남기므로 버전별 조회가 성립합니다.
+
+저장 위치는 서버 내부 디렉터리(`CONTRACT_STORAGE_DIR`, 기본 `./data/contracts`)이며 object storage는 도입하지 않습니다(D-34b). **경로는 서버가 정하고 클라이언트가 지정할 수 없습니다** — 저장소 경계 밖을 가리키는 값은 조회에서 거부됩니다.
 
 ### payload
 
-|파라미터|타입|설명|
-|---|---|---|
-|`id`|int|계약 id|
+|파라미터|타입|필수|설명|
+|---|---|---|---|
+|`id`|int|O|계약 id|
+|`historyId`|int·null|X|이 계약의 세대 id. 생략하면 현재 세대|
 
 ### response
 
 `200 OK` · `Content-Type: application/pdf` · 바이너리 스트림
 
 원문이 없는 계약(수기 등록 등)은 `404` 와 `{"error":{"code":"NO_SOURCE_FILE"}}` 를 반환하고, 화면은 "원문 텍스트가 없습니다" 빈 상태를 표시합니다.
+
+다음 경우도 같은 `404 NO_SOURCE_FILE`입니다.
+
+- `historyId`가 이 계약의 세대가 아닐 때 — id만 갈아끼워 남의 계약 원본을 받아갈 수 없습니다
+- 저장된 경로가 저장소 경계 밖일 때 — D-34b 이전에 자유 문자열로 기록된 행(`/tmp/...`, `s3://...`)이 여기 해당합니다
 
 ---
 
@@ -1184,7 +1237,7 @@ GET /api/ips?page=1&size=20
 
 ### response
 
-`200 OK` — 17번과 같은 구조의 단일 IP 객체를 돌려줍니다. 자산 수정은 이 API 범위가 아닙니다.
+`200 OK` — 17번과 같은 구조의 단일 IP 객체를 돌려줍니다. 응답의 `assets[]`는 현재 상태를 그대로 보여주지만, 이 API로는 바꿀 수 없습니다 — 권리 대상 수정은 **18번**의 행 단위 엔드포인트를 씁니다.
 
 ```json
 {
@@ -1204,6 +1257,95 @@ GET /api/ips?page=1&size=20
 ```
 
 `contractCount` 가 0보다 큰 IP를 비활성화해도 기존 계약 조회에는 영향이 없습니다. 새 계약을 만들 때 목록에 안 나올 뿐입니다.
+
+---
+
+## 18. 권리 대상 관리 — `POST · PATCH · DELETE /ips/{id}/assets`
+
+### API 역할 및 사용되는 프로세스 위치
+
+**㉯ IP 상세·수정.** `UI-D-001` 우측 상세 패널의 "권리 대상"(DB의 `content_asset`) 목록을 편집합니다. 권리 대상은 IP 안에서 권리를 걸 수 있는 범위 단위(`SERIES_ALL` / `SEASON` / `EPISODE` / `EDITION`)이고, 충돌 판정의 원자 단위가 `contentAssetId × territory × legalRight × exploitationMode × period`라 **판정 축의 하나**입니다.
+
+|메서드|경로|하는 일|
+|---|---|---|
+|`POST`|`/ips/{id}/assets`|행 하나 추가|
+|`PATCH`|`/ips/{id}/assets/{assetId}`|행 하나 부분 수정|
+|`DELETE`|`/ips/{id}/assets/{assetId}`|행 하나 삭제|
+
+**전체 교체가 아니라 행 단위입니다.** 14번의 `aliases`처럼 배열 통째로 받으면 빈 배열 한 번에 기존 권리 대상이 전부 사라지고, 그 대상을 참조하던 권리의 판정 근거가 함께 무너집니다. 그래서 이 API만 별도 경로로 열었습니다.
+
+**권리가 걸린 대상은 읽기 전용입니다.** `rights_grant`가 해당 `contentAssetId`를 한 건이라도 참조하면 `PATCH`·`DELETE` 모두 `409 ASSET_IN_USE`입니다(`status`가 `terminated`인 권리도 셉니다 — 판정 이력이 남아 있습니다). 이미 판정이 끝난 권리의 대상 범위가 사후에 바뀌는 것을 막습니다.
+
+**마지막 한 행은 지울 수 없습니다.** P2 트리거 `ensure_default_content_asset()`이 IP 생성 시 `SERIES_ALL` 한 행을 보장하는 이유가 "모든 권리 등록이 유효한 `contentAssetId`를 갖도록"인데, 마지막 행이 사라지면 `save_rights_batch()`의 기본 대상 조회가 깨집니다. 같은 `409 ASSET_IN_USE`지만 `details`로 구분합니다.
+
+`parentId`(상하위 대상 관계)는 아직 이 API 범위가 아닙니다. 컬럼은 있으나 값을 받지 않습니다.
+
+### payload
+
+`POST`의 본문은 13번 `assets[]`의 원소와 같습니다.
+
+|필드|타입|필수|설명|
+|---|---|---|---|
+|`scopeType`|enum|X|`SERIES_ALL`(기본) / `SEASON` / `EPISODE` / `EDITION`|
+|`title`|string·null|X|대상 이름|
+|`assetType`|string|X|기본 `MAIN`|
+|`seasonNo`|int·null|X|`SEASON` · `EPISODE`에만|
+|`episodeNo`|int·null|X|`EPISODE`에만|
+|`editionCode`|string·null|X|`EDITION`에만|
+
+```json
+{ "scopeType": "SEASON", "title": "시즌 2", "assetType": "MAIN", "seasonNo": 2 }
+```
+
+`PATCH`는 같은 필드를 모두 선택으로 받습니다. **보낸 필드만 반영**하고, 명시적 `null`은 값을 비웁니다.
+
+```json
+{ "scopeType": "SERIES_ALL", "seasonNo": null }
+```
+
+`scopeType`만 좁은 범위에서 넓은 범위로 바꾸면 기존 `seasonNo`·`episodeNo`가 남아 DB CHECK 제약(`content_asset_season_scope` 등)에 걸립니다. 서버가 **기존 행과 병합한 뒤** 같은 규칙으로 검증하므로, 위 예시처럼 비울 필드를 함께 보내야 합니다. 병합 결과가 규칙을 어기면 `400 VALIDATION_FAILED`입니다.
+
+`DELETE`는 본문이 없습니다.
+
+|파라미터|타입|설명|
+|---|---|---|
+|`id`|int|IP id|
+|`assetId`|int|권리 대상 id. **경로의 `id`에 속하지 않으면 `404 NOT_FOUND`**|
+
+### response
+
+`POST`는 `201 Created`, `PATCH`는 `200 OK`로 권리 대상 한 건을 돌려줍니다(12·17번 `assets[]`의 원소와 같은 모양).
+
+```json
+{
+  "contentAssetId": 81,
+  "scopeType": "SEASON",
+  "title": "시즌 2",
+  "assetType": "MAIN",
+  "seasonNo": 2,
+  "episodeNo": null,
+  "editionCode": null
+}
+```
+
+`DELETE`는 `204 No Content`이며 본문이 없습니다.
+
+|상태|`code`|`details`|언제|
+|---|---|---|---|
+|`400`|`VALIDATION_FAILED`|`{ "field": ... }`|`scopeType`과 `seasonNo`·`episodeNo`·`editionCode` 조합이 어긋남(병합 후 기준)|
+|`404`|`NOT_FOUND`|—|IP가 없거나, `assetId`가 그 IP의 것이 아님|
+|`409`|`ASSET_IN_USE`|`{ "rightsGrantCount": 3 }`|권리가 걸린 대상의 수정·삭제|
+|`409`|`ASSET_IN_USE`|`{ "assetCount": 1 }`|IP의 마지막 권리 대상 삭제|
+
+```json
+{
+  "error": {
+    "code": "ASSET_IN_USE",
+    "message": "권리가 등록된 권리 대상은 수정할 수 없습니다",
+    "details": { "rightsGrantCount": 3 }
+  }
+}
+```
 
 ---
 

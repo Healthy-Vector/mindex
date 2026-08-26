@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.deps import require_session
-from app.errors import AlreadyCancelled, NoSourceFile, NotFound
+from app.errors import AlreadyCancelled, NoSourceFile, NotFound, ValidationFailed
 from app.schemas.contracts import (
     CancelResponse,
     ConfirmRequest,
@@ -37,9 +37,20 @@ from app.schemas.detail import (
 from app.schemas.listing import ContractListItem, ProcessingListItem
 from app.services import conflict as conflict_svc
 from app.services.display import compute_display
+from app.services.storage import resolve_contract_pdf
 from app.services.territory import end_inclusive_from_upper
 
 router = APIRouter()
+
+# 7번 displayState 5종(§7). BEFORE_TERM 은 "유효기간 전"이며 계약 전은
+# PRE_CONTRACT 로 따로 내려간다. processing 항목에는 이 값이 없다.
+DISPLAY_STATES = {
+    "PRE_CONTRACT",
+    "BEFORE_TERM",
+    "IN_TERM",
+    "EXPIRING",
+    "EXPIRED",
+}
 
 
 # ── 5번 검증 ─────────────────────────────────────────────────
@@ -57,7 +68,8 @@ def confirm_contract(body: ConfirmRequest, db: Session = Depends(get_db)) -> Con
 
 
 # ── 7번 목록 ─────────────────────────────────────────────────
-def _contract_meta(db: Session, contract_id: int):
+def _contract_meta(db: Session, contract_id: int, *, contract_status: Optional[str] = None):
+    """(state, daysToExpiry, expiringTier, periodStart, periodEnd) — active 권리 기간 파생값."""
     agg = db.execute(
         text(
             "SELECT min(lower(period)) lo, max(upper(period)) hi "
@@ -65,18 +77,39 @@ def _contract_meta(db: Session, contract_id: int):
         ),
         {"c": contract_id},
     ).first()
-    return compute_display(agg[0] if agg else None, agg[1] if agg else None)
+    period_start = agg[0] if agg else None
+    max_upper = agg[1] if agg else None
+    state, days, tier = compute_display(
+        period_start, max_upper, contract_status=contract_status
+    )
+    return state, days, tier, period_start, end_inclusive_from_upper(max_upper)
+
+
+def _parse_display_states(value: Optional[str]) -> set[str]:
+    """`displayStates=EXPIRING,EXPIRED` 를 대문자 집합으로. 미지원 값은 400."""
+    if not value:
+        return set()
+    states = {item.strip().upper() for item in value.split(",") if item.strip()}
+    unknown = states - DISPLAY_STATES
+    if unknown:
+        raise ValidationFailed(
+            "displayStates에 지원하지 않는 상태값이 있습니다",
+            details={"values": sorted(unknown)},
+        )
+    return states
 
 
 @router.get("/contracts")
 def list_contracts(
     include_processing: bool = Query(default=True),
+    display_states: Optional[str] = Query(default=None, alias="displayStates"),
     page: int = Query(default=1, ge=1),
     size: Optional[int] = Query(default=None, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     s = get_settings()
     size = size or s.page_size_default
+    selected_display_states = _parse_display_states(display_states)
 
     rows = db.execute(
         text(
@@ -93,17 +126,24 @@ def list_contracts(
 
     items: list[dict] = []
     for c in rows:
-        state, days = _contract_meta(db, c["id"])
+        state, days, tier, period_start, period_end = _contract_meta(
+            db, c["id"], contract_status=c["status"]
+        )
+        # 전건을 훑고 파이썬에서 페이징하므로 여기서 거르면 total 도 자연히 필터를 반영한다.
+        if selected_display_states and state not in selected_display_states:
+            continue
         items.append(
             ContractListItem(
                 id=c["id"], title=c["title"], grantor=c["grantor"], grantee=c["grantee"],
                 status=c["status"], has_conflict=(c["latest_status"] == "conflicted"),
-                display_state=state, days_to_expiry=days, service_title=None,
+                display_state=state, days_to_expiry=days, expiring_tier=tier,
+                period_start=period_start, period_end=period_end, service_title=None,
                 signed_date=c["signed_date"], created_at=c["created_at"],
             ).model_dump(by_alias=True, mode="json")
         )
 
-    if include_processing:
+    # processing 은 displayState 자체가 없는 종류라, 상태 필터가 걸리면 함께 제외한다.
+    if include_processing and not selected_display_states:
         procs = db.execute(
             text(
                 "SELECT j.tmpid, j.status, j.stage, j.reason, j.created_at "
@@ -129,9 +169,16 @@ def list_contracts(
 @router.get("/contracts/{contract_id}", response_model=ContractDetail)
 def get_contract(
     contract_id: int,
+    history_id: Optional[int] = Query(default=None, alias="historyId"),
     db: Session = Depends(get_db),
     _team: str = Depends(require_session),
 ) -> ContractDetail:
+    """`historyId`를 주면 그 세대 기준으로 권리를 돌려준다 (D-34).
+
+    기본값(생략)은 종전대로 현재 점유 중인 active 권리다. 세대를 지정하면
+    `rights_grant.contract_history_id`로 묶어 그 세대에 실제로 있었던 권리를
+    보여준다 — 개정판에서 `superseded`로 내려간 행도 포함된다.
+    """
     c = db.execute(
         text("SELECT * FROM contract WHERE id=:c"), {"c": contract_id}
     ).mappings().first()
@@ -146,6 +193,9 @@ def get_contract(
         {"c": contract_id},
     ).mappings().all()
     cur_id = c["current_history_id"]
+    if history_id is not None and not any(h["id"] == history_id for h in histories):
+        # 다른 계약의 세대 id로 남의 이력을 들여다보는 걸 막는다.
+        raise NotFound("계약 이력을 찾을 수 없습니다")
     hrows = [
         HistoryRow(
             history_id=h["id"], version=h["version"], document_kind=h["document_kind"],
@@ -182,9 +232,13 @@ def get_contract(
             "LEFT JOIN legal_right lr ON lr.code=rg.legal_right "
             "LEFT JOIN exploitation_mode em ON em.code=rg.exploitation_mode "
             "LEFT JOIN country_label cl ON cl.country_code=rg.territory AND cl.lang='ko' "
-            "WHERE rg.contract_id=:c AND rg.status='active' ORDER BY rg.id"
+            + (
+                "WHERE rg.contract_id=:c AND rg.contract_history_id=:h ORDER BY rg.id"
+                if history_id is not None
+                else "WHERE rg.contract_id=:c AND rg.status='active' ORDER BY rg.id"
+            )
         ),
-        {"c": contract_id},
+        {"c": contract_id, **({"h": history_id} if history_id is not None else {})},
     ).mappings().all()
 
     rights: list[RightRow] = []
@@ -212,7 +266,7 @@ def get_contract(
             seen_ip.add(r["ip_id"])
             ips.append(IpBrief(ip_id=r["ip_id"], title=r["ip_title"], kind=r["ip_kind"]))
 
-    state, days = _contract_meta(db, contract_id)
+    state, days, tier, _, _ = _contract_meta(db, contract_id, contract_status=c["status"])
     cur_ver = next((h["version"] for h in histories if h["id"] == cur_id), None)
 
     return ContractDetail(
@@ -220,7 +274,7 @@ def get_contract(
         signed_date=c["signed_date"], lang=c["lang"],
         amount=float(c["amount"]) if c["amount"] is not None else None, currency=c["currency"],
         current_version=cur_ver, has_conflict=has_conflict, conflict_report=conflict_report,
-        display_state=state, days_to_expiry=days, service_title=None,
+        display_state=state, days_to_expiry=days, expiring_tier=tier, service_title=None,
         authority=Authority(),
         ips=ips, rights=rights, histories=hrows,
     )
@@ -230,21 +284,41 @@ def get_contract(
 @router.get("/contracts/{contract_id}/file")
 def get_contract_file(
     contract_id: int,
+    history_id: Optional[int] = Query(default=None, alias="historyId"),
     db: Session = Depends(get_db),
     _team: str = Depends(require_session),
 ):
-    fp = db.execute(
-        text(
-            "SELECT COALESCE("
-            "  (SELECT file_path FROM contract_history WHERE id=c.current_history_id), "
-            "  (SELECT file_path FROM contract_history WHERE contract_id=c.id ORDER BY version DESC LIMIT 1)"
-            ") FROM contract c WHERE c.id=:c"
-        ),
-        {"c": contract_id},
-    ).scalar()
-    if not fp or not os.path.isfile(fp):
+    """`historyId`를 주면 그 세대의 원본을, 생략하면 현재 세대의 원본을 준다 (D-34).
+
+    경로는 반드시 세대 행에서 읽는다 — `historyId`가 이 계약 소속인지 SQL에서
+    함께 확인하므로 남의 계약 원본을 id만 갈아끼워 받아갈 수 없다. 저장 경로
+    자체도 `resolve_contract_pdf()`가 저장소 경계 안인지 확인한다.
+    """
+    if history_id is not None:
+        fp = db.execute(
+            text(
+                "SELECT file_path FROM contract_history "
+                "WHERE id=:h AND contract_id=:c"
+            ),
+            {"h": history_id, "c": contract_id},
+        ).scalar()
+    else:
+        fp = db.execute(
+            text(
+                "SELECT COALESCE("
+                "  (SELECT file_path FROM contract_history WHERE id=c.current_history_id), "
+                "  (SELECT file_path FROM contract_history WHERE contract_id=c.id ORDER BY version DESC LIMIT 1)"
+                ") FROM contract c WHERE c.id=:c"
+            ),
+            {"c": contract_id},
+        ).scalar()
+
+    resolved = resolve_contract_pdf(fp)
+    if resolved is None:
         raise NoSourceFile("원본 파일을 찾을 수 없습니다")
-    return FileResponse(fp, media_type="application/pdf", filename=os.path.basename(fp))
+    return FileResponse(
+        resolved, media_type="application/pdf", filename=os.path.basename(str(fp))
+    )
 
 
 # ── 11번 계약 종료 (세션 필요) ───────────────────────────────

@@ -57,7 +57,17 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 | `payload` | AI 추출 결과 원본. `status='DONE'`과 한 트랜잭션으로 커밋 |
 | `created_at` | |
 
-화면은 이 `payload`를 읽어 사용자에게 보여준다. 사용자가 고친 값은 여기 다시 쓰지 않는다 — 확정 전 값은 화면이 들고 있다가 확정 시점에 한 번에 넘어간다.
+화면은 이 `payload`를 읽어 사용자에게 보여준다. **사용자가 고친 값도 여기 남는다(D-34).** 검증(⑦)이 `tmpid`와 부분수정(JSON Merge Patch)을 받아 `payload`에 반영한 뒤 저장된 값으로 판정한다.
+
+`payload`는 두 shape를 함께 담는다.
+
+| 키 | 내용 |
+|---|---|
+| `raw` | 워커 원본. `raw.contract.*`의 필드마다 `field_status` 래퍼가 붙는다 |
+| `validation` | 워커의 confidence 등 |
+| `edited` | 사용자 수정본. 화면이 보는 DTO shape(`contractInfo`/`rights`/…) 그대로 |
+
+`raw`를 덮어쓰지 않는 이유는 `to_upload_result()`(워커 원본 → 화면 DTO)가 **단방향이고 손실이 있기** 때문이다 — 워커 코드가 접히고(`EXHIBITION`·`PERFORMANCE` → `PUBLIC_PERFORMANCE`) territory 그룹이 국가로 전개된다. 역변환기를 만들 수 없어 DTO로 덮어쓰면 재조회가 깨진다. `GET /extract/{tmpid}`는 `edited`가 있으면 그걸 돌려준다.
 
 ## 3. 데이터 파이프라인 (① ~ ⑩)
 
@@ -70,13 +80,13 @@ staging.pdf_blob ──(1:1, CASCADE)── staging.extract_job ──(1:1, CASC
 | ③ OCR → LLM 처리 | staging | 50~60초 구간. `stage`를 `OCR`→`LLM`으로 갱신하며 `lease_until` 연장 |
 | ④ 결과 커밋 | staging | `extract_result` UPSERT + `extract_job.status='DONE'`을 한 트랜잭션으로. 결과와 상태 중 하나만 있는 어중간한 상태는 존재할 수 없다 |
 | ⑤ 화면 폴링 | staging | `GET /extract/{tmpid}`. 브라우저를 닫아도 워커는 계속 돈다 |
-| ⑥ 사용자 확인·수정 | — | DB 접근 없음. 수정값은 화면이 들고 있다가 ⑧에서 한 번에 넘어간다 |
-| ⑦ 검증 | public | `SAVEPOINT` 잡고 `rights_grant`를 실제로 INSERT해 본 뒤 무조건 롤백. 충돌 여부만 표시하고 행은 남기지 않는다 |
-| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `staging.extract_result.payload`를 읽어 화면이 보낸 검증 필드와 병합 → `save_rights_batch(..., p_source_tmpid => tmpid)` 호출. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남으며, API가 같은 트랜잭션에서 `extract_job.consumed_at = now()`를 기록한다 |
+| ⑥ 사용자 확인·수정 | staging | 화면이 값을 고치면 ⑦ 호출에 부분수정(patch)으로 실려 `extract_result.payload.edited`에 반영된다(D-34). 예전에는 DB 접근이 없었다 |
+| ⑦ 검증 | staging + public | `tmpId`가 오면 먼저 수정본을 `extract_result`에 반영·커밋한다. 그 다음 **저장된 값으로** `SAVEPOINT` 잡고 `rights_grant`를 실제로 INSERT해 본 뒤 무조건 롤백. 판정은 롤백되지만 수정본은 남는다(D-34) |
+| ⑧ 확정(저장) | public (staging 조회 포함) | `tmpid`로 `payload.edited`(없으면 `raw`)를 읽어 화면이 보낸 검증 필드와 병합 → `save_rights_batch(..., p_source_tmpid => tmpid)` 호출. 이어서 **`pdf_blob.data`를 서버 저장소로 옮기고**(`{contract_id}/{history_id}.pdf`, D-34b) 그 상대 경로를 `contract_history.file_path`에 UPDATE한다. `contract.source_tmpid` 기록은 SAVEPOINT 밖이라 배치가 충돌해도 남으며, API가 같은 트랜잭션에서 `extract_job.consumed_at = now()`를 기록한다 |
 | ⑨ 정리 | staging | TTL 정리 작업이 소비된 작업의 `pdf_blob`을 삭제한다(CASCADE로 나머지 두 테이블 동반 삭제) |
 | ⑩ 사후 처리 | public | `change_log` 재색인 대상 기록 → 임베딩·검색 인덱스 갱신 (비동기) |
 
-⑧의 "tmpid로 읽어서 저장 쿼리를 만든다"가 확정된 방식이다(B안) — 화면은 검증 필드만 들고 있고, evidence·conditions_raw 같은 나머지는 확정 API 서버가 `staging.extract_result`에서 직접 읽어 채운다. 화면이 저장 API에 전체 페이로드를 다시 보낼 필요가 없다.
+⑧의 "tmpid로 읽어서 저장 쿼리를 만든다"가 확정된 방식이다(B안) — 화면은 검증 필드만 들고 있고, evidence·conditions_raw 같은 나머지는 확정 API 서버가 `staging.extract_result`에서 직접 읽어 채운다. 화면이 저장 API에 전체 페이로드를 다시 보낼 필요가 없다. **이 B안은 D-34에서 실제로 코드에 반영됐다** — 그 전까지 구현은 요청 body만 쓰는 A안이었다.
 
 ## 4. `extract_job` 상태 전이
 
@@ -113,10 +123,15 @@ ALTER TABLE contract
 | 롤 | 접근 주체 | 권한 |
 |---|---|---|
 | `staging_worker` | OCR·LLM 워커(P1) | `staging.pdf_blob` SELECT · `staging.extract_job` SELECT/UPDATE · `staging.extract_result` INSERT/UPDATE |
-| `staging_confirm_api` | 확정 API 서버(P4, §3 ⑧) | `staging.extract_result` SELECT · `staging.extract_job` SELECT + `UPDATE(consumed_at)`만 |
+| `staging_confirm_api` | 검증·확정 API 서버(P4, §3 ⑦⑧) | `staging.extract_result` SELECT/UPDATE · `staging.extract_job` SELECT + `UPDATE(consumed_at)` · `staging.pdf_blob` SELECT |
 | `staging_cleanup` | TTL 7일 정리 배치 (미구현) | `staging.pdf_blob` SELECT/DELETE · `staging.extract_job` SELECT |
 
-세 롤 모두 `GRANT USAGE ON SCHEMA staging`이 먼저 필요하다(별도 DB일 땐 필요 없던 권한 — 스키마 접근 자체를 막을 수 있게 됐다는 게 스키마 분리의 이점이다). `staging_confirm_api`에는 **`pdf_blob` 권한을 의도적으로 안 줬다** — 확정 단계는 추출 결과(jsonb)만 필요하고 PDF 원본 바이트는 필요 없다. 확정 경로가 뚫려도 원본 바이트까지는 노출되지 않는다.
+세 롤 모두 `GRANT USAGE ON SCHEMA staging`이 먼저 필요하다(별도 DB일 땐 필요 없던 권한 — 스키마 접근 자체를 막을 수 있게 됐다는 게 스키마 분리의 이점이다).
+
+**D-34로 `staging_confirm_api`의 경계가 두 군데 넓어졌다.** 둘 다 최소권한 기준값의 예외다.
+
+- `extract_result` **UPDATE** — 검증(⑦)이 사용자 수정본을 반영해야 한다. `payload` 한 컬럼이라 컬럼 단위로 좁힐 수 없고, 애플리케이션이 `edited` 키만 갱신하고 워커 원본 `raw`는 건드리지 않는 것으로 대신한다. **DB 제약이 아니라 애플리케이션 규약에만 의존한다** — P-4 기준에서는 후퇴이며, 좁히려면 `edited`를 별도 컬럼으로 분리해야 한다(후속 과제).
+- `pdf_blob` **SELECT** — 확정(⑧)이 원본 PDF를 서버 저장소로 옮기게 되면서 바이트가 필요해졌다(D-34b). 종전에는 "확정 단계에 PDF 원본 바이트는 필요 없다"며 의도적으로 막아뒀던 권한이다. 확정 경로가 뚫리면 이제 원본 바이트도 읽힌다.
 
 `staging_confirm_api`가 실제로 `save_rights_batch()`를 호출하려면 `public` 스키마 쪽 권한(EXECUTE, `contract`/`contract_history`/`rights_grant` INSERT/UPDATE 등)도 필요하다 — 그건 이 롤 정의 범위 밖이고, `public` 스키마 전체 롤 설계(SER-002)는 별도 작업이다.
 

@@ -1,7 +1,6 @@
 """PDF upload hand-off and extraction-result polling endpoints."""
 from __future__ import annotations
 
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Literal, Mapping
 from uuid import UUID
@@ -14,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.errors import NotFound, ValidationFailed
 from app.schemas.extraction import ExtractionAccepted, ExtractionJobOut
+from app.services import staging_edit
 from app.services.extraction_result import to_upload_result
 from app.services.ip_search import search_ip_rows
 
@@ -90,11 +90,17 @@ def get_extraction(tmpid: UUID, db: Session = Depends(get_db)) -> ExtractionJobO
     result = None
     if job["status"] == "DONE" and job["payload"] is not None:
         payload = job["payload"]
-        result = to_upload_result(
-            payload,
-            ip_candidates=_ip_candidates(db, _search_title(payload)),
-            territory_group_members=_territory_groups(db),
-        )
+        # D-34 — verify가 반영해 둔 사용자 수정본이 있으면 그걸 돌려준다.
+        # 워커 원본은 payload["raw"]에 그대로 남아 있다.
+        edited = payload.get(staging_edit.EDITED_KEY)
+        if isinstance(edited, Mapping):
+            result = dict(edited)
+        else:
+            result = to_upload_result(
+                payload, territory_group_members=staging_edit.territory_groups(db)
+            )
+        # 후보는 저장된 값이 아니라 조회 시점의 IP 목록에서 매번 다시 뽑는다.
+        result["ipCandidates"] = _ip_candidates(db, _search_title(payload))
 
     return ExtractionJobOut(
         tmpid=job["tmpid"],
@@ -130,19 +136,6 @@ async def _read_pdf(file: UploadFile) -> bytes:
 def _safe_filename(filename: str | None) -> str:
     safe = Path((filename or "upload.pdf").replace("\\", "/")).name
     return safe or "upload.pdf"
-
-
-def _territory_groups(db: Session) -> dict[str, list[str]]:
-    rows = db.execute(
-        text(
-            "SELECT group_code, country_code FROM territory_group_member "
-            "ORDER BY group_code, country_code"
-        )
-    ).mappings()
-    groups: dict[str, list[str]] = defaultdict(list)
-    for row in rows:
-        groups[row["group_code"]].append(row["country_code"])
-    return dict(groups)
 
 
 def _search_title(payload: Mapping[str, Any]) -> str | None:

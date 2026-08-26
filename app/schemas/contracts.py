@@ -53,23 +53,61 @@ class ChunkIn(CamelModel):
 
 
 class VerifyRequest(CamelModel):
+    """5번 검증 요청. 두 경로를 받는다 (D-34).
+
+    - **staging 경로**: `tmpId` + `patch`(화면 DTO shape의 JSON merge
+      patch). 서버가 수정본을 staging에 반영하고 그 값으로 판정한다.
+      `rights`·`fileName`·`filePath`·`fileHash`는 서버가 채우므로 보내지 않는다.
+    - **직접 경로**: 예전대로 전체 body. 수기 등록·테스트용이다.
+
+    `filePath`는 staging 경로에서 **무시된다.** 저장 경로는 서버가 정한다 —
+    예전에 클라이언트가 준 경로를 그대로 열어주던 임의 파일 읽기를 막는다(D-34).
+    """
+
     contract_id: Optional[int] = None   # 개정판이면 기존 계약 id, 신규면 None
     grantor: str
     grantee: str
     ip_id: Optional[int] = None         # 신규 작품이면 None
-    file_name: str
-    file_path: str
-    file_hash: str
+    # API 이름은 `tmpId` — 화면과 `GET /extract/{tmpid}`가 쓰는 이름에 맞춘다.
+    # 파이썬·DB 쪽은 `source_tmpid`(contract.source_tmpid,
+    # save_rights_batch(p_source_tmpid))를 그대로 유지한다.
+    source_tmpid: Optional[UUID] = Field(default=None, alias="tmpId")
+    patch: Optional[dict[str, Any]] = None  # tmpId 경로의 부분수정(RFC 7386)
+    file_name: Optional[str] = None
+    file_path: Optional[str] = None
+    file_hash: Optional[str] = None
     mime_type: Optional[str] = None
     raw_text: Optional[str] = None
     document_kind: Literal["draft", "final"] = "draft"
-    rights: list[RightIn] = Field(min_length=1)
+    rights: Optional[list[RightIn]] = None
+
+    @model_validator(mode="after")
+    def direct_path_needs_full_body(self) -> "VerifyRequest":
+        if self.source_tmpid is not None:
+            return self
+        if self.patch is not None:
+            raise ValueError("patch는 tmpId와 함께만 사용할 수 있습니다")
+        missing = [
+            name
+            for name, value in (
+                ("fileName", self.file_name),
+                ("filePath", self.file_path),
+                ("fileHash", self.file_hash),
+            )
+            if not value
+        ]
+        if missing:
+            raise ValueError(
+                "tmpId 없이 호출하려면 " + ", ".join(missing) + "이(가) 필요합니다"
+            )
+        if not self.rights:
+            raise ValueError("rights는 한 건 이상이어야 합니다")
+        return self
 
 
 class ConfirmRequest(VerifyRequest):
     document_kind: Literal["draft", "final"] = "final"
     chunks: list[ChunkIn] = Field(default_factory=list)
-    source_tmpid: Optional[UUID] = None  # staging.extract_job.tmpid. 이중 확정 차단
 
 
 class VerifyResponse(CamelModel):

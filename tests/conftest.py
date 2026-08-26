@@ -322,5 +322,5 @@ def body(
         ],
     }
     if source_tmpid:
-        request_body["sourceTmpid"] = str(source_tmpid)
+        request_body["tmpId"] = str(source_tmpid)
     return request_body

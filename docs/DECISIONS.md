@@ -166,6 +166,97 @@ OCR·LLM 추출이 계약서 한 건에 50~60초 걸려 요청 안에서 끝낼 
   구조(`mindex-임시DB-비동기파이프라인.html` §3) 자체를 재설계하지
   않았다 — 팀 논의 필요.
 
+### D-34 — ⑥·⑦ 재설계: verify가 수정본을 staging에 반영하고 저장된 값으로 판정한다
+
+D-32/D-33의 파이프라인은 ⑥(사용자 확인·수정)을 "DB 접근 없음"으로, 수정값은
+"화면이 들고 있다가 ⑧에서 한 번에 넘긴다"로 정의했다. 팀장 확인으로 이 두
+단계를 바꾼다.
+
+- **`POST /contracts/verify`가 `tmpId` + `patch`를 받는다.** patch는 화면이
+  보는 DTO shape의 JSON Merge Patch(RFC 7386)다. 서버가 저장된 값 위에 얹어
+  `staging.extract_result`에 **먼저 커밋**한 뒤, 그 저장된 값으로
+  `validate_rights_batch()`를 부른다. 판정은 종전대로 롤백되지만 수정본은 남는다.
+  기존의 전체 body 직접 호출 경로도 그대로 받는다(수기 등록·테스트).
+- **`payload`를 덮어쓰지 않고 `edited` 키를 더한다.** `staging.extract_result.payload`는
+  워커 원본(`raw.contract.*`, 필드마다 `field_status` 래퍼)이고 화면이 보는 건
+  `to_upload_result()`가 만든 평탄한 DTO다. **그 변환은 단방향·손실이 있다** —
+  워커 코드가 접히고(`EXHIBITION`·`PERFORMANCE` → `PUBLIC_PERFORMANCE`) territory
+  그룹이 국가로 전개된다. 역변환기를 만들 수 없어 DTO를 payload에 그대로 덮어쓰면
+  `to_upload_result()`가 `raw.contract`를 못 찾아 재조회 자체가 깨진다. 그래서
+  `{raw, validation, edited}` 구조로 두고 `GET /extract/{tmpid}`는 `edited`가 있으면
+  그걸 돌려준다. 트레이드오프: 컬럼은 안 늘었지만 payload 한 행이 커진다.
+- **⑧ 확정이 B안대로 동작한다(미구현 보완).** `mindex_staging DB 설명서` §3 ⑧이
+  "tmpid로 `extract_result`를 읽어 저장 쿼리를 만든다"로 확정돼 있었는데 코드는
+  요청 body만 쓰고 있었다(A안). 이제 `tmpId`가 오면 서버가 `edited`(없으면
+  `raw`)를 읽어 배치를 만든다. 화면은 `rights`를 되보내지 않아도 된다.
+- **`rights` 배열은 부분수정하지 않고 통째로 교체한다.** RFC 7386의 배열 규정
+  그대로다. staging payload의 권리 행에 안정적인 식별자가 없어 원소 단위 병합
+  규칙을 세울 근거가 없다.
+
+### D-34b — 계약 원본 PDF는 서버 내부 디렉터리에 둔다 (O-12 일부 해소)
+
+object storage는 도입하지 않는다. 확정(⑧) 시점에 `staging.pdf_blob.data`를
+`CONTRACT_STORAGE_DIR`(기본 `./data/contracts`) 아래
+`{contract_id}/{history_id}.pdf`로 쓰고, `contract_history.file_path`에는
+**저장소 기준 상대 경로**만 남긴다. 디렉터리를 옮겨도 기존 행이 살아있게 하려는
+것이다. `file_hash`는 서버가 원본 바이트에서 SHA-256으로 계산한다.
+
+- **경로는 서버가 정한다. 요청의 `filePath`·`fileHash`는 staging 경로에서
+  무시된다.** 종전에는 `contract_history.file_path`가 클라이언트가 보낸 자유
+  문자열이었고 `GET /contracts/{id}/file`이 그 값에 `os.path.isfile()`을 걸어
+  그대로 내려줬다 — `/etc/passwd` 같은 경로로 확정한 뒤 조회하면 서버 파일이
+  그대로 나가는 **임의 파일 읽기**였다. 이제 읽을 때도
+  `resolve_contract_pdf()`가 저장소 경계 밖(절대 경로·`..`)을 거부한다. 과거에
+  자유 문자열로 들어간 행도 같은 이유로 `NO_SOURCE_FILE`이 된다.
+- 부수 효과로 **세대별 원본 조회가 가능해졌다.** 세대마다 파일이 남으므로
+  `GET /contracts/{id}/file?historyId=N`이 성립하고, staging TTL 7일 삭제와도
+  무관해진다.
+- O-12의 남은 부분: TTL 정리 배치는 여전히 미구현이고, object storage 전환은
+  이 디렉터리를 어댑터로 바꾸는 후속 작업으로 남는다.
+
+### D-34c — `staging_confirm_api` 롤의 권한 경계를 두 군데 넓혔다
+
+D-33에서 확정 API 롤은 `extract_result` SELECT + `extract_job.consumed_at`
+UPDATE만 갖고 있었고, `pdf_blob`은 "확정 단계에 PDF 원본 바이트는 필요 없다"며
+의도적으로 막아뒀다. D-34로 둘 다 필요해졌다.
+
+- `GRANT UPDATE ON staging.extract_result` — 검증이 수정본을 반영해야 한다.
+  `payload` 전체를 UPDATE하므로 컬럼 단위로 좁힐 수 없다. 애플리케이션이 `edited`
+  키만 갱신하고 `raw`는 건드리지 않는 것으로 대신한다(코드·주석으로 강제).
+- `GRANT SELECT ON staging.pdf_blob` — 확정이 원본을 서버 저장소로 옮겨야 한다.
+
+P-4(애플리케이션을 우회해도 DB 무결성 유지) 기준에서는 후퇴다. `raw` 보존이
+DB 제약이 아니라 애플리케이션 규약에만 의존하게 됐다는 점이 특히 그렇다.
+컬럼 단위로 좁히려면 `edited`를 별도 컬럼으로 분리해야 하는데, payload 한
+컬럼 유지가 이번 결정이라 후속 과제로 남긴다.
+
+### D-35 — IP 자산(`content_asset`) 수정은 행 단위 별도 엔드포인트로 연다
+
+§14(`PATCH /ips/{id}`)에 "자산 수정은 이 API 범위가 아닙니다"로 닫아뒀던 것을
+연다. `content_asset`은 IP 안에서 권리를 걸 수 있는 범위 단위(화면 라벨 "권리
+대상")이고 판정 원자 단위의 한 축이라 막아뒀지만, 권리가 걸리지 않은 자산까지
+못 고치는 건 과했다.
+
+- **`PATCH /ips/{id}`에 `assets`를 넣지 않는다.** 등록 API의 `assets`는 전체
+  교체(DELETE 후 INSERT)라 그대로 수정에 붙이면 빈 배열이 기존 자산을 지운다.
+  대신 행 단위로 연다 — `POST /ips/{id}/assets`(201),
+  `PATCH /ips/{id}/assets/{assetId}`(200), `DELETE /ips/{id}/assets/{assetId}`(204).
+  배열 전체를 보내는 경로가 없으므로 그 사고가 구조적으로 불가능하다(§18).
+- **권리가 걸린 자산은 읽기 전용이다.** `rights_grant`가 참조하면 PATCH·DELETE
+  모두 `409 ASSET_IN_USE`. 이미 판정된 권리의 대상 범위가 사후에 바뀌면 과거
+  판정이 조용히 무효가 되기 때문이다. `terminated` 권리도 센다 — 종료됐어도
+  판정 이력은 남는다.
+- **IP의 마지막 자산은 지울 수 없다.** `ensure_default_content_asset()` 트리거가
+  IP 생성 시 `SERIES_ALL` 한 행을 보장하는 이유가 "모든 권리 등록이 유효한
+  `content_asset_id`를 갖도록"인데, 마지막 행이 사라지면 `save_rights_batch()`의
+  기본 asset 조회가 깨진다. 같은 `409 ASSET_IN_USE`이되 `details`로 구분한다
+  (`rightsGrantCount` / `assetCount`).
+- 부분 수정은 **기존 행과 병합한 뒤** scope 정합성을 검증한다(`AssetPatch.merged_with()`).
+  `scopeType`만 넓히고 `seasonNo`를 안 지우면 DB CHECK에 걸리는데, 그걸 500이
+  아니라 `400 VALIDATION_FAILED`로 돌려주기 위해서다.
+- `parent_id`(시리즈 → 시즌 → 에피소드 계층)는 이번 범위 밖이다. 컬럼은 있지만
+  API가 쓰지 않는다.
+
 ## 미결
 
 ### O-06 — 요구사항별 평가 건수 불일치
@@ -176,7 +267,7 @@ OCR·LLM 추출이 계약서 한 건에 50~60초 걸려 요청 안에서 끝낼 
 
 별칭 저장은 구현됐지만 외부 ID 기반 작품 동일성, asset 상하위 포함 충돌, grantor/grantee·sublicense, 파생 IP 판정은 미구현이다.
 
-### O-12 — 등록 전 산출물 보관 (D-32로 일부 해소)
+### O-12 — 등록 전 산출물 보관 (D-32로 일부 해소, D-34b로 저장 위치 확정)
 
 D-32로 위치·수명 자체는 정해졌다 — `staging.pdf_blob`/`extract_job`/
 `extract_result`에 보관하고, 확정되면 `consumed_at` 기록 후 TTL 7일 배치가

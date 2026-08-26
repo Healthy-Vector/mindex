@@ -25,9 +25,15 @@ function emptyAssetRow() {
   return { scopeType: "", title: "" };
 }
 
-// mode="create"일 때만 assets 입력을 보여준다 — API 명세서 #13(등록)만 assets를 받고
-// #14(PATCH /ips/{id})엔 이 필드가 없다. 수정 화면에서까지 보이면 빈 배열로 저장해버려
-// 기존 assets를 지우는 사고가 날 수 있어 아예 편집 경로에서 뺐다.
+// mode="create"일 때만 assets 입력을 보여준다 — API 명세서 #13(등록)이 배열 통째로
+// 받는 유일한 엔드포인트이기 때문이다. #14(PATCH /ips/{id})엔 여전히 이 필드가 없고,
+// 이 폼이 그대로 수정 모드에서 보이면 빈 배열로 저장해 기존 assets를 지우는 사고가 난다.
+//
+// 수정 경로는 #18(POST/PATCH/DELETE /ips/{id}/assets)로 열려 있다(client.js의
+// createIpAsset/updateIpAsset/deleteIpAsset). 다만 #18은 배열 교체가 아니라 행 단위라
+// "저장" 한 번에 폼 전체를 PATCH하는 지금의 흐름과 맞지 않는다 — 추가/수정/삭제를 행마다
+// 별도 호출로 쪼개고, 권리가 걸린 행(409 ASSET_IN_USE)과 마지막 한 행을 읽기 전용으로
+// 표시하는 폼 재설계가 필요하다. 그 작업 전까지는 편집 경로에서 계속 숨겨둔다.
 export default function IpForm({ heading, initial, onSave, onCancel, mode = "create" }) {
   const { ipKindOptions, scopeTypeOptions } = useRefs();
   const [title, setTitle] = useState(initial.title);

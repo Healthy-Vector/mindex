@@ -25,6 +25,8 @@ from sqlalchemy.orm import Session
 
 from app.errors import AlreadyConfirmed, ExtractNotReady, NotFound, ValidationFailed
 from app.schemas.common import camelize_json_keys
+from app.services import staging_edit
+from app.services.storage import sha256_hex, write_contract_pdf
 from app.services.territory import expand_territories, to_daterange_literal
 
 
@@ -99,11 +101,46 @@ def _reject_internal_overlap(db: Session, rows: list[dict[str, Any]]) -> None:
             )
 
 
+def apply_staging_edit(db: Session, req) -> list:
+    """⑥ — 화면이 보낸 patch를 staging에 반영하고 판정에 쓸 권리 목록을 돌려준다 (D-34).
+
+    **여기서 커밋한다.** 뒤따르는 판정은 성공이든 충돌이든 롤백되지만 사용자의
+    수정본은 남아야 한다 — 확정(⑧)이 같은 값을 읽어 저장하기 때문이다.
+    """
+    row = staging_edit.load_done_extraction(db, req.source_tmpid)
+    payload, dto = staging_edit.apply_patch(db, row["payload"], req.patch)
+    staging_edit.persist_edited(db, req.source_tmpid, payload)
+    db.commit()
+    return staging_edit.rights_from_dto(dto)
+
+
+def _staging_file_fields(db: Session, source_tmpid) -> tuple[str, str, bytes]:
+    """확정 시 쓸 원본 파일명·해시·바이트. 경로는 세대 id가 정해진 뒤에 만든다."""
+    row = db.execute(
+        text("SELECT filename, data FROM staging.pdf_blob WHERE tmpid=:t"),
+        {"t": str(source_tmpid)},
+    ).mappings().first()
+    if row is None:
+        raise ExtractNotReady(
+            "원본 PDF를 찾을 수 없습니다", details={"tmpId": str(source_tmpid)}
+        )
+    data = bytes(row["data"])
+    return (row["filename"] or "contract.pdf"), sha256_hex(data), data
+
+
 def validate_batch(db: Session, req) -> dict[str, Any]:
-    """5번 — validate_rights_batch() 호출. DB 가 내부에서 롤백하므로 아무것도 남지 않는다."""
+    """5번 — validate_rights_batch() 호출. 판정 결과는 DB가 내부에서 롤백한다.
+
+    D-34로 staging 경로가 생겼다. `tmpId`가 오면 수정본을 먼저 staging에
+    반영·커밋한 뒤 **저장된 값으로** 판정한다 — 판정만 롤백되고 수정본은 남는다.
+    """
+    if req.source_tmpid is not None:
+        rights = apply_staging_edit(db, req)
+    else:
+        rights = req.rights
     try:
-        _validate_request_refs(db, req)
-        rights_json = build_rights_json(db, req.rights)
+        _validate_request_refs(db, req, rights)
+        rights_json = build_rights_json(db, rights)
         row = db.execute(
             text(
                 "SELECT batch_result, constraint_name, conflict_report "
@@ -116,9 +153,11 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
                 "grantor": req.grantor,
                 "grantee": req.grantee,
                 "ip_id": req.ip_id,
-                "file_name": req.file_name,
-                "file_path": req.file_path,
-                "file_hash": req.file_hash,
+                # 판정은 통째로 롤백되므로 파일 메타는 NOT NULL만 채우면 된다.
+                # 실제 값은 확정(⑧)에서 서버가 staging 원본으로 채운다(D-34).
+                "file_name": req.file_name or "contract.pdf",
+                "file_path": req.file_path or "pending",
+                "file_hash": req.file_hash or "pending",
                 "rights": rights_json,
                 "mime_type": req.mime_type or "application/pdf",
                 "raw_text": req.raw_text,
@@ -141,11 +180,26 @@ def validate_batch(db: Session, req) -> dict[str, Any]:
 
 
 def save_batch(db: Session, req) -> dict[str, Any]:
-    """6번 — save_rights_batch() 호출 후 커밋. 성공/충돌 모두 커밋된다(§D-30)."""
+    """6번 — save_rights_batch() 호출 후 커밋. 성공/충돌 모두 커밋된다(§D-30).
+
+    D-34로 B안이 코드에 들어왔다. `tmpId`가 오면 화면이 rights를 되보내지
+    않아도 되고, 서버가 `staging.extract_result`의 수정본(`edited`)을 읽어
+    저장 배치를 만든다. 원본 PDF도 여기서 서버 저장소로 옮기고 경로를 기록한다.
+    """
+    pdf_data: Optional[bytes] = None
+    if req.source_tmpid is not None:
+        staged = staging_edit.load_done_extraction(db, req.source_tmpid)
+        dto = staging_edit.current_dto(db, staged["payload"])
+        rights = req.rights or staging_edit.rights_from_dto(dto)
+        file_name, file_hash, pdf_data = _staging_file_fields(db, req.source_tmpid)
+    else:
+        rights = req.rights
+        file_name, file_hash = req.file_name, req.file_hash
+
     try:
-        _validate_request_refs(db, req, lock_contract=True)
+        _validate_request_refs(db, req, rights, lock_contract=True)
         _validate_source_tmpid(db, req.source_tmpid)
-        rights_json = build_rights_json(db, req.rights)
+        rights_json = build_rights_json(db, rights)
         chunks_json = (
             json.dumps(
                 [
@@ -179,9 +233,10 @@ def save_batch(db: Session, req) -> dict[str, Any]:
                 "grantor": req.grantor,
                 "grantee": req.grantee,
                 "ip_id": req.ip_id,
-                "file_name": req.file_name,
-                "file_path": req.file_path,
-                "file_hash": req.file_hash,
+                "file_name": file_name,
+                # staging 경로에서는 세대 id가 정해진 뒤에 실제 경로로 UPDATE한다.
+                "file_path": req.file_path if pdf_data is None else "pending",
+                "file_hash": file_hash,
                 "rights": rights_json,
                 "mime_type": req.mime_type or "application/pdf",
                 "raw_text": req.raw_text,
@@ -194,6 +249,16 @@ def save_batch(db: Session, req) -> dict[str, Any]:
         # applied batch and a conflicted history are persisted by the DB
         # function, so either outcome consumes the staging job.
         if req.source_tmpid is not None:
+            # D-34 — 원본 PDF를 서버 저장소로 옮기고 경로를 세대 행에 기록한다.
+            # 세대 id는 지금 막 정해졌으므로 INSERT 시점에는 알 수 없었다.
+            # 충돌(CONFLICTED) 세대도 행 자체는 남으므로 똑같이 파일을 둔다.
+            relative = write_contract_pdf(
+                pdf_data, row["out_contract_id"], row["out_history_id"]
+            )
+            db.execute(
+                text("UPDATE contract_history SET file_path=:p WHERE id=:h"),
+                {"p": relative, "h": row["out_history_id"]},
+            )
             db.execute(
                 text(
                     "UPDATE staging.extract_job SET consumed_at=now() "
@@ -205,7 +270,7 @@ def save_batch(db: Session, req) -> dict[str, Any]:
     except DBAPIError as ex:
         db.rollback()
         if _is_source_tmpid_duplicate(ex):
-            raise AlreadyConfirmed("이미 확정에 사용된 sourceTmpid입니다") from ex
+            raise AlreadyConfirmed("이미 확정에 사용된 tmpId입니다") from ex
         raise ValidationFailed(_clean_db_error(ex)) from ex
 
     return {
@@ -231,8 +296,12 @@ def terminate_grant(db: Session, grant_id: int, reason: str, note: Optional[str]
         raise ValidationFailed(_clean_db_error(ex)) from ex
 
 
-def _validate_request_refs(db: Session, req, *, lock_contract: bool = False) -> None:
-    """P2 함수가 의미상 보장하지 않는 contract/IP/asset 소속을 API 경계에서 확인한다."""
+def _validate_request_refs(db: Session, req, rights: list, *, lock_contract: bool = False) -> None:
+    """P2 함수가 의미상 보장하지 않는 contract/IP/asset 소속을 API 경계에서 확인한다.
+
+    `rights`는 요청 body가 아니라 **판정에 실제로 쓸 목록**을 받는다 — staging
+    경로에서는 저장된 수정본에서 나오기 때문이다(D-34).
+    """
     if req.contract_id is not None:
         suffix = " FOR UPDATE" if lock_contract else ""
         found = db.execute(
@@ -242,7 +311,7 @@ def _validate_request_refs(db: Session, req, *, lock_contract: bool = False) -> 
         if found is None:
             raise NotFound("계약을 찾을 수 없습니다")
 
-    asset_ids = {r.content_asset_id for r in req.rights if r.content_asset_id is not None}
+    asset_ids = {r.content_asset_id for r in rights if r.content_asset_id is not None}
     if req.ip_id is None:
         if asset_ids:
             raise ValidationFailed("ipId가 없으면 contentAssetId를 지정할 수 없습니다")
@@ -276,7 +345,7 @@ def _validate_source_tmpid(db: Session, source_tmpid) -> None:
     ).scalar()
     if used_by is not None:
         raise AlreadyConfirmed(
-            "이미 확정에 사용된 sourceTmpid입니다",
+            "이미 확정에 사용된 tmpId입니다",
             details={"contractId": int(used_by)},
         )
     extracted = db.execute(
@@ -290,7 +359,7 @@ def _validate_source_tmpid(db: Session, source_tmpid) -> None:
     status = extracted["status"] if extracted else None
     if status != "DONE":
         raise ExtractNotReady(
-            "추출 결과가 저장된 DONE sourceTmpid만 확정할 수 있습니다",
+            "추출 결과가 저장된 DONE tmpId만 확정할 수 있습니다",
             details={"status": status},
         )
 
