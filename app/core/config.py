@@ -12,6 +12,21 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    # --- CORS ---
+    # 콤마로 구분한 허용 오리진 목록. 값이 "*" 하나면 모든 오리진을 열되
+    # 요청 오리진을 그대로 되비춰(regex) Authorization 헤더까지 허용한다
+    # (와일드카드 "*"는 credentials와 함께 못 쓰므로 regex로 우회). 기본값은
+    # 개발 오리진만 — 프록시 없이 브라우저가 직접 API를 부를 때만 필요하다.
+    cors_origins: str = "http://localhost:5173"
+
+    @property
+    def cors_allow_all(self) -> bool:
+        return self.cors_origins.strip() == "*"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
     # --- PIN 세션 (지시서 §4.7) ---
     jwt_secret: str = "dev-insecure-change-me-at-least-32-bytes"
     jwt_alg: str = "HS256"
