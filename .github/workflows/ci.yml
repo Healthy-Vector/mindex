@@ -52,6 +52,11 @@ jobs:
       - run: pytest -v
         env:
           DATABASE_URL: postgresql+psycopg2://mindex:mindex_ci@localhost:5432/mindex
+          # CI에는 sentence-transformers(2GB대 ML 의존성)를 설치하지 않는다.
+          # 앱 기본값은 EMBEDDINGS_ENABLED=true라, 끄지 않으면 기동 때마다 미설치
+          # 경고가 뜬다. CI는 제품이 아니라 테스트 환경이므로 여기서만 끈다 —
+          # 벡터 검색 테스트는 어차피 sentence_transformers 유무로 스킵된다.
+          EMBEDDINGS_ENABLED: "false"
 
   # SER-008 의존성 취약점 점검 — COR 라이선스 검증과 병행
   dependency-scan:

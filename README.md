@@ -22,6 +22,30 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+### 자연어 검색(벡터 랭킹) — 기본 켜짐
+
+검색 벡터 랭킹은 **기본으로 켜져 있다**(`EMBEDDINGS_ENABLED=true`). 켜져 있으면 ML
+의존성이 설치돼 있어야 하고, 서버가 기동 시 임베딩 모델을 미리 데운다(warm-up).
+
+```bash
+pip install -r requirements-ml.txt   # torch + sentence-transformers
+uvicorn app.main:app --reload
+```
+
+- 임베딩 모델(`intfloat/multilingual-e5-large`, ~2.2GB)은 첫 로딩 시 HuggingFace에서
+  자동 다운로드된다. warm-up 덕에 첫 검색 사용자가 다운로드·로딩을 기다리지 않는다.
+- **폐쇄망**에서는 자동 다운로드가 실패하므로 모델을 미리 받아 HuggingFace 캐시
+  (`HF_HOME`)에 심어 두어야 한다.
+- GPU가 없으면 임베딩이 크게 느리다(실측 CPU 2.8 chunk/s, CUDA fp16 대비 약 29배).
+  검색 질의는 건당이라 체감이 덜하지만, 색인(워커)은 GPU 환경을 권장한다.
+
+**임베딩 없이 돌리려면(opt-out)** `EMBEDDINGS_ENABLED=false`로 끈다. `requirements-ml.txt`
+없이 기본 `requirements.txt`만으로 뜨고, 검색은 **어휘(pg_trgm) 폴백**으로 동작한다
+(벡터 랭킹만 생략, 오류 없음). CI가 검색 테스트를 이 경로로 스킵한다.
+
+> 런타임에 패키지를 설치하지는 않는다 — 설치는 배포 단계, 플래그는 사용 여부만 정한다.
+> 기본이 켜짐이라 `true`인데 패키지가 없으면 기동 시 경고를 남기고 어휘 폴백으로 계속한다.
+
 `docker compose up` 이 성공하고 `sql/init/01_schema.sql` 이 자동 실행되면, 아래 스모크 테스트로 충돌 판정이 동작하는지 확인합니다.
 
 ```bash
