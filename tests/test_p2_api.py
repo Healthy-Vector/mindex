@@ -159,6 +159,8 @@ def test_source_tmpid_must_be_done_and_cannot_be_reused(client, conn, clean_db):
 
     first = client.post("/api/contracts", json=body(clean_db, source_tmpid=tmpid))
     assert first.status_code == 201
+    cur.execute("SELECT consumed_at FROM staging.extract_job WHERE tmpid=%s", (str(tmpid),))
+    assert cur.fetchone()[0] is not None
     again = client.post("/api/contracts", json=body(clean_db, source_tmpid=tmpid))
     assert again.status_code == 409
     assert again.json()["error"]["code"] == "ALREADY_CONFIRMED"

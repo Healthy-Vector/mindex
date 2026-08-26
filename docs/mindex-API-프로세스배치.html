@@ -282,7 +282,7 @@ Object.assign(PANELS, {
 <h4 class="dh">response</h4><pre class="dpre">{ &quot;batchResult&quot;: &quot;APPLIED&quot;, &quot;contractId&quot;: 101,
   &quot;contractHistoryId&quot;: 301, &quot;hasConflict&quot;: false,
   &quot;constraintName&quot;: null, &quot;conflictReport&quot;: null }</pre>
-<h4 class="dh">구현 시 주의</h4><ul class="dul warn"><li><code>sourceTmpid</code>가 있으면 staging 작업이 DONE이고 추출 결과가 있어야 합니다. 현재 사용 중인 값의 재사용은 <code>409 ALREADY_CONFIRMED</code>입니다.</li><li>청크 페이지 필드는 <code>pageStart</code>·<code>pageEnd</code>이며 단일 <code>page</code>는 사용하지 않습니다.</li><li><code>consumed_at</code>·TTL 정리는 정책 확정 전 별도 과제입니다.</li></ul>`,
+<h4 class="dh">구현 시 주의</h4><ul class="dul warn"><li><code>sourceTmpid</code>가 있으면 staging 작업이 DONE이고 추출 결과가 있어야 합니다. 현재 사용 중인 값의 재사용은 <code>409 ALREADY_CONFIRMED</code>입니다.</li><li>청크 페이지 필드는 <code>pageStart</code>·<code>pageEnd</code>이며 단일 <code>page</code>는 사용하지 않습니다.</li><li><code>201</code>로 끝난 APPLIED·CONFLICTED 모두 <code>consumed_at</code>을 기록합니다. TTL 삭제는 별도 과제입니다.</li></ul>`,
 
   "7": `<div class="dhead"><span class="m m-get">GET</span><code>/contracts</code></div>
 <h3 class="dtitle"><span class="no big">7</span>계약 통합 목록</h3>
