@@ -53,7 +53,7 @@ export default function IpMatchPanel({ ipMatch, setIpMatch, showHeading = true, 
     <div className={`upload-ipmatch${showHeading ? " mx-mb-20" : " upload-ipmatch--inline"}`}>
       {showHeading && <h5 className="mx-heading-panel">IP 매칭</h5>}
       <div className="mx-combobox" ref={wrapRef}>
-        <button type="button" className="mx-input mx-select-trigger" onClick={() => { if (!disabled) setOpen((value) => !value); }} aria-expanded={open} disabled={disabled}>
+        <button type="button" className="mx-input mx-select-trigger" onClick={() => { if (!disabled && !showCreateModal) setOpen((value) => !value); }} aria-expanded={open} disabled={disabled || showCreateModal}>
           {ipMatch ? (
             <span className="mx-combobox-trigger-value">
               <span className="mx-tag mx-tag-accent">{ipMatch.status === "auto" ? "자동 연결됨" : "선택됨"}</span>
@@ -85,7 +85,7 @@ export default function IpMatchPanel({ ipMatch, setIpMatch, showHeading = true, 
       </div>
 
       {showCreateModal && (
-        <div className="detail-pin-wrap detail-extend-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="ipform-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="ipform-modal" onClick={(event) => event.stopPropagation()}>
             <IpForm
               heading="신규 IP 등록"

@@ -3,7 +3,7 @@ import { DISPLAY_STATE_LABEL } from "../labels.js";
 // 계약 상태값을 계약체결일/권리시작일/권리종료일로 계산한다 — API 명세서(§7 displayState)의
 // BEFORE_TERM/IN_TERM/EXPIRING/EXPIRED 4단계에 맞춘다. 계약체결 전(before_signing)과 서명은
 // 됐지만 권리기간이 아직 안 시작(before_effective)은 둘 다 "권리기간 전"이라는 점에서
-// BEFORE_TERM 하나로 합친다 — 예전엔 5단계로 더 세분화했었다. 만료임박은 D-90/60/30.
+// BEFORE_TERM 하나로 합친다. 만료임박은 D-90/60/30.
 const DAY_MS = 86400000;
 
 function toDate(value) {

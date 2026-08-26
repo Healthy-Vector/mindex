@@ -1,12 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { api, USE_MOCK } from "../../api/client.js";
+import { Link, useNavigate } from "react-router-dom";
+import { api } from "../../api/client.js";
 import CustomSelect from "../CustomSelect.jsx";
 import ConflictBadge from "../ConflictBadge.jsx";
 import DownloadIcon from "../icons/DownloadIcon.jsx";
 import { useRefs } from "../../lib/useRefs.js";
 import { EVIDENCE_FIELDS, groupEvidenceByQuote } from "../../lib/evidence.js";
-import { EXCLUSIVITY_LABEL, STATUS_LABEL, TERMINATED_REASON_LABEL, LANG_LABEL, exclusivityTagClass } from "../../labels.js";
+import { ASSET_SCOPE_LABEL, EXCLUSIVITY_LABEL, STATUS_LABEL, TERMINATED_REASON_LABEL, LANG_LABEL, exclusivityTagClass } from "../../labels.js";
 
 const ContractPdfPreview = lazy(() => import("./ContractPdfPreview.jsx"));
 const CANCEL_REASON_DEFS = [
@@ -14,6 +14,14 @@ const CANCEL_REASON_DEFS = [
   { value: "expired", label: "만료" },
   { value: "waiver", label: "권리포기" },
 ];
+const HISTORY_DATE_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 function usePdfObjectUrl(source) {
   const [url, setUrl] = useState(typeof source === "string" ? source : null);
@@ -27,9 +35,8 @@ function usePdfObjectUrl(source) {
 }
 
 function usePdfSource(contractId, activeHistory) {
-  const [source, setSource] = useState(USE_MOCK ? (activeHistory?.filePath ?? null) : null);
+  const [source, setSource] = useState(null);
   useEffect(() => {
-    if (USE_MOCK) { setSource(activeHistory?.filePath ?? null); return; }
     if (!contractId) return;
     let cancelled = false;
     api.fetchContractFile(contractId, { historyId: activeHistory?.historyId })
@@ -40,10 +47,17 @@ function usePdfSource(contractId, activeHistory) {
   return source;
 }
 
-export default function ContractDetailContent({ contract, onContractUpdate }) {
+export default function ContractDetailContent({ contract }) {
+  const navigate = useNavigate();
   const uploadContext = new URLSearchParams({ contractId: String(contract.id), ipId: String(contract.ipId) });
   const registerHref = `/upload?mode=revision&${uploadContext}`;
-  const finalHref = `/upload?mode=final&${uploadContext}`;
+  // 이미 서명 완료(signed)된 계약을 다시 "최종계약 등록"하는 건 기간 연장이다 —
+  // 연장은 기존 계약의 새 버전이 아니라 법적으로 별개인 신규 계약이라 contractId를
+  // 넘기지 않고 mode=new로 보낸다(IP는 그대로 이어받는다).
+  const isRenewal = contract.status === "signed";
+  const finalHref = isRenewal
+    ? `/upload?${new URLSearchParams({ mode: "new", ipId: String(contract.ipId) })}`
+    : `/upload?mode=final&${uploadContext}`;
   // 세대(histories[])가 여러 개면 드롭다운으로 골라 볼 수 있다 — 기본값은 currentVersion.
   // API 명세서 §8 기준: histories[]는 historyId·isCurrent를 갖고, currentHistory라는
   // 별도 객체는 없다 — "현재 세대"는 isCurrent===true인 항목을 찾아서 판단한다.
@@ -54,7 +68,7 @@ export default function ContractDetailContent({ contract, onContractUpdate }) {
   const [historyContract, setHistoryContract] = useState(null);
   const [historyError, setHistoryError] = useState(null);
   useEffect(() => {
-    if (USE_MOCK || !activeHistory?.historyId || activeHistory.isCurrent) {
+    if (!activeHistory?.historyId || activeHistory.isCurrent) {
       setHistoryContract(null);
       setHistoryError(null);
       return;
@@ -74,11 +88,11 @@ export default function ContractDetailContent({ contract, onContractUpdate }) {
       cancelled = true;
     };
   }, [contract.id, activeHistory?.historyId, activeHistory?.isCurrent]);
-  // mock은 histories에 상세 스냅샷이 들어 있고, 실 API는 historyId로 다시 조회한다.
-  // 두 응답을 하나의 표시 모델로 합쳐 헤딩·권리 패널이 PDF 버전과 함께 전환되게 한다.
+  // 이력 상세 응답을 현재 계약과 같은 표시 모델로 합친다.
   const snapshot = historyContract ?? contract;
   const displayContract = {
     ...snapshot,
+    selectedHistory: activeHistory,
     title: activeHistory?.title ?? snapshot.title,
     grantor: activeHistory?.grantor ?? snapshot.grantor,
     grantee: activeHistory?.grantee ?? snapshot.grantee,
@@ -100,13 +114,11 @@ export default function ContractDetailContent({ contract, onContractUpdate }) {
     setCancelError(null);
     api
       .cancelContract(contract.id, { reason: cancelReason, note: cancelNote.trim() || undefined })
-      .then(() => api.getContract(contract.id))
-      .then((updated) => {
-        onContractUpdate?.(updated);
-        setCancelModalOpen(false);
-      })
-      .catch((err) => setCancelError(err.message))
-      .finally(() => setCancelSaving(false));
+      .then(() => navigate("/", { replace: true, state: { toast: "계약이 종료되었습니다." } }))
+      .catch((err) => {
+        setCancelError(err.message);
+        setCancelSaving(false);
+      });
   }
   // contract 자체엔 exclusivity 컬럼이 없다 — 목록 페이지와 같은 규칙으로 대표
   // grant(배열 마지막 항목)의 독점 여부를 상단 태그에 보여준다.
@@ -151,7 +163,7 @@ export default function ContractDetailContent({ contract, onContractUpdate }) {
             버전계약 등록
           </Link>
           <Link to={finalHref} className="mx-btn mx-btn-primary" aria-disabled={!contract.ipId} onClick={(event) => { if (!contract.ipId) event.preventDefault(); }} title={!contract.ipId ? "계약 상세 응답의 ipId가 필요합니다." : undefined}>
-            최종계약 등록
+            {isRenewal ? "계약 연장(신규 등록)" : "최종계약 등록"}
           </Link>
         </div>
       </div>
@@ -300,9 +312,8 @@ function RightsGrantGroups({ contract }) {
       <div className="mx-card mx-card-pad">
         <h5 className="mx-heading-panel">계약 기본 정보</h5>
         <MetaRow label="계약 명칭" value={contract.title ?? "—"} />
-        <MetaRow label="계약 성격/유형" value={contract.contractType ?? "—"} />
         <MetaRow label="계약 체결일" value={contract.signedDate ?? "—"} />
-        <MetaRow label="최근 수정" value={contract.updatedAt ?? "—"} />
+        <MetaRow label="최근 수정" value={formatUploadedAt(activeHistoryForDisplay(contract))} />
         <MetaRow label="원문 언어" value={LANG_LABEL[contract.lang] ?? contract.lang ?? "—"} />
         <MetaRow label="계약 당사자 (갑)" value={contract.grantor ?? "—"} />
         <MetaRow label="계약 상대방 (을)" value={contract.grantee ?? "—"} last />
@@ -322,7 +333,7 @@ function RightsGrantGroups({ contract }) {
           return (
             <div key={r.id} className={`rights-card${terminated ? " rights-card--terminated" : ""}`}>
               <div className="rights-card-tags">
-                <span className="mx-tag mx-tag-neutral">{territoryLabel[r.territory] ?? r.territory}</span>
+                <span className="mx-tag mx-tag-neutral">{r.territoryLabel ?? territoryLabel[r.territory] ?? r.territory}</span>
                 <span className={`mx-tag ${exclusivityTagClass(r.exclusivity)}`}>{EXCLUSIVITY_LABEL[r.exclusivity] ?? r.exclusivity}</span>
                 {terminated && (
                   <span className="mx-tag mx-tag-neutral">
@@ -332,14 +343,16 @@ function RightsGrantGroups({ contract }) {
                 <ConflictBadge conflict={r.conflict} />
               </div>
               <div className="rights-card-title">
-                {legalRightLabel[r.legalRight] ?? r.legalRight} · {exploitationModeLabel[r.exploitationMode] ?? r.exploitationMode}
+                {r.legalRightLabel ?? legalRightLabel[r.legalRight] ?? r.legalRight} · {r.exploitationModeLabel ?? exploitationModeLabel[r.exploitationMode] ?? r.exploitationMode}
               </div>
-              <div className="rights-card-meta">범위(scopeType): {scopeTypeLabel[r.scopeType] ?? r.scopeType ?? "—"}</div>
+              <div className="rights-card-meta">
+                권리 대상: {r.contentAssetTitle ?? "—"} · {scopeTypeLabel[r.scopeType] ?? ASSET_SCOPE_LABEL[r.scopeType] ?? r.scopeType ?? "—"}
+              </div>
               <div className="rights-card-meta">기간: {formatPeriod(r.period)}</div>
               {terminated && r.terminationNote && <div className="rights-card-meta">종료 메모: {r.terminationNote}</div>}
               {r.conditionsRaw && (
                 <div className="rights-card-meta" title={JSON.stringify(r.conditionsRaw)}>
-                  부가조건: {r.conditionsRaw.note ?? JSON.stringify(r.conditionsRaw)}
+                  부가조건: {formatConditions(r.conditionsRaw)}
                 </div>
               )}
               <EvidenceList evidence={r.evidence} />
@@ -350,10 +363,11 @@ function RightsGrantGroups({ contract }) {
 
       <div className="mx-card mx-card-pad">
         <h5 className="mx-heading-panel">재허락 권한</h5>
-        <MetaRow label="제3자 재허락 가능 여부" value={formatBoolean(contract.authority?.maySublicense)} />
-        <MetaRow label="재허락 허용 상대방 유형" value={formatList(contract.authority?.allowedRecipientTypes)} />
-        <MetaRow label="target 수령자 유형" value={formatList(contract.authority?.targetRecipientTypes)} last />
+        <MetaRow label="제3자 재허락 가능 여부" value={formatBoolean(contract.authority?.sublicensable)} />
+        <MetaRow label="재허락 허용 상대방 유형" value={formatList(contract.authority?.allowedPartyTypes)} />
+        <MetaRow label="대상 수령자 유형" value={formatAuthorityValue(contract.authority?.targetRecipientType)} last />
       </div>
+
     </>
   );
 }
@@ -378,7 +392,40 @@ function formatBoolean(value) {
 }
 
 function formatList(value) {
-  return value?.length ? value.join(", ") : "—";
+  if (value == null) return "—";
+  return Array.isArray(value) ? (value.length ? value.join(", ") : "—") : String(value);
+}
+
+function formatAuthorityValue(value) {
+  return value == null || value === "" ? "—" : String(value);
+}
+
+function formatConditions(conditions) {
+  const values = [];
+  if (conditions.sublicense === "prior_written_consent") values.push("재허락 시 사전 서면 동의 필요");
+  else if (conditions.sublicense) values.push(`재허락: ${conditions.sublicense}`);
+  if (conditions.marketingClipAllowed != null) values.push(`마케팅 클립 사용 ${conditions.marketingClipAllowed ? "허용" : "불가"}`);
+  if (conditions.note) values.push(conditions.note);
+  return values.length ? values.join(" · ") : JSON.stringify(conditions);
+}
+
+function activeHistoryForDisplay(contract) {
+  const histories = contract.histories ?? [];
+  if (contract.selectedHistory?.uploadedAt) return contract.selectedHistory;
+  const selectedVersion = contract.currentVersion;
+  return (
+    histories.find((history) => history.version === selectedVersion)
+    ?? histories.find((history) => history.isCurrent)
+    ?? [...histories].reverse().find((history) => history.documentKind === "final")
+    ?? histories.at(-1)
+  );
+}
+
+function formatUploadedAt(history) {
+  const value = history?.uploadedAt;
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : HISTORY_DATE_FORMATTER.format(date);
 }
 
 function MetaRow({ label, value, last }) {
@@ -397,9 +444,7 @@ function formatPeriod(period) {
   return `${period.start} ~ ${period.end ?? "미정"}`;
 }
 
-// 통화 구분은 옆 "통화 코드" 행이 맡는다 — 여기선 기호 없이 숫자만 보여준다(모든 통화에
-// ₩를 붙이던 문제 수정).
+// 통화 구분은 옆 "통화 코드" 행이 맡는다 — 여기선 기호 없이 숫자만 보여준다.
 function formatAmount(amount) {
   return amount != null ? amount.toLocaleString() : "—";
 }
-

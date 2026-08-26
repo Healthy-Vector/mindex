@@ -9,7 +9,7 @@ export const EXCLUSIVITY_LABEL = {
 
 // "단독"(sole)은 제3자에게는 배타적이나 라이선서 본인은 계속 이용 가능한 형태라 완전
 // 독점(exclusive)과 다르다 — 충돌 판정에서도 SOLE_VS_SOLE/EXCLUSIVE_VS_SOLE로 구분해서
-// 심각도를 매긴다(mock/verify.js). non_exclusive가 하나라도 있으면 애초에 충돌이 아니다.
+// 충돌 심각도는 실 API의 reason/severity 값을 기준으로 표시한다.
 export function exclusivityTagClass(exclusivity) {
   if (exclusivity === "exclusive") return "mx-tag-accent";
   if (exclusivity === "sole") return "mx-tag-outline";
@@ -27,7 +27,10 @@ export const STATUS_LABEL = {
 // GET /contracts의 displayState — 날짜가 없는 목록 응답에서도 항상 표시할 공통 문구.
 // BEFORE_TERM은 계약 체결 전과 권리 유효기간 전을 하나의 코드로 합친 값이므로,
 // 날짜가 없을 때는 어느 한쪽으로 단정하지 않는 문구를 사용한다.
+// PRE_CONTRACT(초안, 계약 자체가 아직 확정 전)는 ContractListPage의 draft 표시("미적용")와
+// 같은 뜻이라 같은 문구를 쓴다.
 export const DISPLAY_STATE_LABEL = {
+  PRE_CONTRACT: "미적용",
   BEFORE_TERM: "계약/유효기간 전",
   IN_TERM: "계약 기간중",
   EXPIRING: "만료임박",
@@ -44,6 +47,16 @@ export const TERMINATED_REASON_LABEL = {
 
 // ip_alias.lang / contract.lang — 언어 구분 (한 벌의 어휘를 공유한다).
 export const LANG_LABEL = { ko: "한국어", en: "영어", ja: "일본어" };
+
+// Back API에서 별도 ref로 제공하지 않는 권리 대상 범위 UI 어휘.
+// 값은 DB asset_scope_kind enum과 정확히 맞춘다.
+export const ASSET_SCOPE_LABEL = {
+  SERIES_ALL: "시리즈 전체",
+  SEASON: "시즌",
+  EPISODE: "에피소드",
+  EDITION: "에디션",
+};
+export const ASSET_SCOPE_OPTIONS = labelMapToOptions(ASSET_SCOPE_LABEL);
 
 function labelMapToOptions(labels) {
   return Object.entries(labels).map(([value, label]) => ({ value, label }));

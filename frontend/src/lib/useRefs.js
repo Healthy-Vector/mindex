@@ -30,21 +30,29 @@ function toOptions(list) {
   return (list ?? []).map((item) => ({ value: item.code, label: item.label }));
 }
 
+function taxonomyToOptions(list) {
+  return (list ?? []).map((item) => ({ value: item.code, label: item.nameKo ?? item.label ?? item.code }));
+}
+
+function taxonomyToLabelMap(list) {
+  return Object.fromEntries((list ?? []).map((item) => [item.code, item.nameKo ?? item.label ?? item.code]));
+}
+
 function deriveRefs(raw) {
   return {
-    territoryLabel: toLabelMap(raw.country),
-    territoryOptions: toOptions(raw.country),
-    territoryGroupLabel: toLabelMap(raw.territoryGroup),
-    territoryGroupMembers: Object.fromEntries((raw.territoryGroup ?? []).map((g) => [g.code, g.countries])),
+    territoryLabel: toLabelMap(raw.countries ?? raw.country),
+    territoryOptions: toOptions(raw.countries ?? raw.country),
+    territoryGroupLabel: toLabelMap(raw.territoryGroups ?? raw.territoryGroup),
+    territoryGroupMembers: Object.fromEntries((raw.territoryGroups ?? raw.territoryGroup ?? []).map((g) => [g.code, g.countries])),
     ipKindLabel: toLabelMap(raw.ipKind),
     ipKindOptions: toOptions(raw.ipKind),
-    scopeTypeLabel: toLabelMap(raw.scopeType),
-    scopeTypeOptions: toOptions(raw.scopeType),
+    scopeTypeLabel: toLabelMap(raw.scopeTypes ?? raw.scopeType),
+    scopeTypeOptions: toOptions(raw.scopeTypes ?? raw.scopeType),
     relationTypeLabel: toLabelMap(raw.relationType),
-    legalRightLabel: toLabelMap(raw.legalRight),
-    legalRightOptions: toOptions(raw.legalRight),
-    exploitationModeLabel: toLabelMap(raw.exploitationMode),
-    exploitationModeOptions: toOptions(raw.exploitationMode),
+    legalRightLabel: taxonomyToLabelMap(raw.legalRights ?? raw.legalRight),
+    legalRightOptions: taxonomyToOptions(raw.legalRights ?? raw.legalRight),
+    exploitationModeLabel: taxonomyToLabelMap(raw.exploitationModes ?? raw.exploitationMode),
+    exploitationModeOptions: taxonomyToOptions(raw.exploitationModes ?? raw.exploitationMode),
   };
 }
 
