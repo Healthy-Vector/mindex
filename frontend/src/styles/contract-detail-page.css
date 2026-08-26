@@ -279,34 +279,12 @@
   font-size: 11px;
   margin-top: 10px;
 }
-/* PIN 인증 */
-.detail-pin-wrap {
-  display: flex;
-  justify-content: center;
-  padding: 60px 20px;
-}
-.detail-extend-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: var(--mx-dark-overlay);
-  padding: 0;
-  align-items: center;
-}
-.detail-pin-modal {
-  width: 100%;
-  max-width: 380px;
-}
+/* PIN 인증 — 오버레이/모달 뼈대(.detail-pin-wrap/.detail-extend-overlay/.detail-pin-modal/
+   .detail-pin-actions)는 여러 페이지가 확인창 용도로 재사용해서 shared.css로 옮겼다. */
 .detail-pin-input {
   margin: 16px 0 8px;
   text-align: center;
   font-size: 22px;
   letter-spacing: 0.6em;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-}
-.detail-pin-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
 }
