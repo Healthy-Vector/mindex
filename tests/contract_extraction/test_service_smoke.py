@@ -54,6 +54,10 @@ def test_service_smoke():
     assert result.compact["source_document_ref"] == "mockcontract0001hash"
     print("  ✅ projector 연결 확인 — compact 출력 정상, source_document_ref 는 Mock bundle 의 document.file_hash 그대로")
 
+    assert result.chunks
+    assert result.to_dict()["chunks"] == result.chunks
+    print("  ✅ 검색 인덱스 적재용 chunks가 결과 payload에 보존됨")
+
     print("\n✅ service.run_extraction(pdf_bytes) 전체 배선(Document retrieval Mock -> Contract extraction) 정상 동작")
 
 

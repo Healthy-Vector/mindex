@@ -273,16 +273,15 @@ Object.assign(PANELS, {
 <h3 class="dtitle"><span class="no big">6</span>계약 확정 저장</h3>
 <div class="dmeta"><span class="tag own-p4">P4</span><span class="tag open">PIN 세션 불필요 · 201</span></div>
 <div class="dwhere"><b>프로세스 위치</b><div>⑥ 확정 저장 — <code>save_rights_batch()</code> 실행</div></div>
-<h4 class="dh">API 역할</h4><ul class="dul"><li>5번 요청과 같은 계약·권리 필드에 선택 <code>chunks[]</code>와 <code>sourceTmpid</code>를 추가합니다.</li><li>APPLIED와 CONFLICTED 모두 정상 커밋합니다. 충돌이면 권리 행은 0건이며 <code>contract_history.status='conflicted'</code>와 P2 <code>conflict_report</code>를 남깁니다.</li></ul>
+<h4 class="dh">API 역할</h4><ul class="dul"><li>5번 요청과 같은 계약·권리 필드에 선택 <code>tmpId</code>를 추가합니다. 서버가 staging 결과의 문서 청크·임베딩을 자동으로 읽습니다.</li><li>APPLIED와 CONFLICTED 모두 정상 커밋합니다. 충돌이면 권리 행은 0건이며 <code>contract_history.status='conflicted'</code>와 P2 <code>conflict_report</code>를 남깁니다.</li></ul>
 <h4 class="dh">추가 payload</h4><pre class="dpre">{
-  &quot;documentKind&quot;: &quot;final&quot;, &quot;sourceTmpid&quot;: &quot;0a7c...&quot;,
-  &quot;chunks&quot;: [{ &quot;clauseNo&quot;: &quot;3.1&quot;, &quot;chunkText&quot;: &quot;...&quot;,
-    &quot;lang&quot;: &quot;ko&quot;, &quot;pageStart&quot;: 3, &quot;pageEnd&quot;: 4, &quot;embedding&quot;: null }]
+  &quot;documentKind&quot;: &quot;final&quot;,
+  &quot;tmpId&quot;: &quot;0a7c...&quot;
 }</pre>
 <h4 class="dh">response</h4><pre class="dpre">{ &quot;batchResult&quot;: &quot;APPLIED&quot;, &quot;contractId&quot;: 101,
   &quot;contractHistoryId&quot;: 301, &quot;hasConflict&quot;: false,
   &quot;constraintName&quot;: null, &quot;conflictReport&quot;: null }</pre>
-<h4 class="dh">구현 시 주의</h4><ul class="dul warn"><li><code>sourceTmpid</code>가 있으면 staging 작업이 DONE이고 추출 결과가 있어야 합니다. 현재 사용 중인 값의 재사용은 <code>409 ALREADY_CONFIRMED</code>입니다.</li><li>청크 페이지 필드는 <code>pageStart</code>·<code>pageEnd</code>이며 단일 <code>page</code>는 사용하지 않습니다.</li><li><code>201</code>로 끝난 APPLIED·CONFLICTED 모두 <code>consumed_at</code>을 기록합니다. TTL 삭제는 별도 과제입니다.</li></ul>`,
+<h4 class="dh">구현 시 주의</h4><ul class="dul warn"><li><code>tmpId</code>가 있으면 staging 작업이 DONE이고 추출 결과가 있어야 합니다. 현재 사용 중인 값의 재사용은 <code>409 ALREADY_CONFIRMED</code>입니다.</li><li>서버는 워커가 <code>payload.chunks</code>에 저장한 청크·임베딩을 <code>p_chunks</code>로 자동 전달합니다. 화면은 <code>chunks[]</code>를 보내지 않습니다.</li><li><code>201</code>로 끝난 APPLIED·CONFLICTED 모두 <code>consumed_at</code>을 기록합니다. TTL 삭제는 별도 과제입니다.</li></ul>`,
 
   "7": `<div class="dhead"><span class="m m-get">GET</span><code>/contracts</code></div>
 <h3 class="dtitle"><span class="no big">7</span>계약 통합 목록</h3>

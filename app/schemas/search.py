@@ -55,12 +55,17 @@ class SearchRequest(CamelModel):
 
 
 class Snippet(CamelModel):
-    """근거 조각 하나 — 하이브리드 점수(어휘+의미) 상위 N개, 임계값 이상만."""
+    """근거 조각 하나 — 하이브리드 점수(어휘+의미) 상위 N개, 임계값 이상만.
+
+    **조항 본문(`text`)은 싣지 않는다 (D-40).** 어디서 걸렸는지(`clauseNo`·`page`)와
+    얼마나 맞는지(`similarity`)만 준다. 원문은 PIN 세션이 필요한 8·9번
+    (상세·원본 PDF)에서만 나간다 — 검색 화면이 근거문을 표시하지 않기로 하면서
+    응답에서도 뺐다. 화면에 없는 것을 API가 내보내지 않는다.
+    """
 
     chunk_id: int
     page: Optional[int] = None
     clause_no: Optional[str] = None
-    text: str
     similarity: float
 
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 import pytest
 
 from app.services.merge_patch import apply_merge_patch
+from app.services.staging_edit import index_chunks
 from app.services.storage import (
     resolve_contract_pdf,
     sha256_hex,
@@ -87,3 +88,31 @@ def test_resolve_contract_pdf_handles_empty(value, tmp_path):
 def test_sha256_hex_is_stable():
     assert sha256_hex(b"%PDF-1.4\n") == sha256_hex(b"%PDF-1.4\n")
     assert len(sha256_hex(b"x")) == 64
+
+
+def test_index_chunks_uses_worker_payload_without_request_body():
+    rows = index_chunks(
+        {
+            "chunks": [
+                {
+                    "clause_no": "제3조",
+                    "text": "독점적 전송권을 허락한다.",
+                    "lang": "ko",
+                    "page_start": 2,
+                    "page_end": 2,
+                    "embedding": [0.25] * 1024,
+                }
+            ]
+        }
+    )
+
+    assert rows == [
+        {
+            "clause_no": "제3조",
+            "chunk_text": "독점적 전송권을 허락한다.",
+            "lang": "ko",
+            "page_start": 2,
+            "page_end": 2,
+            "embedding": "[" + ",".join(["0.25"] * 1024) + "]",
+        }
+    ]

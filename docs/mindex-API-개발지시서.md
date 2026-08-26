@@ -164,9 +164,9 @@ save_rights_batch(
 - 적용이면 `contract_history.status='applied'`와 active grant가 함께 커밋된다.
 - 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋한다.
 - `tmpId`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 먼저 확인한다.
+- `tmpId` 경로는 워커가 `extract_result.payload.chunks`에 보존한 청크·임베딩을 읽어 `p_chunks`로 자동 전달한다. 화면 요청의 `chunks[]`는 받지 않는다.
 - 이미 `contract.source_tmpid`에 쓰인 값은 `409 ALREADY_CONFIRMED`다. 신규·개정 계약 모두 같은 사전 검사를 거친다.
 - 같은 계약의 동시 버전 등록은 API가 contract 행을 `FOR UPDATE`로 잠가 `MAX(version)+1` 경쟁을 막는다.
-- `chunks[]`의 페이지는 `pageStart`·`pageEnd`로 보내며 둘 다 있으면 `pageEnd >= pageStart`여야 한다.
 - `POST /contracts`가 `201`로 끝나면 APPLIED·CONFLICTED 모두 같은 트랜잭션에서 `staging.extract_job.consumed_at`을 기록한다. TTL 정리는 별도 단계다.
 
 ## 5. 공통 HTTP 규약

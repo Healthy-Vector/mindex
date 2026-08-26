@@ -327,6 +327,47 @@ createdAt}`만 주므로 목록에서 클릭해 들어오면 `tmpid` 하나뿐�
 `staging_confirm_api`에 INSERT를 더할지 `staging_upload_api`를 새로 만들지는 P2 판단
 사항이며, 요청은 전달했다.
 
+### D-39 — 검색은 현재 세대의 조항만 본다
+
+`contract_chunk`는 세대(`contract_history`)마다 쌓이고 구세대 행이 지워지지 않는데,
+15번 검색의 청크 조회가 `WHERE ch.contract_id = ANY(:cands)`뿐이라 **개정판에서 이미
+대체된 옛 조항이 그대로 검색 결과로 잡혔다.** 사용자에게는 지금 유효하지 않은 문구가
+근거(snippet)로 보인다.
+
+`ch.contract_history_id = contract.current_history_id` 조건을 더한다.
+`current_history_id`는 `validate_contract_signing()` 트리거가 applied 세대만
+가리키도록 강제하고, 후보는 `confirmed_rights_grant`(= `contract.status='signed'`)에서
+나오므로 이 값이 NULL인 계약은 애초에 후보에 들어오지 않는다 — 별도 폴백이 필요 없다.
+
+구세대 청크를 지우지는 않는다. 세대별 원문 조회(D-34)와 같은 이유로 이력은
+보존하되, **검색 대상에서만 뺀다.**
+
+### D-40 — 검색 응답에 조항 본문을 싣지 않는다
+
+15번 검색의 `snippets[].text`는 **계약서 조항 원문**이었다. 같은 원문을 돌려주는
+9번(`GET /contracts/{id}/file`)은 PIN 세션을 요구하는데 15번은 열려 있어서,
+인증 없이 계약서 본문을 조각으로 꺼낼 수 있었다.
+
+처음에는 15번에 `require_session`을 붙였다가 방향을 바꿨다. **화면이 근거문을
+표시하지 않기로 했으므로 응답에서 아예 빼는 쪽이 맞다** — 화면에 없는 것을 API가
+내보내지 않는다. 표시 계층에서 감추는 것은 방어가 아니며(`curl` 한 줄이면 그대로
+나온다), 반대로 응답에서 빼면 인증을 걸 이유 자체가 사라진다.
+
+- `Snippet`에서 `text`를 제거했다. `chunkId`·`clauseNo`·`page`·`similarity`는 남긴다 —
+  "어디서 얼마나 걸렸는지"는 메타데이터다.
+- `require_session`은 붙이지 않는다. 7번 목록·12번 IP 목록과 같은 기준
+  (메타데이터는 열고, 원문·이력 열람만 PIN)이 유지된다.
+- 본문은 여전히 **랭킹에는 쓴다.** `word_similarity(lower(ch.chunk_text), :q)`로 어휘
+  점수를 내고, 임계값을 넘는 근거가 하나도 없는 계약을 빼는 판단도 본문 기준이다.
+  서버 안에서만 보고 밖으로 내보내지 않는다.
+
+**PIN이 보장하지 않는 것도 함께 기록해 둔다.** PIN은 "이 설치에 접근할 자격이 있나"만
+확인한다. `team`은 PIN 관리 전용 테이블이고 `team_id`를 도메인 테이블에 전파하지
+않으므로(D-29/D-30, 단일사 온프렘) **토큰 안의 팀 정보는 조회 범위를 가르지 않는다** —
+라우터들이 `_team: str = Depends(require_session)`으로 받아 그대로 버린다.
+멀티테넌트가 필요해지면 스키마에 `team_id` 전파와 RLS가 따로 필요하고,
+`app/security/rls.py`가 그 빈자리로 남아 있다.
+
 ## 미결
 
 ### O-06 — 요구사항별 평가 건수 불일치

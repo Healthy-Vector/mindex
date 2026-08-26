@@ -52,6 +52,7 @@ def test_worker_smoke():
     assert saved is not None
     assert "confidence" not in saved, "대표 confidence는 별도 저장하지 않아야 한다"
     assert "compact" in saved["payload"], "ExtractionResult 전체(raw/validation/normalized/compact)가 저장돼야 한다"
+    assert saved["payload"]["chunks"], "검색 인덱스 적재용 chunks가 payload에 저장돼야 한다"
 
     print("\n✅ QUEUED -> RUNNING -> extract_result 저장 -> DONE 전체 흐름 정상 동작")
 

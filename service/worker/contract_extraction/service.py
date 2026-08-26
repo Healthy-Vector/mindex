@@ -63,7 +63,13 @@ def run_extraction(
         source_document_ref=source_document_ref,
     )
 
-    return ExtractionResult(raw=raw, validation=validation, normalized=normalized, compact=compact)
+    return ExtractionResult(
+        raw=raw,
+        validation=validation,
+        normalized=normalized,
+        compact=compact,
+        chunks=bundle_dict.get("chunks", []),
+    )
 
 
 if __name__ == "__main__":

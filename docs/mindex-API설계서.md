@@ -529,18 +529,16 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 1. `tmpId`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 확인
 2. 이미 `contract.source_tmpid`에 사용 중인 값인지 검사 — 재사용이면 `409 ALREADY_CONFIRMED`
 3. 같은 계약의 동시 버전 등록은 contract 행을 `FOR UPDATE`로 잠금
-4. 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
+4. `tmpId` 경로면 워커가 `payload.chunks`에 보존한 문서 청크·임베딩을 읽어 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
 5. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 **원본 PDF를 서버 저장소로 옮기고**(`staging.pdf_blob.data` → `{contract_id}/{history_id}.pdf`) `contract_history.file_path`·`file_hash`를 기록한 뒤 `staging.extract_job.consumed_at`을 기록
-5. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
-6. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
+6. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
+7. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
 
 **부분 승인은 발생하지 않습니다.** 배치 내부 한 행만 충돌해도 이번 요청의 grant는 0행입니다. 충돌은 트랜잭션 실패가 아니라 판정 결과이므로 APPLIED와 CONFLICTED 모두 `201`입니다.
 
 ### payload
 
-5번 검증 API와 같은 필드에 선택 `chunks[]`가 추가됩니다.
-
-**`tmpId`를 보내면 화면이 계약과 권리 전체를 다시 보낼 필요가 없습니다(D-34).** 서버가 `staging.extract_result.payload.edited`(검증 때 반영된 수정본, 없으면 워커 원본)를 읽어 저장 배치를 만듭니다. `evidence`·`conditionsRaw`처럼 화면이 들고 있지 않은 값도 서버가 채웁니다.
+**`tmpId`를 보내면 화면이 계약과 권리 전체를 다시 보낼 필요가 없습니다(D-34).** 서버가 `staging.extract_result.payload.edited`(검증 때 반영된 수정본, 없으면 워커 원본)를 읽어 저장 배치를 만듭니다. `evidence`·`conditionsRaw`처럼 화면이 들고 있지 않은 값도 서버가 채웁니다. 워커가 보존한 `payload.chunks`의 청크·임베딩도 서버가 함께 읽어 `p_chunks`로 전달하므로, 화면은 `chunks`를 보내지 않습니다.
 
 |필드|타입|필수|설명|
 |---|---|---|---|
@@ -551,17 +549,6 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 |`mimeType` / `rawText`|-|-|5번과 동일|
 |`documentKind`|enum·null|X|`draft` / `final`. 생략하면 업로드 시 받은 `mode`, 그것도 없으면 final (D-37)|
 |`rights`|array·null|△|직접 경로에서만 필수. staging 경로에서는 저장된 수정본에서 읽습니다|
-|`chunks`|array|X|검색용 문서 청크|
-
-`chunks[]`
-
-|필드|타입|필수|설명|
-|---|---|---|---|
-|`clauseNo`|string·null|X|조항 번호|
-|`chunkText`|string|O|청크 본문|
-|`lang`|string·null|X|원문 언어|
-|`pageStart` / `pageEnd`|int·null|X|페이지 범위. 둘 다 있으면 pageEnd ≥ pageStart|
-|`embedding`|number[]·null|X|벡터 임베딩|
 
 ```json
 {
@@ -588,16 +575,6 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
         "period": { "quote": "2027년 7월 1일부터 ..." },
         "exclusivity": { "quote": "독점적으로 ..." }
       }
-    }
-  ],
-  "chunks": [
-    {
-      "clauseNo": "제8조",
-      "chunkText": "전송할 권리를 독점적으로 ...",
-      "lang": "ko",
-      "pageStart": 12,
-      "pageEnd": 13,
-      "embedding": null
     }
   ],
   "tmpId": "0a7c3f2e-9b41-4d55-8c10-2f4b7e1d9a33"
@@ -1371,6 +1348,9 @@ GET /api/ips?page=1&size=20
 
 ## 15. 통합 검색 — `POST /search`
 
+> **`snippets[]`에 조항 본문은 실리지 않습니다(D-40).** 어디서 걸렸는지(`clauseNo`·`page`)와 점수(`similarity`)만 옵니다. 검색 화면이 근거문을 표시하지 않기로 하면서 응답에서도 뺐습니다 — 화면에 없는 것을 API가 내보내지 않습니다.
+> 본문이 안 나가므로 PIN 세션은 요구하지 않습니다. 원문은 세션이 필요한 8·9번에서만 나갑니다.
+
 ### API 역할 및 사용되는 프로세스 위치
 
 **Ⓐ 진입 단계.** 목록과 나란한 또 하나의 진입점입니다.
@@ -1380,7 +1360,7 @@ GET /api/ips?page=1&size=20
 1. 자연어 질의를 `legalRights`·`exploitationModes`·지역·기간·독점여부로 해석
 2. UI가 명시한 `filters`를 자연어 해석보다 우선 적용
 3. `confirmed_rights_grant`의 서명 완료 계약을 SQL로 축소
-4. 남은 후보 안에서만 `contract_chunk.embedding` 벡터 랭킹
+4. 남은 후보 안에서만 `contract_chunk` 어휘(pg_trgm) + `embedding` 벡터 하이브리드 랭킹. **현재 세대(`contract.current_history_id`)의 조항만 봅니다** — 청크는 세대마다 쌓이고 구세대 행이 지워지지 않아, 이 조건이 없으면 개정판에서 이미 대체된 문구가 근거로 잡힙니다
 
 벡터 검색 후 SQL 필터를 적용하면 안 됩니다.
 

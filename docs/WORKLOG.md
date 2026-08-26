@@ -2,6 +2,107 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-26 — 검색 응답에서 조항 본문 제거 (D-40)
+
+15번의 `snippets[].text`가 계약서 조항 원문이었다. 같은 원문을 주는 9번은 PIN
+세션을 요구하는데 15번은 열려 있어서, 인증 없이 계약서 본문을 조각으로 꺼낼 수
+있었다.
+
+처음엔 `require_session`을 붙였다가 되돌렸다. 프론트가 검색 결과 화면에서 근거문을
+빼기로 했으므로 **응답에서 아예 빼는 쪽이 맞다** — 화면에 없는 것을 API가 내보내지
+않는다. 표시 계층에서 감추는 건 방어가 아니고(`curl`이면 그대로 나온다), 응답에서
+빼면 인증을 걸 이유 자체가 사라진다.
+
+- `Snippet`에서 `text` 제거. `chunkId`·`clauseNo`·`page`·`similarity`는 유지 —
+  "어디서 얼마나 걸렸는지"는 메타데이터다.
+- `require_session` 철회. 7번 목록·12번 IP 목록과 같은 기준을 유지한다.
+- 본문은 랭킹에는 계속 쓴다(`word_similarity`, 임계값 판정). 서버 안에서만 본다.
+
+### 프론트에 확인이 필요한 것
+
+`SearchPage.jsx:149`가 아직 `근거문({snippet.clauseNo}): "{snippet.text}"`를
+렌더링하고 있다. 이 브랜치 기준이며, 프론트가 "검색 결과 화면에서 없앴다"고 한
+변경이 아직 안 올라온 것으로 보인다. **그 블록을 지우지 않으면 빈 따옴표가
+표시된다.**
+
+### 검증
+
+- `ruff check app/ tests/` → All checks passed.
+  `pytest`(DB 없는 경로) → 29 passed, 28 skipped.
+- `test_search_pgvector.py`의 snippet 단언을 `text` 미포함 확인으로 바꿨다.
+  이 파일은 `sentence_transformers`를 요구해 CI에서 스킵된다.
+
+## 2026-08-26 — 검색이 대체된 구세대 조항을 잡던 것 수정 (D-39)
+
+15번 검색의 청크 조회가 `WHERE ch.contract_id = ANY(:cands)`뿐이었다.
+`contract_chunk`는 세대마다 쌓이고 구세대 행이 지워지지 않으므로 **개정판에서 이미
+대체된 조항이 그대로 근거(snippet)로 잡혔다.**
+
+- `ch.contract_history_id = contract.current_history_id` 조건을 더했다.
+- 폴백은 두지 않았다. `current_history_id`는 트리거가 applied 세대만 가리키도록
+  강제하고, 후보는 `confirmed_rights_grant`(= `contract.status='signed'`)에서 나오므로
+  이 값이 NULL인 계약은 애초에 후보에 없다.
+- 구세대 청크는 지우지 않는다. 이력은 보존하되 검색 대상에서만 뺀다.
+
+### 검증
+
+- `ruff check app/ tests/` → All checks passed.
+- `tests/test_search_pgvector.py`에 `test_superseded_generation_chunks_are_not_searched`
+  추가 — 개정판 세대를 만들어 현재로 올리고, 질의에 맞는 문구는 구세대에만 두고
+  현재 세대에는 무관한 문구만 둬서 그 계약이 결과에서 빠지는지 본다.
+- **이 파일 전체가 이 세션에서 실행되지 않았다.** PostgreSQL이 없고
+  `sentence_transformers`도 없다(`requirements-ml.txt`). CI도 `requirements.txt`만
+  설치하므로 **CI에서도 스킵된다** — 임베딩이 있는 환경에서 따로 돌려야 한다.
+
+### 관련해서 확인만 하고 넘어간 것
+
+- 화면에서 오타를 고쳐도 청크 임베딩에 반영되지 않는다는 지적이 있었는데, 임베딩
+  대상(`chunk_text` = 조항 원문)과 화면이 고치는 것(`contractInfo`·`rights`)이 서로
+  다른 데이터다. DTO에 `chunks`가 없어 화면은 청크를 보지도 고치지도 못한다. 즉
+  현재는 불일치가 발생하지 않고, **청크를 고칠 수 있게 되는 순간 생기는 문제**다.
+  재색인 자리는 `change_log`(+ `contract_history` 트리거)와 파이프라인 ⑩에 이미
+  설계돼 있다. 청크 편집은 후순위로 미뤘다.
+- OCR이 조항 원문을 잘못 읽으면 `chunk_text`와 그 임베딩이 둘 다 틀린 채 저장되고
+  고칠 경로가 없다. 위와 같은 미결이다.
+
+## 2026-08-26 — 팀 공유 서버(5432) 초기 스키마 적용, staging에서 권한 블로킹
+
+`.env`에 팀 공유 서버(`15.164.171.220`) 접속정보 반영. `p2_user` 계정이
+포트 5432(일반)·15432(암호화 전용) 두 개로 나뉘어 있고 비밀번호도 서로
+다르다 — 계정명이 같아 헷갈리기 쉬운데 별개 자격증명이다. `.env`에
+`POSTGRES_ENC_*`/`DATABASE_ENC_URL`로 15432용을 분리해서 추가해 뒀다.
+
+### 한 일
+
+- 원격 5432 DB(`mindex`, 빈 상태 확인 후) 대상으로 `sql/init/*.sql`을
+  번호 순서대로 `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f` 로 실행.
+- `00_extensions.sql`~`05_change_log.sql` 5개 파일 전부 성공. `btree_gist`·
+  `vector` extension은 이미 설치돼 있었음(P1이 미리 준비해둔 것으로 보임).
+
+### 막힌 것
+
+- `06_staging_schema.sql`의 `CREATE SCHEMA staging;`에서
+  `permission denied for database mindex` 발생. `p2_user`가 `public`
+  스키마에 대한 CREATE 권한은 있지만 **DB 레벨 CREATE 권한**이 없어서다
+  (00~05는 전부 `public` 안에서의 작업이라 통과됐던 것).
+- `07_staging_roles.sql`(롤 생성 포함 추정)은 06이 막혀 시도하지 않음.
+- P1이 권한 부여(`GRANT CREATE ON DATABASE mindex TO p2_user` 또는 admin이
+  직접 `CREATE SCHEMA staging AUTHORIZATION p2_user` 실행)를 맡기로 함.
+  **다음 세션에서 P1 완료 여부 먼저 확인 후 06·07 이어서 적용.**
+
+### 추가 — contract.title 컬럼 신설
+
+`contract`에 사람이 읽는 계약 목록 표시용 라벨 `title text`(nullable) 추가.
+`ip.title`(작품명)과는 별개 개념이고 판정 로직(EXCLUDE/트리거)에는 관여하지 않는다.
+
+- `sql/init/01_schema.sql` CREATE TABLE 정의에 반영(신규 설치 기준)
+- `docs/mindex_remastered.dbml`, `docs/mindex DB 설명서.md`(3장) 동기화
+- `sql/init/99_schema_meta.sql`에 `2026-08-26.1` 버전 기록 추가
+- 원격 5432 DB에도 `ALTER TABLE contract ADD COLUMN title text;` 즉시 적용
+  (`contract` row 0건 확인 후 실행, 데이터 손실 위험 없음)
+- DECISIONS.md에는 별도 D-번호를 만들지 않음 — 과거 `ip.activity` 컬럼 추가 때도
+  schema_meta 버전 노트만 남기고 D-번호는 안 붙인 전례를 따름(판정 로직 무관한
+  단순 표시용 컬럼)
 ## 2026-08-26 — 계약 메타 저장, 당사자·업로드 맥락 유도 (D-36 · D-37)
 
 D-34 인수인계 중 드러난 것들을 이어서 처리했다. **스키마 변경 3건은 P2에 요청해

@@ -4,6 +4,17 @@
 4) 후보 안에서만 contract_chunk 어휘(pg_trgm) + 벡터(pgvector) 하이브리드 랭킹.
 벡터를 먼저 하지 않는다(§10-11) — 후보 축소 후에만 청크를 본다는 규칙은 그대로다.
 
+## 현재 세대의 조항만 검색한다
+
+`contract_chunk`는 세대(`contract_history`)마다 쌓이고 구세대 행이 지워지지
+않는다. 계약 id로만 조회하면 **개정판에서 이미 대체된 옛 조항이 그대로 검색
+결과로 잡힌다** — 사용자에게는 지금 유효하지 않은 문구가 근거로 보인다.
+그래서 `contract.current_history_id`로 한 세대만 남긴다.
+
+`current_history_id`는 트리거가 applied 세대만 가리키도록 강제하고, 후보는
+`confirmed_rights_grant`(= `contract.status='signed'`)에서 나오므로 이 값이
+NULL인 계약은 애초에 후보에 들어오지 않는다.
+
 ## 어휘 + 벡터를 섞는 이유
 
 `contract_chunk`에 `pg_trgm`(09_chunk_search.sql)과 `vector`(04_vector.sql)가
@@ -18,6 +29,20 @@ e5 코사인이 좁은 구간(실측 0.68~0.86)에 눌려 있어 `1 - dist` 원�
 쓰면 항상 0.14~0.32 근처라, 0~1 전 구간을 쓰는 어휘 점수와 섞을 때 사실상
 어휘가 지배해버린다. 후보군(이번 검색의 `contract_chunk` 전체) 안에서
 min-max로 0~1로 펴서 섞는다 — Task1의 `semantic_norm`과 같은 이유·같은 해법.
+
+## 조항 본문을 응답에 싣지 않는다 (D-40)
+
+`snippets[]`는 어디서 걸렸는지(`clauseNo`·`page`)와 점수만 준다. **조항 본문은
+빠져 있다.** 검색 화면이 근거문을 표시하지 않기로 하면서 응답에서도 뺐다 —
+화면에 없는 것을 API가 내보내지 않는다는 원칙이다.
+
+본문이 안 나가므로 이 엔드포인트에는 PIN 세션을 요구하지 않는다. 7번 목록·12번 IP
+목록과 같은 기준(메타데이터는 열고, 원문·이력 열람만 PIN)이 유지된다. 원문은
+세션이 필요한 8·9번에서만 나간다.
+
+본문은 여전히 **랭킹에는 쓴다** — `word_similarity(lower(ch.chunk_text), :q)`로
+어휘 점수를 내고, 임계값을 넘는 근거가 하나도 없는 계약을 결과에서 빼는 판단도
+본문 기준이다. 서버 안에서만 보고 밖으로 내보내지 않는다.
 
 ## snippet은 계약당 최상단 1개만
 
@@ -211,7 +236,12 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
                         ch.embedding <=> CAST(:qv AS vector) AS dist,
                         word_similarity(lower(ch.chunk_text), :q) AS lex
                     FROM contract_chunk ch
+                    JOIN contract c ON c.id = ch.contract_id
                     WHERE ch.contract_id = ANY(:cands)
+                      -- 현재 세대의 조항만 본다. contract_chunk는 세대마다 쌓이고
+                      -- 구세대 행이 지워지지 않으므로, 이 조건이 없으면 개정판에서
+                      -- 이미 대체된 옛 조항이 검색 결과로 잡힌다.
+                      AND ch.contract_history_id = c.current_history_id
                 ),
                 norm AS (
                     SELECT
@@ -238,7 +268,7 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
                         ) AS rn
                     FROM norm
                 )
-                SELECT contract_id, chunk_id, clause_no, page_start, chunk_text, score
+                SELECT contract_id, chunk_id, clause_no, page_start, score
                 FROM ranked_chunks
                 WHERE rn <= :topn AND score >= :minscore
                 ORDER BY contract_id, score DESC
@@ -249,11 +279,12 @@ def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse
                 "cands": candidates, "topn": SNIPPETS_PER_CONTRACT, "minscore": MIN_SNIPPET_SCORE,
             },
         ).all()
-        for cid, chunk_id, clause_no, page_start, chunk_text, score in rows:
+        for cid, chunk_id, clause_no, page_start, score in rows:
             cid = int(cid)
+            # 조항 본문은 담지 않는다(D-40) — 어디서 걸렸는지만 준다.
             snippets.setdefault(cid, []).append(
                 Snippet(chunk_id=int(chunk_id), page=page_start, clause_no=clause_no,
-                        text=chunk_text, similarity=float(score))
+                        similarity=float(score))
             )
             scores[cid] = max(scores.get(cid, 0.0), float(score))
         # 임계값 넘는 snippet이 하나도 없는 계약은 결과에서 뺀다 (팀 결정).
