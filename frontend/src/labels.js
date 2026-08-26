@@ -27,7 +27,10 @@ export const STATUS_LABEL = {
 // GET /contracts의 displayState — 날짜가 없는 목록 응답에서도 항상 표시할 공통 문구.
 // BEFORE_TERM은 계약 체결 전과 권리 유효기간 전을 하나의 코드로 합친 값이므로,
 // 날짜가 없을 때는 어느 한쪽으로 단정하지 않는 문구를 사용한다.
+// PRE_CONTRACT(초안, 계약 자체가 아직 확정 전)는 ContractListPage의 draft 표시("미적용")와
+// 같은 뜻이라 같은 문구를 쓴다.
 export const DISPLAY_STATE_LABEL = {
+  PRE_CONTRACT: "미적용",
   BEFORE_TERM: "계약/유효기간 전",
   IN_TERM: "계약 기간중",
   EXPIRING: "만료임박",

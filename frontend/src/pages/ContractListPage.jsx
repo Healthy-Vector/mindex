@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
-import { STATUS_LABEL } from "../labels.js";
+import { STATUS_LABEL, DISPLAY_STATE_LABEL } from "../labels.js";
 import { useDebouncedEffect } from "../lib/useDebouncedEffect.js";
 import { computeContractStatus } from "../lib/contractStatus.js";
 import StatusBadge from "../components/StatusBadge.jsx";
+import CustomSelect from "../components/CustomSelect.jsx";
 import Pagination from "../components/Pagination.jsx";
 import "../styles/contract-list-page.css";
 
 const PAGE_SIZE = 10;
 
-// 계약 목록 — GET /api/contracts가 지원하는 page/size/include_processing만 사용한다.
+// GET /api/contracts의 displayStates 필터(feat/staging-verify-merge에서 추가) — 콤마로
+// 복수 지정을 받지만 화면은 한 번에 하나만 고르는 단일 선택으로 둔다("전체"는 파라미터
+// 생략과 같다).
+const DISPLAY_STATE_FILTER_OPTIONS = [
+  { key: "all", label: "전체 권리 상태" },
+  ...Object.entries(DISPLAY_STATE_LABEL).map(([key, label]) => ({ key, label })),
+];
+
+// 계약 목록 — GET /api/contracts가 지원하는 page/size/include_processing/displayStates를 쓴다.
 export default function ContractListPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,6 +30,7 @@ export default function ContractListPage() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [includeProcessing, setIncludeProcessing] = useState(true);
+  const [displayStateFilter, setDisplayStateFilter] = useState("all");
 
   // location.state는 캡처만 하고 바로 지운다 — 안 그러면 새로고침·뒤로가기 때 토스트가 다시 뜬다.
   useEffect(() => {
@@ -35,6 +45,7 @@ export default function ContractListPage() {
       api
         .listContracts({
           includeProcessing,
+          displayStates: displayStateFilter === "all" ? undefined : displayStateFilter,
           page,
           size: PAGE_SIZE,
         })
@@ -53,7 +64,7 @@ export default function ContractListPage() {
         cancelled = true;
       };
     },
-    [includeProcessing, page],
+    [includeProcessing, displayStateFilter, page],
   );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -98,6 +109,18 @@ export default function ContractListPage() {
           </button>
           처리 중 작업 포함
         </label>
+        <span className="mx-divider-v" />
+        <div className="list-status-select">
+          <CustomSelect
+            ariaLabel="권리 유효 상태 필터"
+            value={displayStateFilter}
+            onChange={(value) => {
+              setDisplayStateFilter(value);
+              setPage(1);
+            }}
+            options={DISPLAY_STATE_FILTER_OPTIONS.map((def) => ({ value: def.key, label: def.label }))}
+          />
+        </div>
       </div>
 
       {loading && <p>불러오는 중…</p>}
