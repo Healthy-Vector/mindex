@@ -33,6 +33,9 @@ venv/
 
 # 데이터 (합성 데이터 산출물은 커밋하지 않고 스크립트만 커밋)
 data/generated/
+
+# 계약 원본 PDF 저장소 (D-34). CONTRACT_STORAGE_DIR 기본값.
+data/contracts/
 *.pdf
 *.docx
 contract_Data/

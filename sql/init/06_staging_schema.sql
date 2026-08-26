@@ -32,7 +32,11 @@ CREATE TABLE staging.extract_job (
     reason      text,                 -- FAILED 사유
     consumed_at timestamptz,          -- 확정(contract.source_tmpid 기록)이 끝난 시각.
                                        -- 확정 API가 기록하며 실제 TTL 삭제는 별도 작업
-    created_at  timestamptz NOT NULL DEFAULT now()
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    mode        text NOT NULL DEFAULT 'draft'
+                CHECK (mode IN ('draft', 'final')),
+    contract_id bigint,
+    ip_id       bigint
 );
 
 CREATE INDEX idx_extract_job_status_created ON staging.extract_job (status, created_at);

@@ -38,7 +38,7 @@
 | 15 | `POST /api/search` | SQL 필터 후 벡터 랭킹 | 불필요 |
 | 16 | `GET /api/refs` | 2축 taxonomy·지역·사유코드 | 불필요 |
 
-2번 `POST /extract`와 3번 `GET /extract/{tmpid}`는 P1 소유다. P4는 같은 DB의 `staging.extract_job`·`staging.pdf_blob`·`staging.extract_result`를 조회하고, 6번 요청의 `sourceTmpid`를 P2 함수에 전달한다.
+2번 `POST /extract`와 3번 `GET /extract/{tmpid}`는 P1 소유다. P4는 같은 DB의 `staging.extract_job`·`staging.pdf_blob`·`staging.extract_result`를 조회하고, 6번 요청의 `tmpId`를 P2 함수에 전달한다.
 
 ## 3. DB 계약
 
@@ -163,7 +163,7 @@ save_rights_batch(
 - 적용과 충돌 모두 업무적으로 정상 처리이므로 HTTP `201`이다.
 - 적용이면 `contract_history.status='applied'`와 active grant가 함께 커밋된다.
 - 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋한다.
-- `sourceTmpid`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 먼저 확인한다.
+- `tmpId`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 먼저 확인한다.
 - 이미 `contract.source_tmpid`에 쓰인 값은 `409 ALREADY_CONFIRMED`다. 신규·개정 계약 모두 같은 사전 검사를 거친다.
 - 같은 계약의 동시 버전 등록은 API가 contract 행을 `FOR UPDATE`로 잠가 `MAX(version)+1` 경쟁을 막는다.
 - `chunks[]`의 페이지는 `pageStart`·`pageEnd`로 보내며 둘 다 있으면 `pageEnd >= pageStart`여야 한다.

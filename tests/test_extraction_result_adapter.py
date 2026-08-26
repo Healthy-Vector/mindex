@@ -49,6 +49,8 @@ def test_worker_payload_maps_to_upload_screen_dto():
 
     assert result["contractInfo"] == {
         "title": "겨울의 신호 이용허락계약서",
+        "grantor": "해솔미디어",
+        "grantee": "온웨이브",
         "counterparty": "온웨이브",
         "signedDate": "2027-03-01",
         "lang": "ko",

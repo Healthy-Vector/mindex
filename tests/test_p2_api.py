@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import date, timedelta
 
 from tests.conftest import requires_db, body
+from tests.test_staging_verify_api import worker_payload
 
 
 @requires_db
@@ -27,6 +29,102 @@ def test_confirm_applied(client, clean_db):
     j = r.json()
     assert j["batchResult"] == "APPLIED" and j["hasConflict"] is False
     assert j["contractId"] and j["contractHistoryId"]
+
+
+def _confirm(client, clean_db, *, start_offset, end_offset, territory):
+    """오늘 기준 상대 기간으로 계약 1건을 확정한다.
+
+    territory 를 건마다 다르게 줘야 독점 권리끼리 겹쳐 CONFLICTED 로 빠지지 않는다.
+    """
+    today = date.today()
+    created = client.post(
+        "/api/contracts",
+        json=body(
+            clean_db,
+            territory=territory,
+            start=(today + timedelta(days=start_offset)).isoformat(),
+            end=(today + timedelta(days=end_offset)).isoformat(),
+        ),
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["hasConflict"] is False
+    return created.json()["contractId"]
+
+
+@requires_db
+def test_contract_list_filters_by_display_state(client, clean_db):
+    today = date.today()
+    contract_id = _confirm(
+        client, clean_db, start_offset=10, end_offset=365, territory="KR"
+    )
+
+    response = client.get(
+        "/api/contracts",
+        params={"displayStates": "BEFORE_TERM", "include_processing": "false"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    item = payload["items"][0]
+    assert item["id"] == contract_id
+    assert item["displayState"] == "BEFORE_TERM"
+    assert item["periodStart"] == (today + timedelta(days=10)).isoformat()
+    assert item["periodEnd"] == (today + timedelta(days=365)).isoformat()
+    assert item["expiringTier"] is None
+
+
+@requires_db
+def test_contract_list_filters_by_multiple_display_states(client, clean_db):
+    before_term = _confirm(
+        client, clean_db, start_offset=10, end_offset=365, territory="KR"
+    )
+    expiring = _confirm(
+        client, clean_db, start_offset=-100, end_offset=20, territory="JP"
+    )
+    _confirm(client, clean_db, start_offset=-400, end_offset=-10, territory="US")
+
+    response = client.get(
+        "/api/contracts", params={"displayStates": "before_term, EXPIRING"}
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    # 소문자·공백이 섞여도 정규화되고, EXPIRED 1건은 걸러진다.
+    assert payload["total"] == 2
+    by_id = {item["id"]: item for item in payload["items"]}
+    assert set(by_id) == {before_term, expiring}
+    assert by_id[before_term]["displayState"] == "BEFORE_TERM"
+    assert by_id[expiring]["displayState"] == "EXPIRING"
+    # 잔여 20일 → tier 30.
+    assert by_id[expiring]["expiringTier"] == 30
+    assert by_id[expiring]["daysToExpiry"] == 20
+
+
+@requires_db
+def test_contract_list_rejects_unknown_display_state(client, clean_db):
+    response = client.get("/api/contracts", params={"displayStates": "BEFORE_TERM,NOPE"})
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+@requires_db
+def test_contract_detail_exposes_expiring_tier(client, clean_db):
+    contract_id = _confirm(
+        client, clean_db, start_offset=-100, end_offset=45, territory="KR"
+    )
+    token = client.post("/api/auth/pin", json={"pin": "1234"}).json()["sessionToken"]
+
+    response = client.get(
+        f"/api/contracts/{contract_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    detail = response.json()
+    assert detail["displayState"] == "EXPIRING"
+    assert detail["daysToExpiry"] == 45
+    assert detail["expiringTier"] == 60
 
 
 @requires_db
@@ -153,7 +251,10 @@ def test_source_tmpid_must_be_done_and_cannot_be_reused(client, conn, clean_db):
     )
     cur.execute(
         "INSERT INTO staging.extract_result(tmpid,payload) VALUES (%s,%s::jsonb)",
-        (str(tmpid), json.dumps({"rights": []})),
+        (
+            str(tmpid),
+            json.dumps(worker_payload(), ensure_ascii=False),
+        ),
     )
     conn.commit()
 
@@ -164,3 +265,113 @@ def test_source_tmpid_must_be_done_and_cannot_be_reused(client, conn, clean_db):
     again = client.post("/api/contracts", json=body(clean_db, source_tmpid=tmpid))
     assert again.status_code == 409
     assert again.json()["error"]["code"] == "ALREADY_CONFIRMED"
+
+
+# ── 18. 권리 대상(content_asset) 행 단위 관리 ────────────────────────────
+# 전체 교체가 아니라 행 단위로 여는 이유는 §18 참고 — 빈 배열 하나로 기존 자산을
+# 통째로 지우는 사고를 구조적으로 막는다.
+
+
+def _new_ip(client, title):
+    created = client.post("/api/ips", json={"title": title, "kind": "DRAMA"})
+    assert created.status_code == 201, created.text
+    return created.json()
+
+
+@requires_db
+def test_create_ip_asset_appends_row(client, clean_db):
+    ip_id = clean_db["ip_id"]
+    response = client.post(
+        f"/api/ips/{ip_id}/assets",
+        json={"scopeType": "SEASON", "title": "시즌 2", "seasonNo": 2},
+    )
+
+    assert response.status_code == 201, response.text
+    created = response.json()
+    assert created["contentAssetId"] > 0
+    assert created["scopeType"] == "SEASON" and created["seasonNo"] == 2
+
+    # 기존 SERIES_ALL 이 지워지지 않고 옆에 추가된다.
+    assets = client.get(f"/api/ips/{ip_id}").json()["assets"]
+    assert {a["contentAssetId"] for a in assets} == {clean_db["asset_id"], created["contentAssetId"]}
+
+
+@requires_db
+def test_patch_ip_asset_updates_only_sent_fields(client, clean_db):
+    ip_id = clean_db["ip_id"]
+    asset_id = client.post(
+        f"/api/ips/{ip_id}/assets",
+        json={"scopeType": "SEASON", "title": "시즌 2", "seasonNo": 2},
+    ).json()["contentAssetId"]
+
+    response = client.patch(f"/api/ips/{ip_id}/assets/{asset_id}", json={"title": "시즌 II"})
+
+    assert response.status_code == 200, response.text
+    patched = response.json()
+    assert patched["title"] == "시즌 II"
+    assert patched["scopeType"] == "SEASON" and patched["seasonNo"] == 2
+
+
+@requires_db
+def test_ip_asset_must_belong_to_path_ip(client, clean_db):
+    """asset_id 만 갈아끼워 남의 IP 자산을 건드리는 경로(IDOR)를 막는다."""
+    other = _new_ip(client, "여름의 신호")
+    other_asset_id = other["assets"][0]["contentAssetId"]
+
+    patched = client.patch(
+        f"/api/ips/{clean_db['ip_id']}/assets/{other_asset_id}", json={"title": "가로채기"}
+    )
+    assert patched.status_code == 404
+    assert patched.json()["error"]["code"] == "NOT_FOUND"
+
+    deleted = client.delete(f"/api/ips/{clean_db['ip_id']}/assets/{other_asset_id}")
+    assert deleted.status_code == 404
+
+    # 남의 자산은 그대로다.
+    assert client.get(f"/api/ips/{other['ipId']}").json()["assets"][0]["title"] == other["assets"][0]["title"]
+
+
+@requires_db
+def test_asset_referenced_by_rights_grant_is_read_only(client, clean_db):
+    """이미 판정된 권리의 대상 범위가 사후에 바뀌면 판정 결과가 거짓이 된다."""
+    assert client.post("/api/contracts", json=body(clean_db)).status_code == 201
+    ip_id, asset_id = clean_db["ip_id"], clean_db["asset_id"]
+
+    patched = client.patch(f"/api/ips/{ip_id}/assets/{asset_id}", json={"title": "바꾸기"})
+    assert patched.status_code == 409
+    assert patched.json()["error"]["code"] == "ASSET_IN_USE"
+    assert patched.json()["error"]["details"]["rightsGrantCount"] >= 1
+
+    deleted = client.delete(f"/api/ips/{ip_id}/assets/{asset_id}")
+    assert deleted.status_code == 409
+    assert deleted.json()["error"]["code"] == "ASSET_IN_USE"
+
+
+@requires_db
+def test_last_asset_cannot_be_deleted(client, clean_db):
+    """마지막 행이 사라지면 save_rights_batch() 의 기본 자산 조회가 깨진다."""
+    ip_id, asset_id = clean_db["ip_id"], clean_db["asset_id"]
+
+    blocked = client.delete(f"/api/ips/{ip_id}/assets/{asset_id}")
+    assert blocked.status_code == 409
+    assert blocked.json()["error"]["details"].get("assetCount") == 1
+
+    # 한 행 더 만들면 지울 수 있다.
+    extra = client.post(f"/api/ips/{ip_id}/assets", json={"scopeType": "SERIES_ALL"}).json()
+    assert client.delete(f"/api/ips/{ip_id}/assets/{extra['contentAssetId']}").status_code == 204
+    assert len(client.get(f"/api/ips/{ip_id}").json()["assets"]) == 1
+
+
+@requires_db
+def test_patch_asset_scope_merge_violation_is_400(client, clean_db):
+    """scopeType 만 넓히면 기존 seasonNo 가 남아 DB CHECK 위반 — 500 이 아니라 400 이다."""
+    ip_id = clean_db["ip_id"]
+    asset_id = client.post(
+        f"/api/ips/{ip_id}/assets",
+        json={"scopeType": "EPISODE", "seasonNo": 1, "episodeNo": 1},
+    ).json()["contentAssetId"]
+
+    response = client.patch(f"/api/ips/{ip_id}/assets/{asset_id}", json={"scopeType": "SERIES_ALL"})
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_FAILED"

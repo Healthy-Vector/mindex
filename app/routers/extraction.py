@@ -1,7 +1,6 @@
 """PDF upload hand-off and extraction-result polling endpoints."""
 from __future__ import annotations
 
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Literal, Mapping
 from uuid import UUID
@@ -14,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.errors import NotFound, ValidationFailed
 from app.schemas.extraction import ExtractionAccepted, ExtractionJobOut
+from app.services import staging_edit
 from app.services.extraction_result import to_upload_result
 from app.services.ip_search import search_ip_rows
 
@@ -26,15 +26,22 @@ READ_CHUNK_BYTES = 1024 * 1024
 @router.post("/extract", response_model=ExtractionAccepted, status_code=202)
 async def submit_extraction(
     file: UploadFile = File(...),
-    mode: Literal["new", "revision", "final"] = Form(...),
+    mode: Literal["draft", "final"] = Form(...),
     contract_id: int | None = Form(default=None, alias="contractId"),
     ip_id: int | None = Form(default=None, alias="ipId"),
     db: Session = Depends(get_db),
 ) -> ExtractionAccepted:
-    """Store an uploaded PDF and enqueue a worker-owned extraction job."""
-    if mode in {"revision", "final"} and (contract_id is None or ip_id is None):
-        raise ValidationFailed("revision/final 업로드에는 contractId와 ipId가 필요합니다")
+    """업로드 PDF를 보관하고 워커가 가져갈 추출 작업을 큐에 넣는다.
 
+    D-37 — `mode`가 `new`/`revision`/`final` 3값에서 `draft`/`final` 2값으로 바뀌었다.
+    "신규냐 개정이냐"는 `contractId`의 유무가 이미 말해주므로 `mode`에 섞을 필요가
+    없었다. 덕분에 **신규 계약의 서명본**(`final` + `contractId` 없음)이 표현된다 —
+    예전 3값 체계에서는 `final`이 기존 계약을 전제해서 초안을 한 번 거쳐야 했다.
+    같은 이유로 "revision/final은 contractId·ipId 필수" 검증도 없앴다.
+
+    세 값은 `extract_job`에 저장한다. 화면 상태가 없는 진입(목록의 "처리 중" 항목
+    클릭, 브라우저 재접속)에서도 `tmpId`만으로 맥락을 복원하기 위해서다.
+    """
     filename = _safe_filename(file.filename)
     data = await _read_pdf(file)
     try:
@@ -46,8 +53,16 @@ async def submit_extraction(
             {"data": data, "filename": filename, "byte_size": len(data)},
         ).scalar_one()
         db.execute(
-            text("INSERT INTO staging.extract_job(tmpid, status) VALUES (:tmpid, 'QUEUED')"),
-            {"tmpid": str(tmpid)},
+            text(
+                "INSERT INTO staging.extract_job(tmpid, status, mode, contract_id, ip_id) "
+                "VALUES (:tmpid, 'QUEUED', :mode, :contract_id, :ip_id)"
+            ),
+            {
+                "tmpid": str(tmpid),
+                "mode": mode,
+                "contract_id": contract_id,
+                "ip_id": ip_id,
+            },
         )
         db.commit()
     except DBAPIError as ex:
@@ -64,7 +79,8 @@ def get_extraction(tmpid: UUID, db: Session = Depends(get_db)) -> ExtractionJobO
     """Return the persisted worker state; adapt DONE JSONB to the UI DTO."""
     job = db.execute(
         text(
-            "SELECT j.tmpid, j.status, j.stage, j.reason, j.created_at, b.filename, r.payload "
+            "SELECT j.tmpid, j.status, j.stage, j.reason, j.created_at, "
+            "       j.mode, j.contract_id, j.ip_id, b.filename, r.payload "
             "FROM staging.extract_job j "
             "JOIN staging.pdf_blob b ON b.tmpid=j.tmpid "
             "LEFT JOIN staging.extract_result r ON r.tmpid=j.tmpid "
@@ -90,11 +106,17 @@ def get_extraction(tmpid: UUID, db: Session = Depends(get_db)) -> ExtractionJobO
     result = None
     if job["status"] == "DONE" and job["payload"] is not None:
         payload = job["payload"]
-        result = to_upload_result(
-            payload,
-            ip_candidates=_ip_candidates(db, _search_title(payload)),
-            territory_group_members=_territory_groups(db),
-        )
+        # D-34 — verify가 반영해 둔 사용자 수정본이 있으면 그걸 돌려준다.
+        # 워커 원본은 payload["raw"]에 그대로 남아 있다.
+        edited = payload.get(staging_edit.EDITED_KEY)
+        if isinstance(edited, Mapping):
+            result = dict(edited)
+        else:
+            result = to_upload_result(
+                payload, territory_group_members=staging_edit.territory_groups(db)
+            )
+        # 후보는 저장된 값이 아니라 조회 시점의 IP 목록에서 매번 다시 뽑는다.
+        result["ipCandidates"] = _ip_candidates(db, _search_title(payload))
 
     return ExtractionJobOut(
         tmpid=job["tmpid"],
@@ -103,6 +125,9 @@ def get_extraction(tmpid: UUID, db: Session = Depends(get_db)) -> ExtractionJobO
         stage=job["stage"],
         queue_position=queue_position,
         reason=job["reason"],
+        mode=job["mode"],
+        contract_id=job["contract_id"],
+        ip_id=job["ip_id"],
         result=result,
     )
 
@@ -130,19 +155,6 @@ async def _read_pdf(file: UploadFile) -> bytes:
 def _safe_filename(filename: str | None) -> str:
     safe = Path((filename or "upload.pdf").replace("\\", "/")).name
     return safe or "upload.pdf"
-
-
-def _territory_groups(db: Session) -> dict[str, list[str]]:
-    rows = db.execute(
-        text(
-            "SELECT group_code, country_code FROM territory_group_member "
-            "ORDER BY group_code, country_code"
-        )
-    ).mappings()
-    groups: dict[str, list[str]] = defaultdict(list)
-    for row in rows:
-        groups[row["group_code"]].append(row["country_code"])
-    return dict(groups)
 
 
 def _search_title(payload: Mapping[str, Any]) -> str | None:

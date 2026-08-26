@@ -161,7 +161,7 @@ def build_requests(
     confirm_request = {
         **base,
         "chunks": [],
-        "sourceTmpid": str(tmpid),
+        "tmpId": str(tmpid),
     }
     return verify_request, confirm_request
 

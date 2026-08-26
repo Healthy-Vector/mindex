@@ -67,6 +67,8 @@ async function request(path, options = {}) {
     }
     throw new ApiError(res.status, body);
   }
+  // 204 No Content(#18 DELETE)는 바디가 비어 있어 res.json()이 파싱 에러를 던진다.
+  if (res.status === 204) return null;
   return res.json();
 }
 
@@ -174,6 +176,29 @@ export const api = {
   updateIp: async (id, patch) => {
     return normalizeIp(await request(`/ips/${id}`, { method: "PATCH", body: JSON.stringify(patch) }));
   },
+  // 권리 대상(content_asset) — API 명세서 #18. IP 본체(#14)와 달리 배열 전체 교체가
+  // 아니라 행 단위다: 통째로 보내는 경로 자체가 없어야 "빈 배열로 저장해 기존 권리
+  // 대상을 지우는" 사고가 구조적으로 불가능해진다. 응답은 IP가 아니라 권리 대상 한
+  // 건이라 normalizeIp를 태우지 않는다.
+  // 권리가 걸린 대상의 수정·삭제, IP의 마지막 대상 삭제는 409 ASSET_IN_USE로 막히고,
+  // err.body.error.details(rightsGrantCount / assetCount)로 두 경우를 구분한다.
+  // mock(ipDirectory.js)에는 대응 구현이 없다 — 편집 UI를 켤 때 함께 채운다.
+  createIpAsset: async (ipId, asset) => {
+    return request(`/ips/${ipId}/assets`, { method: "POST", body: JSON.stringify(asset) });
+  },
+  // 보낸 필드만 반영된다. scopeType을 넓힐 때는 남는 seasonNo/episodeNo/editionCode를
+  // 함께 null로 보내야 한다 — 서버가 기존 행과 병합한 뒤 검증해서 400을 돌려준다.
+  updateIpAsset: async (ipId, assetId, patch) => {
+    return request(`/ips/${ipId}/assets/${assetId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+  },
+  // 204 No Content — 반환값 없음.
+  deleteIpAsset: async (ipId, assetId) => {
+    return request(`/ips/${ipId}/assets/${assetId}`, { method: "DELETE" });
+  },
+
   // API 명세서 #4 GET /ips/match — 업로드 화면 IP 매칭 콤보박스 전용(#12 GET /ips와는
   // 다른 엔드포인트). score/matchedAlias/matchedBy/assets/relations가 같이 온다. 추출
   // 완료 직후의 자동 매칭은 이 API를 또 부르지 않는다 — result.ipCandidates에 이미

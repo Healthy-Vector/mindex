@@ -30,12 +30,25 @@ GRANT SELECT ON staging.pdf_blob TO staging_worker;                 -- 처리 �
 GRANT SELECT, UPDATE ON staging.extract_job TO staging_worker;      -- 폴링·상태 갱신
 GRANT INSERT, UPDATE ON staging.extract_result TO staging_worker;   -- UPSERT
 
--- ── 확정 API (tmpid로 결과를 읽어 운영 쪽 저장 쿼리에 병합) ──────
--- pdf_blob은 의도적으로 권한을 안 준다 — 확정 단계는 추출 결과(jsonb)만
--- 필요하고 PDF 원본 바이트는 필요 없다.
+-- ── 검증·확정 API (tmpid로 결과를 읽어 운영 쪽 저장 쿼리에 병합) ──
+-- D-34로 이 롤의 경계가 두 군데 넓어졌다. 둘 다 최소권한 기준값의 예외이므로
+-- 왜 넓혔는지 여기 남긴다.
+--
+--  (1) extract_result UPDATE — 검증(⑦)이 사용자 수정본을 staging에 반영한 뒤
+--      저장된 값으로 판정하도록 바뀌었다(예전엔 화면이 수정값을 들고 있다가
+--      확정에서 한 번에 넘겼고 이 롤은 SELECT만 필요했다). payload 전체를
+--      UPDATE하므로 컬럼 단위로는 못 좁힌다 — 대신 애플리케이션이 payload의
+--      `edited` 키만 갱신하고 워커 원본 `raw`는 건드리지 않는다
+--      (app/services/staging_edit.py).
+--  (2) pdf_blob SELECT — 확정(⑧)이 원본 PDF를 서버 저장소로 옮기게 되면서
+--      바이트가 필요해졌다. D-32/D-33에서는 "확정 단계에 PDF 원본 바이트는
+--      필요 없다"며 의도적으로 막아뒀던 권한이다. object storage를 도입하지
+--      않기로 하면서(D-34) 옮기는 주체가 확정 API가 됐다. 읽기만 준다.
 GRANT SELECT ON staging.extract_result TO staging_confirm_api;
+GRANT UPDATE ON staging.extract_result TO staging_confirm_api;             -- (1) 수정본 반영
 GRANT SELECT ON staging.extract_job TO staging_confirm_api;
 GRANT UPDATE (consumed_at) ON staging.extract_job TO staging_confirm_api;  -- 확정 완료 표시만
+GRANT SELECT ON staging.pdf_blob TO staging_confirm_api;                   -- (2) 원본 이관용
 
 -- ── TTL 7일 정리 배치 (아직 배치 자체는 미구현, 권한 경계만 선점) ──
 GRANT SELECT ON staging.pdf_blob TO staging_cleanup;

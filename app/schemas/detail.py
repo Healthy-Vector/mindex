@@ -80,6 +80,7 @@ class ContractDetail(CamelModel):
     conflict_report: Optional[Any] = None
     display_state: Optional[str] = None
     days_to_expiry: Optional[int] = None
+    expiring_tier: Optional[int] = None  # 30 / 60 / 90 — EXPIRING 일 때만
     service_title: Optional[str] = None  # §11-2 → null
     authority: Authority = Authority()
     ips: list[IpBrief] = []

@@ -21,6 +21,9 @@ class ContractListItem(CamelModel):
     has_conflict: bool = False
     display_state: Optional[str] = None
     days_to_expiry: Optional[int] = None
+    expiring_tier: Optional[int] = None   # 30 / 60 / 90 — EXPIRING 일 때만
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None    # 포함 개념(daterange upper - 1일)
     service_title: Optional[str] = None
     signed_date: Optional[date] = None
     created_at: Optional[datetime] = None

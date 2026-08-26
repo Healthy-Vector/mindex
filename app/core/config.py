@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     page_size_default: int = 20
     page_size_max: int = 100
 
+    # --- 계약 원본 PDF 저장소 (D-34) ---
+    # object storage는 도입하지 않는다. 확정 시 staging.pdf_blob의 바이트를
+    # 이 디렉터리로 옮기고, contract_history.file_path에는 여기 기준 상대
+    # 경로만 남긴다. 읽을 때 이 경계 밖은 거부한다(app/services/storage.py).
+    contract_storage_dir: str = "./data/contracts"
+
     llm_provider: str = "openai"
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None

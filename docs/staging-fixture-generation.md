@@ -49,7 +49,7 @@
 2. 통과하면 `confirmRequest`를 `POST /api/contracts`에 넣어 확정한다.
 3. `GET /api/contracts`에서 계약을 확인한다.
 
-`confirmRequest.sourceTmpid`는 한 번 확정에 사용하면 재사용할 수 없다(`409 ALREADY_CONFIRMED`). 다시 확인하려면 seeder를 새 tmpid로 다시 실행한다. 또한 현 단계의 확정 API는 staging payload의 존재·DONE 상태만 검증한다. `raw` fixture를 API의 `rights[]`로 자동 병합하는 서버 기능은 아직 없으며, seeder가 P2 참조 코드로 변환한 요청 JSON을 제공한다.
+`confirmRequest.tmpId`는 한 번 확정에 사용하면 재사용할 수 없다(`409 ALREADY_CONFIRMED`). 다시 확인하려면 seeder를 새 tmpid로 다시 실행한다. 또한 현 단계의 확정 API는 staging payload의 존재·DONE 상태만 검증한다. `raw` fixture를 API의 `rights[]`로 자동 병합하는 서버 기능은 아직 없으며, seeder가 P2 참조 코드로 변환한 요청 JSON을 제공한다.
 
 현재 86건 중 78건은 P2 요청으로 변환할 수 있다. 나머지 8건은 의도적으로 적재·확정을 막는다. 원문이 법적 권리 또는 기간을 특정하지 않은 3건과, P2 `exploitation_mode` 참조 데이터에 아직 없는 `DIGITAL_DISTRIBUTION_UNSPECIFIED`를 사용하는 5건이다. 이 8건은 worker·검수 흐름 시험에는 사용할 수 있지만, P2 확정 테스트에 억지 기본값을 넣으면 안 된다.
 

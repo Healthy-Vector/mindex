@@ -9,7 +9,7 @@ from tests.conftest import requires_db
 def test_upload_enqueues_pdf_and_returns_queued_job(client, conn, clean_db):
     response = client.post(
         "/api/extract",
-        data={"mode": "new"},
+        data={"mode": "draft"},
         files={"file": ("source.pdf", b"%PDF-1.7 test document", "application/pdf")},
     )
 
@@ -41,7 +41,7 @@ def test_upload_enqueues_pdf_and_returns_queued_job(client, conn, clean_db):
 def test_done_job_returns_frontend_dto_and_ip_candidates(client, conn, clean_db):
     uploaded = client.post(
         "/api/extract",
-        data={"mode": "new"},
+        data={"mode": "draft"},
         files={"file": ("source.pdf", b"%PDF-1.7 test document", "application/pdf")},
     ).json()
     tmpid = uploaded["tmpid"]
@@ -78,6 +78,8 @@ def test_done_job_returns_frontend_dto_and_ip_candidates(client, conn, clean_db)
     result = response.json()["result"]
     assert result["contractInfo"] == {
         "title": "Demo Series license",
+        "grantor": None,
+        "grantee": "Licensee",
         "counterparty": "Licensee",
         "signedDate": None,
         "lang": "en",
@@ -97,7 +99,7 @@ def test_upload_rejects_non_pdf_without_db():
     with TestClient(app) as client:
         response = client.post(
             "/api/extract",
-            data={"mode": "new"},
+            data={"mode": "draft"},
             files={"file": ("source.txt", b"not a PDF", "text/plain")},
         )
 

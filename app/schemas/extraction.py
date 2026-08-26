@@ -21,4 +21,8 @@ class ExtractionJobOut(CamelModel):
     stage: Literal["OCR", "LLM"] | None = None
     queue_position: int | None = None
     reason: str | None = None
+    # D-37 — 업로드 시점 맥락. 화면 상태 없이 tmpId만으로 들어와도 복원할 수 있다.
+    mode: Literal["draft", "final"] | None = None
+    contract_id: int | None = None
+    ip_id: int | None = None
     result: dict[str, Any] | None = None
