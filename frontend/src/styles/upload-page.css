@@ -245,6 +245,10 @@
   font-size: 14px;
   font-weight: 650;
 }
+.upload-required-mark {
+  color: var(--mx-alert-text);
+  margin-left: 2px;
+}
 .upload-review-value,
 .upload-review-evidence {
   min-width: 0;

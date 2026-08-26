@@ -71,13 +71,15 @@ export function HitlReviewEditor({ contractInfo, setContractInfo, rights, onUpda
         <div className="upload-review-basic-table">
           <BasicReviewRow
             label="대상 IP"
+            required
             value={<IpMatchPanel ipMatch={ipMatch} setIpMatch={setIpMatch} showHeading={false} disabled={ipLocked} />}
           />
           {rights.map((right, index) => (
             <BasicReviewRow
               key={`asset-${index}`}
-              label={rights.length > 1 ? `Content Asset #${index + 1}` : "Content Asset"}
-              value={<CustomSelect ariaLabel={`Content Asset ${index + 1}`} value={right.contentAssetId == null ? "" : String(right.contentAssetId)} onChange={(next) => onUpdateRight(index, { contentAssetId: Number(next) })} options={assetOptions} placeholder={assets.length ? "권리 대상을 선택하세요" : "IP를 먼저 선택하세요"} disabled={!assets.length || ipLocked} />}
+              label={rights.length > 1 ? `권리 대상 #${index + 1}` : "권리 대상"}
+              required
+              value={<CustomSelect ariaLabel={`권리 대상 ${index + 1}`} value={right.contentAssetId == null ? "" : String(right.contentAssetId)} onChange={(next) => onUpdateRight(index, { contentAssetId: Number(next) })} options={assetOptions} placeholder={assets.length ? "권리 대상을 선택하세요" : "IP를 먼저 선택하세요"} disabled={!assets.length} />}
             />
           ))}
         </div>
@@ -85,8 +87,8 @@ export function HitlReviewEditor({ contractInfo, setContractInfo, rights, onUpda
 
       <CollapsibleCard title="계약 기본 정보" className="upload-review-section">
         <div className="upload-review-basic-table">
-          <BasicReviewRow label="권리 허락자" value={<ReviewInput ariaLabel="권리 허락자" value={contractInfo.grantor} onChange={(next) => updateContract("grantor", next)} />} />
-          <BasicReviewRow label="권리 이용자" value={<ReviewInput ariaLabel="권리 이용자" value={contractInfo.grantee} onChange={(next) => updateContract("grantee", next)} />} />
+          <BasicReviewRow label="권리 허락자" required value={<ReviewInput ariaLabel="권리 허락자" value={contractInfo.grantor} onChange={(next) => updateContract("grantor", next)} />} />
+          <BasicReviewRow label="권리 이용자" required value={<ReviewInput ariaLabel="권리 이용자" value={contractInfo.grantee} onChange={(next) => updateContract("grantee", next)} />} />
         </div>
       </CollapsibleCard>
 
@@ -103,26 +105,31 @@ export function HitlReviewEditor({ contractInfo, setContractInfo, rights, onUpda
               {rights.length > 1 && <div className="upload-review-right-title">권리 #{index + 1}</div>}
               <ReviewRow
                 label="이용지역"
+                required
                 value={<TerritoryEditor value={right.territories ?? []} refs={refs} onChange={(territories) => onUpdateRight(index, { territories })} />}
                 evidence={<EvidenceCell evidence={right.evidence} field="territory" onChange={(evidence) => onUpdateRight(index, { evidence })} />}
               />
               <ReviewRow
                 label="법적 권리"
+                required
                 value={<CustomSelect ariaLabel={`법적 권리 ${index + 1}`} value={right.legalRight} onChange={(next) => onUpdateRight(index, { legalRight: next })} options={refs.legalRightOptions} />}
                 evidence={<EvidenceCell evidence={right.evidence} field="legalRight" onChange={(evidence) => onUpdateRight(index, { evidence })} />}
               />
               <ReviewRow
                 label="사업적 이용형태"
+                required
                 value={<CustomSelect ariaLabel={`사업적 이용형태 ${index + 1}`} value={right.exploitationMode} onChange={(next) => onUpdateRight(index, { exploitationMode: next })} options={refs.exploitationModeOptions} />}
                 evidence={<EvidenceCell evidence={right.evidence} field="exploitationMode" onChange={(evidence) => onUpdateRight(index, { evidence })} />}
               />
               <ReviewRow
                 label="독점 형태"
+                required
                 value={<CustomSelect ariaLabel={`독점 형태 ${index + 1}`} value={right.exclusivity} onChange={(next) => onUpdateRight(index, { exclusivity: next })} options={EXCLUSIVITY_OPTIONS} />}
                 evidence={<EvidenceCell evidence={right.evidence} field="exclusivity" onChange={(evidence) => onUpdateRight(index, { evidence })} />}
               />
               <ReviewRow
                 label="라이선스 유효 기간"
+                required
                 value={(
                   <div className="upload-review-period">
                     <ReviewInput ariaLabel={`시작일 ${index + 1}`} type="date" value={right.period?.start} onChange={(next) => onUpdateRight(index, { period: { ...right.period, start: next } })} />
@@ -153,19 +160,19 @@ function CollapsibleCard({ title, className = "", children }) {
   );
 }
 
-function BasicReviewRow({ label, value }) {
+function BasicReviewRow({ label, value, required = false }) {
   return (
     <div className="upload-review-basic-row">
-      <div className="upload-review-label">{label}</div>
+      <div className="upload-review-label">{label}{required && <span className="upload-required-mark">*</span>}</div>
       <div className="upload-review-value">{value}</div>
     </div>
   );
 }
 
-function ReviewRow({ label, value, evidence = null }) {
+function ReviewRow({ label, value, evidence = null, required = false }) {
   return (
     <div className="upload-review-row">
-      <div className="upload-review-label">{label}</div>
+      <div className="upload-review-label">{label}{required && <span className="upload-required-mark">*</span>}</div>
       <div className="upload-review-value">{value}</div>
       {evidence ?? <div className="upload-review-evidence"><span className="mx-muted">—</span></div>}
     </div>

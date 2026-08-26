@@ -69,7 +69,7 @@ export function contractPayloadViolations(payload, { contentAssetIds } = {}) {
   const violations = [];
   if (!payload.tmpId) violations.push("추출 작업 ID가 없습니다.");
   if (!payload.ipId) violations.push("IP를 선택해야 합니다.");
-  if (payload.ipId && contentAssetIds && contentAssetIds.size === 0) violations.push("선택한 IP의 Content Asset 목록을 불러오지 못했습니다.");
+  if (payload.ipId && contentAssetIds && contentAssetIds.size === 0) violations.push("선택한 IP의 권리 대상 목록을 불러오지 못했습니다.");
   if (["revision", "final"].includes(payload.mode) && !payload.contractId) violations.push("기존 계약 ID가 없습니다.");
   if (!payload.contractInfo?.grantor?.trim()) violations.push("권리 허락자를 입력해야 합니다.");
   if (!payload.contractInfo?.grantee?.trim()) violations.push("권리 이용자를 입력해야 합니다.");
@@ -79,9 +79,9 @@ export function contractPayloadViolations(payload, { contentAssetIds } = {}) {
   if (!payload.rights.length) violations.push("권리를 한 건 이상 추가해야 합니다.");
   payload.rights.forEach((right, index) => {
     const prefix = `권리 #${index + 1}`;
-    if (!right.contentAssetId) violations.push(`${prefix}: Content Asset을 선택해야 합니다.`);
+    if (!right.contentAssetId) violations.push(`${prefix}: 권리 대상을 선택해야 합니다.`);
     else if (contentAssetIds?.size && !contentAssetIds.has(Number(right.contentAssetId))) {
-      violations.push(`${prefix}: 선택한 Content Asset이 현재 IP에 속하지 않습니다.`);
+      violations.push(`${prefix}: 선택한 권리 대상이 현재 IP에 속하지 않습니다.`);
     }
     if (!right.territories?.length) violations.push(`${prefix}: 지역을 한 곳 이상 선택해야 합니다.`);
     if (!right.legalRight || !right.exploitationMode || !right.exclusivity) violations.push(`${prefix}: 권리 판정값을 모두 선택해야 합니다.`);
