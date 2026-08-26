@@ -2,6 +2,45 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-26 — 팀 공유 서버(5432) 초기 스키마 적용, staging에서 권한 블로킹
+
+`.env`에 팀 공유 서버(`15.164.171.220`) 접속정보 반영. `p2_user` 계정이
+포트 5432(일반)·15432(암호화 전용) 두 개로 나뉘어 있고 비밀번호도 서로
+다르다 — 계정명이 같아 헷갈리기 쉬운데 별개 자격증명이다. `.env`에
+`POSTGRES_ENC_*`/`DATABASE_ENC_URL`로 15432용을 분리해서 추가해 뒀다.
+
+### 한 일
+
+- 원격 5432 DB(`mindex`, 빈 상태 확인 후) 대상으로 `sql/init/*.sql`을
+  번호 순서대로 `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f` 로 실행.
+- `00_extensions.sql`~`05_change_log.sql` 5개 파일 전부 성공. `btree_gist`·
+  `vector` extension은 이미 설치돼 있었음(P1이 미리 준비해둔 것으로 보임).
+
+### 막힌 것
+
+- `06_staging_schema.sql`의 `CREATE SCHEMA staging;`에서
+  `permission denied for database mindex` 발생. `p2_user`가 `public`
+  스키마에 대한 CREATE 권한은 있지만 **DB 레벨 CREATE 권한**이 없어서다
+  (00~05는 전부 `public` 안에서의 작업이라 통과됐던 것).
+- `07_staging_roles.sql`(롤 생성 포함 추정)은 06이 막혀 시도하지 않음.
+- P1이 권한 부여(`GRANT CREATE ON DATABASE mindex TO p2_user` 또는 admin이
+  직접 `CREATE SCHEMA staging AUTHORIZATION p2_user` 실행)를 맡기로 함.
+  **다음 세션에서 P1 완료 여부 먼저 확인 후 06·07 이어서 적용.**
+
+### 추가 — contract.title 컬럼 신설
+
+`contract`에 사람이 읽는 계약 목록 표시용 라벨 `title text`(nullable) 추가.
+`ip.title`(작품명)과는 별개 개념이고 판정 로직(EXCLUDE/트리거)에는 관여하지 않는다.
+
+- `sql/init/01_schema.sql` CREATE TABLE 정의에 반영(신규 설치 기준)
+- `docs/mindex_remastered.dbml`, `docs/mindex DB 설명서.md`(3장) 동기화
+- `sql/init/99_schema_meta.sql`에 `2026-08-26.1` 버전 기록 추가
+- 원격 5432 DB에도 `ALTER TABLE contract ADD COLUMN title text;` 즉시 적용
+  (`contract` row 0건 확인 후 실행, 데이터 손실 위험 없음)
+- DECISIONS.md에는 별도 D-번호를 만들지 않음 — 과거 `ip.activity` 컬럼 추가 때도
+  schema_meta 버전 노트만 남기고 D-번호는 안 붙인 전례를 따름(판정 로직 무관한
+  단순 표시용 컬럼)
+
 ## 2026-08-22 — D-32 임시 DB 비동기 파이프라인 도입 (pdf_cache 대체)
 
 팀장이 확정한 `docs/mindex-임시DB-비동기파이프라인.html` 설계를 반영했다.
