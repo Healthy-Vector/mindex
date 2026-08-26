@@ -48,7 +48,7 @@ export default function UploadVerificationView({ mode, entryMode, selectedContra
         </div>
       </div>
       <div className="upload-actions"><button className="mx-btn mx-btn-secondary" onClick={onCancel}>취소 및 목록으로</button><button className="mx-btn mx-btn-primary" disabled={!canSubmit} onClick={onSubmit}>충돌검사 실행</button></div>
-      {validationErrors.length > 0 && <div className="mx-alert-banner">{validationErrors.map((error) => <div key={error}>{error}</div>)}</div>}
+      {validationErrors.length > 0 && <div className="upload-validation-toast" role="alert">{validationErrors.map((error) => <div key={error}>{error}</div>)}</div>}
       {confirmReplace && <div className="detail-pin-wrap detail-extend-overlay"><div className="mx-card mx-card-pad detail-pin-modal"><h4 className="mx-heading-card">다른 파일을 업로드하시겠습니까?</h4><p className="mx-text-sm mx-muted">지금까지 확인·수정한 AI 추출 결과와 IP 매칭이 모두 사라집니다.</p><div className="detail-pin-actions"><button type="button" className="mx-btn mx-btn-secondary" onClick={() => setConfirmReplace(false)}>취소</button><button type="button" className="mx-btn mx-btn-primary" onClick={() => { setConfirmReplace(false); onReset(); }}>네, 다른 파일 선택</button></div></div></div>}
     </>
   );

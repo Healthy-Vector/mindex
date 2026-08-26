@@ -389,6 +389,22 @@
   margin-top: 24px;
 }
 
+.upload-validation-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 120;
+  width: min(420px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid var(--mx-alert);
+  border-radius: 10px;
+  background: var(--mx-alert-bg);
+  color: var(--mx-alert-text);
+  box-shadow: 0 12px 32px rgba(20, 28, 23, 0.2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .upload-territory-editor {
   display: grid;
   gap: 9px;

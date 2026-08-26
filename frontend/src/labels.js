@@ -9,7 +9,7 @@ export const EXCLUSIVITY_LABEL = {
 
 // "단독"(sole)은 제3자에게는 배타적이나 라이선서 본인은 계속 이용 가능한 형태라 완전
 // 독점(exclusive)과 다르다 — 충돌 판정에서도 SOLE_VS_SOLE/EXCLUSIVE_VS_SOLE로 구분해서
-// 심각도를 매긴다(mock/verify.js). non_exclusive가 하나라도 있으면 애초에 충돌이 아니다.
+// 충돌 심각도는 실 API의 reason/severity 값을 기준으로 표시한다.
 export function exclusivityTagClass(exclusivity) {
   if (exclusivity === "exclusive") return "mx-tag-accent";
   if (exclusivity === "sole") return "mx-tag-outline";
@@ -44,6 +44,16 @@ export const TERMINATED_REASON_LABEL = {
 
 // ip_alias.lang / contract.lang — 언어 구분 (한 벌의 어휘를 공유한다).
 export const LANG_LABEL = { ko: "한국어", en: "영어", ja: "일본어" };
+
+// Back API에서 별도 ref로 제공하지 않는 권리 대상 범위 UI 어휘.
+// 값은 DB asset_scope_kind enum과 정확히 맞춘다.
+export const ASSET_SCOPE_LABEL = {
+  SERIES_ALL: "시리즈 전체",
+  SEASON: "시즌",
+  EPISODE: "에피소드",
+  EDITION: "에디션",
+};
+export const ASSET_SCOPE_OPTIONS = labelMapToOptions(ASSET_SCOPE_LABEL);
 
 function labelMapToOptions(labels) {
   return Object.entries(labels).map(([value, label]) => ({ value, label }));

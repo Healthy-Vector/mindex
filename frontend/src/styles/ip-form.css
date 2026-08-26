@@ -3,7 +3,19 @@
   max-width: 640px;
 }
 
-/* IpManagementPage의 등록/수정 팝업 — .detail-extend-overlay(어두운 배경, 중앙 정렬) 위에 얹는다. */
+/* IP 등록/수정 전용 모달. 계약 상세 CSS의 로딩 여부에 의존하지 않는다. */
+.ipform-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: rgba(20, 28, 23, 0.46);
+  overflow-y: auto;
+}
+
 .ipform-modal {
   width: 100%;
   max-width: 640px;
@@ -30,6 +42,16 @@
   margin-top: 22px;
   padding-top: 20px;
   border-top: 1px solid var(--mx-border-soft);
+}
+
+.ipform-asset-api-notice {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--mx-bg-tint);
+  color: var(--mx-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .ipform-field {
@@ -75,6 +97,14 @@ button.ipform-add-alias {
   width: 96px;
   flex-shrink: 0;
 }
+.ipform-asset-scope {
+  width: 148px;
+  min-width: 148px;
+  flex-shrink: 0;
+}
+.ipform-asset-scope button {
+  white-space: nowrap;
+}
 .ipform-alias-type {
   width: 104px;
   flex-shrink: 0;
@@ -82,6 +112,15 @@ button.ipform-add-alias {
 /* 유형은 별칭 텍스트에 딸린 보조 메타데이터이므로 톤을 낮춰 시각적 위계를 준다. */
 .ipform-alias-type-input {
   background: var(--mx-bg-tint);
+}
+.ipform-input--error {
+  border-color: var(--mx-alert-text);
+  background: var(--mx-alert-bg);
+}
+.ipform-validation-message {
+  margin-top: 8px;
+  color: var(--mx-alert-text);
+  font-size: 12px;
 }
 .ipform-alias-text-input {
   flex: 1;
@@ -113,4 +152,14 @@ button.ipform-add-alias {
   margin-top: 24px;
   padding-top: 16px;
   border-top: 1px solid var(--mx-border-soft);
+}
+
+@media (max-width: 520px) {
+  .ipform-alias-row {
+    flex-wrap: wrap;
+  }
+  .ipform-asset-scope {
+    width: 100%;
+    min-width: 0;
+  }
 }

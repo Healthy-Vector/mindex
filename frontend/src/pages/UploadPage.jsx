@@ -13,7 +13,7 @@ const PIPELINE_STEPS = ["업로드", "파싱/OCR", "AI 추출", "HITL 검증", "
 // queued는 아직 "파싱/OCR" 단계에 들어가지도 못한 상태지만, 트래커에 전용 칸이 없어
 // 같은 인덱스(1)에 "대기"로 얹는다 — 실제 진행 문구는 VerifyBody 쪽 큰 카드가 보여준다.
 const STAGE_INDEX = { idle: 0, queued: 1, ocr: 1, llm: 2, extract: 3, checking: 4 };
-// OCR/추출 진행 상태는 tmpId로 조회한다(uploadJobs.js) — 폴링 주기.
+// OCR/추출 진행 상태는 tmpId로 조회한다 — 폴링 주기.
 const JOB_POLL_DELAYS = [2000, 4000, 8000, 16000, 30000];
 const MAX_PDF_BYTES = 100 * 1024 * 1024;
 // 폴링을 계속해야 하는(아직 안 끝난) 상태들.
@@ -82,12 +82,13 @@ export default function UploadPage() {
   const [queuePosition, setQueuePosition] = useState(null); // queued 단계에서만 값이 있음
   const [ipMatch, setIpMatch] = useState(null); // { status: "auto" | "manual", ip }
   const [contractInfo, setContractInfo] = useState({});
+  const [fileMeta, setFileMeta] = useState({});
   const [rights, setRights] = useState([]);
   const [validationErrors, setValidationErrors] = useState([]);
   const [pollError, setPollError] = useState(null);
   const [verifyError, setVerifyError] = useState(null);
   // API 명세서 #3 result.ipCandidates — OCR·LLM 추출과 같은 응답에 IP 매칭 후보가 이미
-  // 실려온다. 예전엔 이걸 모르고 추출 완료 후 findExactIp로 따로 한 번 더 불렀었다.
+  // 실려온다. 추출 완료 후 별도 매칭 API를 다시 호출할 필요가 없다.
   const [ipCandidates, setIpCandidates] = useState([]);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const navigate = useNavigate();
@@ -102,6 +103,12 @@ export default function UploadPage() {
   // 우리 스스로의 setSearchParams 호출로 바뀔 때마다 다시 복원 시도하면 안 된다.
   const resumedRef = useRef(false);
   const pollAttemptRef = useRef(0);
+
+  useEffect(() => {
+    if (validationErrors.length === 0) return undefined;
+    const timer = window.setTimeout(() => setValidationErrors([]), 3500);
+    return () => window.clearTimeout(timer);
+  }, [validationErrors]);
 
   // revision/final 진입은 계약 상세에서 ipId를 이미 받는다. HITL에서 IP를 항상 명시하기
   // 위해 실제 IP 정보를 조회해 동일한 IP 패널 모델로 맞춘다. final은 화면에서 읽기 전용이다.
@@ -132,13 +139,14 @@ export default function UploadPage() {
     setQueuePosition(job.stage === "queued" ? job.queuePosition : null);
     if (job.stage === "failed") setFailReason(job.reason);
     if (job.stage !== "extract") return;
+    setFileMeta(job.fileMeta ?? {});
     setContractInfo(job.contractInfo ?? {});
     setRights(job.rights ?? []);
     setIpCandidates(job.ipCandidates ?? []);
   }, []);
 
   // 탭을 닫았다 tmpId로 다시 들어오거나 새로고침해도, 서버가 지금 어디까지 처리했는지를
-  // 마운트 시 한 번 조회해서 이어서 보여준다. mock 모드에서는 잡 상태가 인메모리라 진짜
+  // 마운트 시 한 번 조회해서 이어서 보여준다.
   // 새로고침에는 살아남지 못한다 — 이 부분은 실 API가 붙어야 완전해진다.
   useEffect(() => {
     if (resumedRef.current) return;
@@ -190,7 +198,9 @@ export default function UploadPage() {
   // 신규 등록일 때만, extract 단계 진입 시 딱 한 번 IP 후보 중 1순위를 자동 매칭한다.
   // 별도 API 호출이 필요 없다 — ipCandidates가 이미 점수순으로 추출 결과에 실려온다.
   useEffect(() => {
-    if (stage !== "extract" || entryMode !== "new" || autoMatchedRef.current) return;
+    // 계약 연장(mode=new + ipId 전달)처럼 IP가 이미 정해진 상태로 들어온 경우엔
+    // OCR 후보로 덮어쓰지 않는다.
+    if (stage !== "extract" || entryMode !== "new" || autoMatchedRef.current || ipMatch) return;
     if (ipCandidates.length === 0) return;
     autoMatchedRef.current = true;
     const top = [...ipCandidates].sort((a, b) => b.score - a.score)[0];
@@ -203,7 +213,7 @@ export default function UploadPage() {
   useEffect(() => {
     if (stage !== "checking") return;
     let cancelled = false;
-    const payload = buildContractPayload({ tmpId, mode, contractId: selectedContractId, ipId: ipMatch?.ip?.id, contractInfo, rights });
+    const payload = buildContractPayload({ tmpId, mode, contractId: selectedContractId, ipId: ipMatch?.ip?.id, contractInfo, rights, fileMeta });
     setVerifyError(null);
     api
       .verifyContract(payload)
@@ -221,7 +231,7 @@ export default function UploadPage() {
     return () => {
       cancelled = true;
     };
-  }, [stage, mode, ipMatch, selectedContractId, tmpId, contractInfo, rights, navigate]);
+  }, [stage, mode, ipMatch, selectedContractId, tmpId, contractInfo, rights, fileMeta, navigate]);
 
   // 새로고침/탭닫기(beforeunload)는 브라우저 네이티브 확인창을, 뒤로가기(popstate)는
   // 눈에 잘 띄도록 앱 자체 커스텀 모달(showLeaveConfirm)을 띄운다.
@@ -298,6 +308,7 @@ export default function UploadPage() {
       });
     }
     setContractInfo({});
+    setFileMeta({});
     setRights([]);
     setValidationErrors([]);
     setPollError(null);
@@ -311,7 +322,7 @@ export default function UploadPage() {
 
   const selectedIpId = ipMatch?.ip?.id;
   const selectedContentAssetIds = new Set((ipMatch?.ip?.assets ?? []).map((asset) => Number(asset.contentAssetId)));
-  const payloadPreview = buildContractPayload({ tmpId, mode, contractId: selectedContractId, ipId: selectedIpId, contractInfo, rights });
+  const payloadPreview = buildContractPayload({ tmpId, mode, contractId: selectedContractId, ipId: selectedIpId, contractInfo, rights, fileMeta });
   const validationContext = { contentAssetIds: selectedContentAssetIds };
   const canSubmit = stage === "extract";
   const ctx = ENTRY_CONTEXT[mode];

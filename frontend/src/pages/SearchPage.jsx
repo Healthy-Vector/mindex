@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { api, USE_MOCK } from "../api/client.js";
-import { mockSearchResponse, mockMcpTranscript } from "../mock/search.js";
+import { api } from "../api/client.js";
 import { LANG_LABEL, EXCLUSIVITY_LABEL } from "../labels.js";
 import { useRefs } from "../lib/useRefs.js";
 import "../styles/search-page.css";
@@ -9,20 +8,12 @@ import "../styles/search-page.css";
 // 통합검색 — 자연어 검색과 교차언어 검색을 화면상 한 모드로 통합했다(Notion "통합검색
 // 백엔드 개발 가이드" §0). 원문 언어가 한국어가 아닌 결과에는 카드별로 "교차언어 매칭"
 // 배지만 붙이고, 질의는 항상 같은 입력창·같은 엔드포인트(POST /search)로 보낸다.
-//
-// mock/real 분기는 api.search() 안(USE_MOCK)에서만 결정한다 — 예전엔 여기서 실 API
-// 호출이 실패하면 조용히 mock으로 폴백했는데, 그러면 prod에서 진짜 장애가 나도 화면은
-// 데모 데이터를 보여주며 정상인 척하게 된다. 이제 dev(mock)는 mock만, prod(실 API)는
-// 실패하면 실패를 그대로 보여준다.
 const DEFAULT_QUERY = "동남아시아 지역 내에서 독점적으로 모바일 게임 배포 권리를 허용하는 2024년 이후 체결된 모든 계약을 보여줘";
 
 export default function SearchPage() {
   const { territoryLabel } = useRefs();
   const [query, setQuery] = useState(DEFAULT_QUERY);
-  // 목업(mindex-ui-mockup)은 정적 화면이라 진입 즉시 예시 질의·결과가 채워져 있다 —
-  // mock 모드에서만 진입 시 데모 결과를 바로 보여준다. 실 API 모드는 검색을 실행하기
-  // 전까지 빈 화면이다(데모 데이터를 실제 결과인 것처럼 보여주면 안 되니까).
-  const [searchResult, setSearchResult] = useState(() => (USE_MOCK ? { query: DEFAULT_QUERY, ...mockSearchResponse } : null));
+  const [searchResult, setSearchResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [pipelineOpen, setPipelineOpen] = useState(false);
@@ -96,12 +87,11 @@ export default function SearchPage() {
 
       {/* 명세서 #15 "구현 시 주의" — interpreted를 그대로 보여주는 이유는 사용자가 "시스템이
           내 질문을 이렇게 이해했다"를 확인하고 필요하면 다시 질의를 고칠 수 있어야 하기
-          때문이다. 모드 통합 전엔 이 카드가 모드별로 따로 있었는데, 통합하면서 하나로
-          합쳤다. */}
+          때문이다. */}
       {searchResult?.interpreted && <InterpretedConditions interpreted={searchResult.interpreted} territoryLabel={territoryLabel} />}
 
       {results.length > 0 && (
-        <div className={`search-results-grid${USE_MOCK ? "" : " search-results-grid--single"}`}>
+        <div className="search-results-grid search-results-grid--single">
           <div>
             <div className="search-results-header">
               <h4 className="search-results-title">검색 결과 (매칭 {results.length}건)</h4>
@@ -154,31 +144,11 @@ export default function SearchPage() {
               })}
             </div>
           </div>
-          {USE_MOCK && <div className="mx-card mx-mono mx-dark-panel search-mcp-panel">
-            <div className="search-mcp-header">
-              <h5 className="search-mcp-title">Claude Desktop MCP 연동 비교</h5>
-              <span className="mx-tag search-mcp-tag">동일 백엔드</span>
-            </div>
-            <div className="search-mcp-desc">웹 UI와 동일한 하이브리드 검색을 MCP 서버로도 호출한 결과입니다 — 검색 로직은 REST/MCP가 같은 서비스 함수를 공유합니다.</div>
-            <div className="search-mcp-transcript">
-              <div style={{ color: "#6EAE91" }}>$ {mockMcpTranscript.command}</div>
-              <div style={{ marginTop: 8 }}>[MCP RESPONSE]</div>
-              {mockMcpTranscript.entries.map((e) => (
-                <div key={e.id} className="search-mcp-entry">
-                  <div>- {e.id}:</div>
-                  <div className="search-mcp-entry-field">* Territory: {e.territory}</div>
-                  <div className="search-mcp-entry-field">* Rights: {e.rights}</div>
-                  <div className="search-mcp-entry-field">* Expiration: {e.expiration}</div>
-                  <div className="search-mcp-entry-field">* Semantic Match: {e.match}</div>
-                </div>
-              ))}
-            </div>
-          </div>}
         </div>
       )}
       {results.length === 0 && searchResult && !searchError && <p>검색 결과가 없습니다.</p>}
 
-      <div className="search-footnote mx-mt-20">✱ 검색 결과에는 원본 계약서의 마스킹된 민감 항목(계약 금액 등)이 직접 노출되지 않습니다. {USE_MOCK && "(데모 데이터)"}</div>
+      <div className="search-footnote mx-mt-20">✱ 검색 결과에는 원본 계약서의 마스킹된 민감 항목(계약 금액 등)이 직접 노출되지 않습니다.</div>
     </div>
   );
 }
@@ -191,8 +161,8 @@ function InterpretedConditions({ interpreted, territoryLabel }) {
   if (interpreted.exclusivity) {
     chips.push(EXCLUSIVITY_LABEL[interpreted.exclusivity] ?? interpreted.exclusivity);
   }
-  if (interpreted.signedFrom || interpreted.signedTo) {
-    chips.push(`${interpreted.signedFrom ?? "…"} ~ ${interpreted.signedTo ?? "…"} 체결`);
+  if (interpreted.period?.start || interpreted.period?.end) {
+    chips.push(`${interpreted.period?.start ?? "…"} ~ ${interpreted.period?.end ?? "…"} 체결`);
   }
   if (chips.length === 0) return null;
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import CustomSelect from "../CustomSelect.jsx";
-import { EXCLUSIVITY_OPTIONS, LANG_OPTIONS } from "../../labels.js";
+import { EXCLUSIVITY_OPTIONS } from "../../labels.js";
 import { firstEvidenceEntry, updateFirstEvidenceEntry } from "../../lib/evidence.js";
 import { useRefs } from "../../lib/useRefs.js";
 import IpMatchPanel from "./IpMatchPanel.jsx";
@@ -85,11 +85,8 @@ export function HitlReviewEditor({ contractInfo, setContractInfo, rights, onUpda
 
       <CollapsibleCard title="계약 기본 정보" className="upload-review-section">
         <div className="upload-review-basic-table">
-          <BasicReviewRow label="계약명" value={<ReviewInput ariaLabel="계약명" value={contractInfo.title} onChange={(next) => updateContract("title", next)} />} />
-          <BasicReviewRow label="계약 상대방" value={<ReviewInput ariaLabel="계약 상대방" value={contractInfo.counterparty} onChange={(next) => updateContract("counterparty", next)} />} />
-          <BasicReviewRow label="계약 체결일" value={<ReviewInput ariaLabel="계약 체결일" type="date" value={contractInfo.signedDate} onChange={(next) => updateContract("signedDate", next)} />} />
-          <BasicReviewRow label="원문 언어" value={<CustomSelect ariaLabel="원문 언어" value={contractInfo.lang ?? "ko"} onChange={(next) => updateContract("lang", next)} options={LANG_OPTIONS} />} />
-          <BasicReviewRow label="계약 금액" value={<div className="upload-review-money"><ReviewInput ariaLabel="계약 금액" type="number" value={contractInfo.amount} onChange={(next) => updateContract("amount", next === "" ? null : Number(next))} /><ReviewInput ariaLabel="통화" value={contractInfo.currency} onChange={(next) => updateContract("currency", next.toUpperCase())} /></div>} />
+          <BasicReviewRow label="권리 허락자" value={<ReviewInput ariaLabel="권리 허락자" value={contractInfo.grantor} onChange={(next) => updateContract("grantor", next)} />} />
+          <BasicReviewRow label="권리 이용자" value={<ReviewInput ariaLabel="권리 이용자" value={contractInfo.grantee} onChange={(next) => updateContract("grantee", next)} />} />
         </div>
       </CollapsibleCard>
 

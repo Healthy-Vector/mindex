@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, USE_MOCK, DEMO_PIN } from "../api/client.js";
+import { api } from "../api/client.js";
 import ContractDetailContent from "../components/contract/ContractDetailContent.jsx";
 import { setSecuritySessionLabel } from "../lib/securitySession.js";
 import {
@@ -101,7 +101,7 @@ function PinGate({ id }) {
         <form className="mx-card mx-card-pad detail-pin-modal" onSubmit={handlePinSubmit}>
           <h4 className="mx-heading-card">보안 PIN 인증</h4>
           <p className="mx-text-sm mx-muted">
-            계약 상세 정보(당사자·금액·원문)는 팀 PIN을 입력해야 볼 수 있습니다.{USE_MOCK && ` (데모 PIN: ${DEMO_PIN})`}
+            계약 상세 정보(당사자·금액·원문)는 팀 PIN을 입력해야 볼 수 있습니다.
           </p>
           <input
             className="mx-input detail-pin-input"
