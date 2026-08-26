@@ -1,0 +1,182 @@
+status: REVIEWED
+version: 0.3
+phase: C
+languages: [KO, EN, JP]
+
+field_status_values:
+  PRESENT_EXPLICIT: The value is directly stated in the contract text or an incorporated schedule.
+  PRESENT_DERIVED: The value is deterministically calculated from explicit text under a reviewed rule.
+  UNRESOLVED: Relevant wording exists but does not support a single canonical value.
+  ABSENT: The document contains no evidence for the field; this is not a negative fact such as non-consent.
+  EXTERNAL_REFERENCE: The value is delegated to another document that is not part of the evaluated evidence set.
+
+normalization_policy:
+  preserve_raw_expression: true
+  canonical_value_required_for_comparison: true
+  no_keyword_default:
+    exclusivity: UNRESOLVED
+    territory: UNRESOLVED
+    exploitation_mode: UNRESOLVED
+  external_document_rule: Do not infer the referenced value unless the incorporated document is available in the evidence set.
+
+expressions:
+  territory:
+    KR:
+      KO: [대한민국, 한국, 국내]
+      EN: [South Korea, Korea, Republic of Korea]
+      JP: [韓国, 大韓民国]
+    JP:
+      KO: [일본, 일본 국내]
+      EN: [Japan, Japanese territory]
+      JP: [日本, 日本国内]
+    US:
+      KO: [미국, 미합중국]
+      EN: [United States, United States of America, U.S.]
+      JP: [米国, アメリカ合衆国]
+    TW:
+      KO: [대만]
+      EN: [Taiwan]
+      JP: [台湾]
+    SG:
+      KO: [싱가포르]
+      EN: [Singapore]
+      JP: [シンガポール]
+    WORLDWIDE:
+      KO: [전 세계, 전세계]
+      EN: [worldwide, throughout the world]
+      JP: [全世界, 世界全域]
+    ASIA:
+      KO: [아시아]
+      EN: [Asia, Asian territories]
+      JP: [アジア, アジア地域]
+      requires_contract_definition: true
+    APAC:
+      KO: [아시아태평양, 아태 지역]
+      EN: [APAC, Asia-Pacific, Asia-Pacific Territories]
+      JP: [アジア太平洋, APAC]
+      requires_contract_definition: true
+
+  exploitation_mode:
+    SVOD:
+      KO: [구독형 주문형 영상, 정액제 VOD, 구독형 스트리밍]
+      EN: [subscription video-on-demand, subscription VOD, SVOD, subscription streaming]
+      JP: [定額制動画配信, サブスクリプション型動画配信, SVOD]
+    AVOD:
+      KO: [광고 기반 주문형 영상, 광고형 VOD, 광고형 스트리밍]
+      EN: [advertising-supported video-on-demand, advertising-supported VOD, AVOD]
+      JP: [広告付き動画配信, 広告型オンデマンド配信, AVOD]
+    TVOD:
+      KO: [건별 결제 주문형 영상, 거래형 VOD, 대여형 VOD, 구매형 VOD]
+      EN: [transactional video-on-demand, transactional VOD, electronic rental, electronic sell-through, TVOD]
+      JP: [都度課金型動画配信, レンタル型動画配信, 購入型動画配信, TVOD]
+    TV_LINEAR:
+      KO: [선형 방송, 편성 방송, 텔레비전 방송]
+      EN: [linear television, scheduled television broadcast, television broadcasting]
+      JP: [リニア放送, 編成放送, テレビ放送]
+    THEATRICAL:
+      KO: [극장 상영, 영화관 상영]
+      EN: [theatrical exhibition, cinema exhibition]
+      JP: [劇場上映, 映画館上映]
+    MUSIC_STREAMING:
+      KO: [음원 스트리밍, 음악 스트리밍]
+      EN: [music streaming, audio streaming]
+      JP: [音楽ストリーミング, 音源配信]
+    ON_DEMAND_AUDIOVISUAL:
+      KO: [주문형 영상 서비스, VOD 서비스]
+      EN: [on-demand audiovisual service, video-on-demand service, VOD service]
+      JP: [オンデマンド動画配信, VODサービス]
+      requires_contract_definition: true
+    DIGITAL_DISTRIBUTION_UNSPECIFIED:
+      KO: [디지털 배급, 디지털 유통]
+      EN: [digital distribution, digital exploitation]
+      JP: [デジタル配信, デジタル利用]
+      requires_contract_definition: true
+
+  exclusivity:
+    EXCLUSIVE:
+      KO: [독점, 독점적, 배타적]
+      EN: [exclusive, exclusively, sole and exclusive]
+      JP: [独占, 独占的, 排他的]
+    NON_EXCLUSIVE:
+      KO: [비독점, 비독점적, 비배타적]
+      EN: [non-exclusive, nonexclusively]
+      JP: [非独占, 非独占的, 非排他的]
+    UNRESOLVED:
+      KO: []
+      EN: []
+      JP: []
+      rule: Absence of an exclusivity expression does not mean NON_EXCLUSIVE.
+
+  legal_right:
+    REPRODUCTION:
+      KO: [복제권]
+      EN: [reproduction right, right to reproduce]
+      JP: [複製権]
+    DISTRIBUTION:
+      KO: [배포권]
+      EN: [distribution right, right to distribute]
+      JP: [譲渡権]
+    PUBLIC_TRANSMISSION:
+      KO: [공중송신권]
+      EN: [public transmission right, communication to the public right]
+      JP: [公衆送信権]
+    BROADCASTING:
+      KO: [방송권]
+      EN: [broadcasting right, right to broadcast]
+      JP: [放送権]
+    INTERACTIVE_TRANSMISSION:
+      KO: [전송권]
+      EN: [interactive transmission right, making available right]
+      JP: [自動公衆送信権]
+      evidence_terms_jp: [送信可能化]
+    DIGITAL_AUDIO_TRANSMISSION:
+      KO: [디지털음성송신권]
+      EN: [digital audio transmission right]
+      JP: []
+    PERFORMANCE:
+      KO: [공연권]
+      EN: [performance right, public performance right]
+      JP: [上演権, 演奏権]
+    EXHIBITION:
+      KO: [전시권]
+      EN: [exhibition right, display right]
+      JP: [展示権]
+    RENTAL:
+      KO: [대여권]
+      EN: [rental right]
+      JP: [貸与権]
+    DERIVATIVE_WORK_CREATION:
+      KO: [2차적저작물작성권, 번안권]
+      EN: [derivative work right, adaptation right, remake right]
+      JP: [翻案権]
+    ORIGINAL_AUTHOR_DERIVATIVE_EXPLOITATION:
+      KO: [2차적저작물 이용에 관한 원저작자의 권리]
+      EN: [original author's rights in exploitation of derivative works]
+      JP: [二次的著作物の利用に関する原著作者の権利]
+
+  period:
+    FIXED_DATE_RANGE:
+      KO: ['YYYY년 MM월 DD일부터 YYYY년 MM월 DD일까지']
+      EN: ['from YYYY-MM-DD through YYYY-MM-DD']
+      JP: ['YYYY年MM月DD日からYYYY年MM月DD日まで']
+    EFFECTIVE_DATE_PLUS_DURATION:
+      KO: [효력발생일로부터 N년간]
+      EN: [for N years from the Effective Date]
+      JP: [発効日からN年間]
+    RELEASE_DATE_PLUS_DURATION:
+      KO: [공개일로부터 N일간, 공개일 다음 날부터 N일간]
+      EN: [for N days from release, for N days after release]
+      JP: [公開日からN日間, 公開日の翌日からN日間]
+    HOLD_BACK_DURATION:
+      KO: [종료일로부터 N일간 이용하지 않는다]
+      EN: [shall not exploit for N days following expiration]
+      JP: [終了日からN日間利用しない]
+
+period_normalization:
+  granularity: DAY
+  interval_model: CLOSED
+  fixed_range: Explicit start and end dates are inclusive unless the text states otherwise.
+  duration_from_anchor: Start on the anchor date; an N-day term ends N-1 days later, while N-month or N-year terms end the day before the corresponding anniversary.
+  wording_after_anchor: Start on the day after the anchor date.
+  boundary_overlap: Adjacent periods do not overlap when the later period starts the day after the earlier inclusive end date.
+  ambiguity_rule: If wording does not determine the anchor or inclusion convention, keep the normalized period UNRESOLVED.

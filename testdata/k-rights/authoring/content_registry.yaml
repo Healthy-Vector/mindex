@@ -1,0 +1,173 @@
+status: REVIEWED
+version: 0.4
+phase: C
+naming_policy:
+  status: REVIEWED
+  basis: Popular Korean drama and film title conventions using emotion, time and place motifs.
+  restriction: Titles are original synthetic names and must not imply identity with a real work.
+content_types:
+  DRAMA:
+    definition: Episodic audiovisual dramatic work.
+  FILM:
+    definition: Feature-length or standalone audiovisual work.
+content_scope_levels:
+  SERIES:
+    parent: null
+    definition: The complete series as a content scope.
+  SEASON:
+    parent: SERIES
+    definition: A season within a series.
+  EPISODE:
+    parent: SEASON
+    definition: An individual episode within a season.
+  EDIT:
+    parent_scope_required: true
+    definition: A language, censorship, airline, director or other contractual edit of a registered work scope.
+  MANIFESTATION:
+    parent_scope_required: true
+    definition: A specifically delivered file or physical embodiment.
+scope_policy:
+  default_scope: UNRESOLVED
+  registration_rule: Scenario metadata must identify the exact scope; content type alone does not determine Series, Season, Episode or Edit.
+  manifestation_rule: Use MANIFESTATION only when the contract identifies a particular delivered embodiment.
+  non_merger_rule: A remake, OST or other related work does not inherit the parent audiovisual content_id.
+ips:
+  - {ip_id: IP001, status: REVIEWED, root_content_id: C001}
+  - {ip_id: IP002, status: REVIEWED, root_content_id: C002}
+  - {ip_id: IP003, status: REVIEWED, root_content_id: C003}
+  - {ip_id: IP004, status: REVIEWED, root_content_id: C004}
+  - {ip_id: IP005, status: REVIEWED, root_content_id: C005}
+  - {ip_id: IP006, status: REVIEWED, root_content_id: C006}
+  - {ip_id: IP007, status: REVIEWED, root_content_id: C007}
+  - {ip_id: IP008, status: REVIEWED, root_content_id: C008}
+  - {ip_id: IP009, status: REVIEWED, root_content_id: C009}
+  - {ip_id: IP010, status: REVIEWED, root_content_id: C010}
+  - {ip_id: IP011, status: REVIEWED, root_content_id: C011}
+  - {ip_id: IP012, status: REVIEWED, root_content_id: C012}
+contents:
+  - content_id: C001
+    ip_id: IP001
+    status: REVIEWED
+    synthetic: true
+    title_ko: 겨울의 신호
+    title_en: Signal of Winter
+    title_jp: 冬のシグナル
+    content_type: DRAMA
+  - content_id: C002
+    ip_id: IP002
+    status: REVIEWED
+    synthetic: true
+    title_ko: 푸른 항구
+    title_en: Blue Harbor
+    title_jp: 青い港
+    content_type: FILM
+  - content_id: C003
+    ip_id: IP003
+    status: REVIEWED
+    synthetic: true
+    title_ko: 마지막 궤도
+    title_en: Final Orbit
+    title_jp: 最後の軌道
+    content_type: DRAMA
+  - content_id: C004
+    ip_id: IP004
+    status: REVIEWED
+    synthetic: true
+    title_ko: 달의 편지
+    title_en: Letter from the Moon
+    title_jp: 月の手紙
+    content_type: FILM
+  - content_id: C005
+    ip_id: IP005
+    status: REVIEWED
+    synthetic: true
+    title_ko: 고요한 도시
+    title_en: Silent City
+    title_jp: 静かな都市
+    content_type: DRAMA
+  - content_id: C006
+    ip_id: IP006
+    status: REVIEWED
+    synthetic: true
+    title_ko: 마지막 무대
+    title_en: Final Stage
+    title_jp: 最後の舞台
+    content_type: FILM
+  - content_id: C007
+    ip_id: IP007
+    status: REVIEWED
+    synthetic: true
+    title_ko: 밤을 건너는 도시
+    title_en: City Crossing the Night
+    title_jp: 夜を越える街
+    content_type: DRAMA
+    planned_scenario_ids: [KO-C07]
+    planned_contract_ids: [CTR-KO-9001, CTR-KO-9002, CTR-KO-0015]
+  - content_id: C008
+    ip_id: IP008
+    status: REVIEWED
+    synthetic: true
+    title_ko: 검은 파도 너머
+    title_en: Beyond the Black Tide
+    title_jp: 黒い波の向こう
+    content_type: FILM
+    planned_scenario_ids: [EN-C08]
+    planned_contract_ids: [CTR-EN-9002, CTR-EN-0016]
+  - content_id: C009
+    ip_id: IP009
+    status: REVIEWED
+    synthetic: true
+    title_ko: 비가 기억하는 이름
+    title_en: The Name Remembered by Rain
+    title_jp: 雨が覚えている名前
+    content_type: DRAMA
+    planned_scenario_ids: [EN-C09]
+    planned_contract_ids: [CTR-EN-9003, CTR-EN-0017]
+  - content_id: C010
+    ip_id: IP010
+    status: REVIEWED
+    synthetic: true
+    title_ko: 자정의 플랫폼
+    title_en: Midnight Platform
+    title_jp: 真夜中のホーム
+    content_type: FILM
+    planned_scenario_ids: [EN-C10]
+    planned_contract_ids: [CTR-EN-9004, CTR-EN-0018]
+  - content_id: C011
+    ip_id: IP011
+    status: REVIEWED
+    synthetic: true
+    title_ko: 별이 머문 여름
+    title_en: The Summer Where Stars Stayed
+    title_jp: 星が留まった夏
+    content_type: DRAMA
+    planned_scenario_ids: [JP-W01, RB-JP04]
+    planned_contract_ids: [CTR-JP-0020, CTR-JP-0024]
+  - content_id: C012
+    ip_id: IP012
+    status: REVIEWED
+    synthetic: true
+    title_ko: 초대받지 않은 계절
+    title_en: The Uninvited Season
+    title_jp: 招かれざる季節
+    content_type: DRAMA
+    planned_scenario_ids: [EN-R02, RB-EN03]
+    planned_contract_ids: [CTR-EN-9005, CTR-EN-0020, CTR-EN-0023]
+related_asset_types:
+  OST_MASTER:
+    definition: A soundtrack master recording related to, but legally distinct from, an audiovisual work.
+  MUSICAL_COMPOSITION:
+    definition: An underlying musical composition related to, but legally distinct from, a sound recording or audiovisual work.
+relationship_types:
+  OST_OF:
+    definition: The asset is an original soundtrack associated with the parent content.
+related_assets:
+  - asset_id: MUS001
+    parent_content_id: C001
+    asset_type: OST_MASTER
+    relationship_type: OST_OF
+    title_ko: 겨울의 신호 OST 마스터
+    title_en: Signal of Winter OST Master
+    title_jp: 冬のシグナル OSTマスター
+    status: REVIEWED
+    synthetic: true
