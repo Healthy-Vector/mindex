@@ -239,6 +239,7 @@ CREATE TABLE team (
 -- uploaded_by/changed_by 등 개인식별 컬럼은 두지 않는다(D-29 정신 연장).
 CREATE TABLE contract (
     id                  bigserial PRIMARY KEY,
+    title               text,                  -- 계약 목록 화면 표시용 라벨. IP.title과 별개(계약 자체의 사람이 읽는 이름)
     grantor             text NOT NULL,         -- 권리를 주는 쪽(갑)
     grantee             text NOT NULL,         -- 권리를 받는 쪽(을)
     signed_date         date,

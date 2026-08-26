@@ -121,4 +121,8 @@ INSERT INTO schema_meta (version, note) VALUES
     ('2026-08-25.1',
      'staging.extract_result.confidence 컬럼 삭제. 어떤 SQL 함수·롤 GRANT도 이 '
      '컬럼을 참조하지 않았고, 대표 confidence를 별도 기록하지 않는 확정 저장 '
-     '경로로 이미 정리됐다(feat/contract-extraction-worker PR #8)');
+     '경로로 이미 정리됐다(feat/contract-extraction-worker PR #8)'),
+    ('2026-08-26.1',
+     'contract.title 컬럼 추가(nullable text). 계약 목록 화면 표시용 라벨 — '
+     'ip.title(작품명)과 별개로, 계약 자체를 사람이 식별하기 위한 이름. '
+     'EXCLUDE/트리거 판정 로직 어디에도 관여하지 않는다');
