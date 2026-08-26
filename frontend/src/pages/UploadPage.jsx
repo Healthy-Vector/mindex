@@ -154,12 +154,30 @@ export default function UploadPage() {
     if (!tmpId) return;
     api
       .getUploadJob(tmpId)
-      .then(applyJobState)
+      .then((job) => {
+        applyJobState(job);
+        // D-37 — URL에 맥락이 없는 재진입(목록의 "처리 중" 항목 클릭 등)이면 서버가
+        // tmpId로 복원해 준 mode/contractId/ipId로 URL을 채운다. 서버의 draft/final
+        // 2값을 화면의 new/revision/final 3값으로 되돌리는 건 contractId 유무로
+        // 판단한다(D-37) — "신규냐 개정이냐"는 mode에 안 들어있기 때문이다.
+        if (!searchParams.get("mode") && job.mode) {
+          const resolvedMode = job.mode === "final" ? "final" : job.contractId ? "revision" : "new";
+          const params = new URLSearchParams();
+          params.set("mode", resolvedMode);
+          if (job.contractId) params.set("contractId", job.contractId);
+          if (job.ipId) params.set("ipId", job.ipId);
+          navigate(`/upload/${tmpId}?${params.toString()}`, { replace: true });
+          // URL은 다음 렌더에 반영되지만, mount 시 이미 굳어버린 mode/selectedContractId
+          // state(useState(entryMode) 초기값)는 URL만 바꿔서는 안 따라온다 — 여기서 같이 맞춘다.
+          setMode(resolvedMode);
+          setSelectedContractId(job.contractId ? String(job.contractId) : null);
+        }
+      })
       .catch(() => {
         // 잡을 찾을 수 없음(만료·존재하지 않음) — 처음부터 다시 시작.
         setTmpId(null);
       });
-  }, [tmpId, applyJobState]);
+  }, [tmpId, applyJobState, navigate, searchParams]);
 
   // QUEUED/OCR/LLM 동안은 tmpId로 잡 상태를 폴링해서 서버 쪽 진행 상황과 동기화한다.
   // FAILED도 이 폴링으로 감지한다 — OCR·LLM 추출 둘 다 실패 지점이 될 수 있다.
@@ -220,6 +238,7 @@ export default function UploadPage() {
       .then((verifyResult) => {
         if (cancelled) return;
         navigate("/upload/conflict", {
+          replace: true,
           state: { payload, ip: mode === "new" ? ipMatch?.ip : undefined, verifyResult },
         });
       })
@@ -265,7 +284,7 @@ export default function UploadPage() {
 
   function confirmLeave() {
     setShowLeaveConfirm(false);
-    navigate("/");
+    navigate("/", { replace: true });
   }
 
   function handleFile(file) {

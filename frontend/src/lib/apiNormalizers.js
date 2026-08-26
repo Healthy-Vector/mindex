@@ -9,6 +9,11 @@ export function normalizeJob(json) {
     stage,
     queuePosition: json.queuePosition ?? null,
     reason: json.reason,
+    // D-37 — 업로드 시점 맥락(서버가 tmpId로 복원할 수 있도록 저장해 둔 값). 화면 상태
+    // 없이 재진입(목록의 "처리 중" 클릭 등)할 때 URL 쿼리 대신 이 값으로 복원한다.
+    mode: json.mode ?? null,
+    contractId: json.contractId ?? null,
+    ipId: json.ipId ?? null,
     result,
     contractInfo: {
       ...(result?.contractInfo ?? {}),
