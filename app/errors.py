@@ -86,6 +86,19 @@ class IpDuplicate(AppError):
     http_status = 409
 
 
+class IpInactive(AppError):
+    """비활성(deactive) IP로 새 계약을 만들려고 한 경우 (D-41).
+
+    기존 계약(contractId 있음)에 draft·final 버전을 추가하는 것은 막지 않는다 —
+    그 IP 연결은 계약이 처음 만들어질 때 이미 유효했고, 지금 하는 일은 그 계약의
+    이력을 늘리는 것뿐이다. 새 계약 행을 만들 때(연장 포함, contractId 없음)만
+    막는다 — "새 계약"은 항상 IP를 새로 연결하는 행위이기 때문이다.
+    """
+
+    code = "IP_INACTIVE"
+    http_status = 409
+
+
 class AssetInUse(AppError):
     """권리 대상(content_asset)을 더 이상 바꿀 수 없는 상태.
 

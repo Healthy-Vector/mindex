@@ -2,6 +2,44 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
+## 2026-08-27 — 비활성 IP로 새 계약이 그대로 만들어지던 것 수정 (D-41)
+
+"IP를 비활성화했는데 계약서에서 여전히 선택된다"는 제보로 확인했다. 검증·확정
+(`_validate_request_refs`)이 `ip.activity`를 전혀 안 봐서, 비활성 IP로도 새 계약이
+그대로 만들어지고 있었다. 검색·매칭은 이미 잘 걸러내는데(`search_ip_rows`), 그걸
+거치지 않고 `ipId`를 직접 실어 보내는 경로가 둘 있었다 — 계약 연장
+(`ContractDetailContent.jsx`가 `mode=new&ipId=...`로 직행), 중복 IP 확인 시
+"기존 IP 사용"(`GET /ips/{id}`가 기존 계약 확인용으로 비활성 IP도 의도적으로 엶).
+
+§14 문서의 "새 계약을 만들 때 목록에 안 나올 뿐입니다"가 원래 의도였지만, 실사용
+요구와 어긋난다고 판단해 서버 차단으로 바꿨다(D-41).
+
+- `app/errors.py` — `IpInactive`(`IP_INACTIVE`, 409) 신설.
+- `app/services/conflict.py` — `contractId`가 없을 때(신규 계약 행 생성, 연장 포함)만
+  `ip.activity`를 검사한다. `contractId`가 있으면(기존 계약에 버전 추가) 검사하지
+  않는다 — 그 IP 연결은 계약이 처음 만들어질 때 이미 유효했다.
+  `save_rights_batch()`의 신규/기존 분기(`p_contract_id IS NULL`)와 경계를 맞췄다.
+
+### 프론트 `mode`와의 관계 (혼동 방지용으로 남긴다)
+
+`/upload` 라우트의 URL 쿼리 `mode`(new/revision/final)는 D-37에서 정리한
+`POST /extract`의 `mode`(draft/final)와 **다른 값이다** — 전자는 프론트 내부 화면
+라우팅 상태, 후자가 실제 API 계약이다. `client.js`가 경계에서
+`mode === "final" ? "final" : "draft"`로 이미 정확히 변환하고 있어 D-37과 어긋나지
+않는다. 공교롭게도 프론트의 `new` 여부(=contractId 미전달)가 이번 D-41의 판정 기준과
+정확히 겹친다 — "새 계약이냐 기존 계약 버전 추가냐"라는 같은 경계를 프론트도 이미
+쓰고 있었다.
+
+### 검증
+
+- `ruff check app/ tests/` → All checks passed.
+  `pytest tests/test_unit_pure.py tests/test_staging_merge_unit.py -q` → 29 passed.
+- `tests/test_p2_api.py`에 5건 추가: 검증·확정 각각에서 신규 계약 + 비활성 IP →
+  409(2건), 연장도 동일하게 차단, 기존 계약 버전 추가는 비활성 IP여도 통과,
+  활성 IP 회귀 확인.
+- **DB가 없어 5건 모두 실행되지 않았다.** 신규 계약 차단, 연장 차단, 기존 계약 버전
+  추가 예외가 전부 여기 있다. DB 있는 환경에서 반드시 확인해야 한다.
+
 ## 2026-08-26 — 검색 응답에서 조항 본문 제거 (D-40)
 
 15번의 `snippets[].text`가 계약서 조항 원문이었다. 같은 원문을 주는 9번은 PIN
