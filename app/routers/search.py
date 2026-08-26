@@ -30,16 +30,19 @@ e5 코사인이 좁은 구간(실측 0.68~0.86)에 눌려 있어 `1 - dist` 원�
 어휘가 지배해버린다. 후보군(이번 검색의 `contract_chunk` 전체) 안에서
 min-max로 0~1로 펴서 섞는다 — Task1의 `semantic_norm`과 같은 이유·같은 해법.
 
-## PIN 세션이 필요하다
+## 조항 본문을 응답에 싣지 않는다 (D-40)
 
-검색 결과의 snippet은 **계약서 원문 인용**이다. 같은 원문을 돌려주는 9번
-(`GET /contracts/{id}/file`)이 세션을 요구하는데 여기만 열려 있는 건 일관성이
-맞지 않았다. `require_session`을 붙인다.
+`snippets[]`는 어디서 걸렸는지(`clauseNo`·`page`)와 점수만 준다. **조항 본문은
+빠져 있다.** 검색 화면이 근거문을 표시하지 않기로 하면서 응답에서도 뺐다 —
+화면에 없는 것을 API가 내보내지 않는다는 원칙이다.
 
-주의 — PIN은 "이 설치에 접근할 자격이 있나"만 확인한다. `team`은 PIN 관리 전용
-테이블이고 `team_id`를 도메인 테이블로 전파하지 않으므로(D-29/D-30, 단일사 온프렘)
-토큰 안의 팀 정보는 **무엇을 볼 수 있는지를 가르지 않는다.** 멀티테넌트가 필요해지면
-스키마에 team_id 전파와 RLS가 따로 필요하다.
+본문이 안 나가므로 이 엔드포인트에는 PIN 세션을 요구하지 않는다. 7번 목록·12번 IP
+목록과 같은 기준(메타데이터는 열고, 원문·이력 열람만 PIN)이 유지된다. 원문은
+세션이 필요한 8·9번에서만 나간다.
+
+본문은 여전히 **랭킹에는 쓴다** — `word_similarity(lower(ch.chunk_text), :q)`로
+어휘 점수를 내고, 임계값을 넘는 근거가 하나도 없는 계약을 결과에서 빼는 판단도
+본문 기준이다. 서버 안에서만 보고 밖으로 내보내지 않는다.
 
 ## snippet은 계약당 최상단 1개만
 
@@ -59,7 +62,6 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.deps import require_session
 from app.schemas.search import SearchRequest, SearchResponse, SearchResult, Snippet
 from app.services.embedding import embed_query
 from app.services.query_interpret import interpret
@@ -134,11 +136,7 @@ def _vec(v) -> str:
 
 
 @router.post("/search", response_model=SearchResponse)
-def search(
-    body: SearchRequest,
-    db: Session = Depends(get_db),
-    _team: str = Depends(require_session),
-) -> SearchResponse:
+def search(body: SearchRequest, db: Session = Depends(get_db)) -> SearchResponse:
     interp = interpret(db, body.query)          # 1
     eff = _effective(interp, body.filters)      # 2
 
@@ -270,7 +268,7 @@ def search(
                         ) AS rn
                     FROM norm
                 )
-                SELECT contract_id, chunk_id, clause_no, page_start, chunk_text, score
+                SELECT contract_id, chunk_id, clause_no, page_start, score
                 FROM ranked_chunks
                 WHERE rn <= :topn AND score >= :minscore
                 ORDER BY contract_id, score DESC
@@ -281,11 +279,12 @@ def search(
                 "cands": candidates, "topn": SNIPPETS_PER_CONTRACT, "minscore": MIN_SNIPPET_SCORE,
             },
         ).all()
-        for cid, chunk_id, clause_no, page_start, chunk_text, score in rows:
+        for cid, chunk_id, clause_no, page_start, score in rows:
             cid = int(cid)
+            # 조항 본문은 담지 않는다(D-40) — 어디서 걸렸는지만 준다.
             snippets.setdefault(cid, []).append(
                 Snippet(chunk_id=int(chunk_id), page=page_start, clause_no=clause_no,
-                        text=chunk_text, similarity=float(score))
+                        similarity=float(score))
             )
             scores[cid] = max(scores.get(cid, 0.0), float(score))
         # 임계값 넘는 snippet이 하나도 없는 계약은 결과에서 뺀다 (팀 결정).

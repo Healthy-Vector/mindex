@@ -375,19 +375,3 @@ def test_patch_asset_scope_merge_violation_is_400(client, clean_db):
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "VALIDATION_FAILED"
-
-
-@requires_db
-def test_search_requires_pin_session(client, clean_db):
-    """15번 검색은 계약서 원문 인용(snippet)을 돌려주므로 PIN 세션이 필요하다."""
-    anonymous = client.post("/api/search", json={"query": "재허락"})
-    assert anonymous.status_code == 401
-    assert anonymous.json()["error"]["code"] == "SESSION_EXPIRED"
-
-    token = client.post("/api/auth/pin", json={"pin": "1234"}).json()["sessionToken"]
-    authorized = client.post(
-        "/api/search",
-        json={"query": "재허락"},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert authorized.status_code == 200

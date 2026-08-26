@@ -34,12 +34,6 @@ OTHER_TEXT = (
 QUERY = "재허락에 상대방 동의가 필요한 계약"
 
 
-def _auth(client) -> dict[str, str]:
-    """15번은 PIN 세션이 필요하다 — snippet이 계약서 원문 인용이라서."""
-    token = client.post("/api/auth/pin", json={"pin": "1234"}).json()["sessionToken"]
-    return {"Authorization": f"Bearer {token}"}
-
-
 def _confirm_contract(client, clean_db, **kwargs) -> tuple[int, int]:
     r = client.post("/api/contracts", json=body(clean_db, **kwargs))
     assert r.status_code == 201, r.text
@@ -73,7 +67,7 @@ def test_hybrid_search_returns_snippets_and_drops_irrelevant(client, conn, clean
     other_id, other_hist = _confirm_contract(clean_db=clean_db, client=client, territory="JP")
     _insert_chunk(conn, contract_id=other_id, history_id=other_hist, clause_no="제7조", page=2, text=OTHER_TEXT)
 
-    r = client.post("/api/search", json={"query": QUERY}, headers=_auth(client))
+    r = client.post("/api/search", json={"query": QUERY})
     assert r.status_code == 200, r.text
     j = r.json()
 
@@ -98,8 +92,9 @@ def test_hybrid_search_returns_snippets_and_drops_irrelevant(client, conn, clean
     snippet = top["snippets"][0]
     assert snippet["clauseNo"] == "제14조"
     assert snippet["page"] == 3
-    assert snippet["text"] == RELEVANT_TEXT
     assert snippet["similarity"] is not None
+    # D-40 — 조항 본문은 응답에 싣지 않는다. 화면에 없는 것은 API도 주지 않는다.
+    assert "text" not in snippet
     assert isinstance(snippet["chunkId"], int)
 
 
@@ -116,7 +111,6 @@ def test_matched_filters_reflect_actual_grant_values(client, conn, clean_db):
     r = client.post(
         "/api/search",
         json={"query": QUERY, "filters": {"territories": ["KR"]}},
-        headers=_auth(client),
     )
     assert r.status_code == 200, r.text
     j = r.json()
@@ -145,7 +139,6 @@ def test_zero_qualifying_snippets_drops_contract_even_when_filtered(client, conn
     r = client.post(
         "/api/search",
         json={"query": QUERY, "filters": {"territories": ["KR"]}},
-        headers=_auth(client),
     )
     assert r.status_code == 200, r.text
     j = r.json()
@@ -176,12 +169,12 @@ def test_cross_mode_excludes_contracts_matching_query_language(client, conn, cle
     cur.execute("UPDATE contract SET lang='en' WHERE id=%s", (en_id,))
     conn.commit()
 
-    r_natural = client.post("/api/search", json={"query": QUERY}, headers=_auth(client))
+    r_natural = client.post("/api/search", json={"query": QUERY})
     assert r_natural.status_code == 200, r_natural.text
     natural_ids = [row["contractId"] for row in r_natural.json()["results"]]
     assert ko_id in natural_ids and en_id in natural_ids, "natural 모드는 언어와 무관하게 둘 다 반환해야 한다"
 
-    r_cross = client.post("/api/search", json={"query": QUERY, "mode": "cross"}, headers=_auth(client))
+    r_cross = client.post("/api/search", json={"query": QUERY, "mode": "cross"})
     assert r_cross.status_code == 200, r_cross.text
     cross_ids = [row["contractId"] for row in r_cross.json()["results"]]
     assert en_id in cross_ids
@@ -222,7 +215,7 @@ def test_superseded_generation_chunks_are_not_searched(client, conn, clean_db):
         clause_no="제9조", page=9, text=OTHER_TEXT,
     )
 
-    found = client.post("/api/search", json={"query": QUERY}, headers=_auth(client)).json()
+    found = client.post("/api/search", json={"query": QUERY}).json()
     hit = next((r for r in found["results"] if r["contractId"] == contract_id), None)
 
     assert hit is None, "대체된 구세대 조항이 근거로 잡히면 안 된다"

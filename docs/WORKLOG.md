@@ -2,28 +2,35 @@
 
 개인 세션 기록이며 최신 항목만 유지한다. 설계의 현행 결정은 [`DECISIONS.md`](DECISIONS.md), 데이터 모델 정본은 [`mindex_remastered.dbml`](mindex_remastered.dbml)을 따른다.
 
-## 2026-08-26 — 15번 검색에 PIN 세션 요구 (D-40)
+## 2026-08-26 — 검색 응답에서 조항 본문 제거 (D-40)
 
-검색 결과의 snippet이 계약서 원문 인용인데 15번만 세션 없이 열려 있었다. 같은 원문을
-돌려주는 9번은 세션을 요구한다 — 인증 없이 계약서 본문을 조각으로 꺼낼 수 있는
-경로였다.
+15번의 `snippets[].text`가 계약서 조항 원문이었다. 같은 원문을 주는 9번은 PIN
+세션을 요구하는데 15번은 열려 있어서, 인증 없이 계약서 본문을 조각으로 꺼낼 수
+있었다.
 
-- `/search`에 `require_session` 추가.
-- 프론트는 영향이 거의 없다. `request()`가 토큰이 있으면 이미 `Authorization`을
-  붙이고 있어서, PIN을 안 넣은 상태로 검색하는 경로만 막힌다.
-- `tests/test_p2_api.py`에 `test_search_requires_pin_session` 추가(401 → 200).
-  이건 임베딩이 필요 없어 **DB만 있으면 CI에서 실제로 돈다** —
-  `test_search_pgvector.py`와 달리.
+처음엔 `require_session`을 붙였다가 되돌렸다. 프론트가 검색 결과 화면에서 근거문을
+빼기로 했으므로 **응답에서 아예 빼는 쪽이 맞다** — 화면에 없는 것을 API가 내보내지
+않는다. 표시 계층에서 감추는 건 방어가 아니고(`curl`이면 그대로 나온다), 응답에서
+빼면 인증을 걸 이유 자체가 사라진다.
 
-### 확인만 하고 넘어간 것 — 팀 격리는 없다
+- `Snippet`에서 `text` 제거. `chunkId`·`clauseNo`·`page`·`similarity`는 유지 —
+  "어디서 얼마나 걸렸는지"는 메타데이터다.
+- `require_session` 철회. 7번 목록·12번 IP 목록과 같은 기준을 유지한다.
+- 본문은 랭킹에는 계속 쓴다(`word_similarity`, 임계값 판정). 서버 안에서만 본다.
 
-"다른 팀 파일이 검색되면?"에 대한 답: **지금 스키마에 팀 경계가 없다.** `team`은 PIN
-관리 전용이고 `contract`·`rights_grant`·`contract_chunk`·`ip` 어디에도 `team_id`가
-없다(D-29/D-30, 단일사 온프렘). `resolve_team_id()`는 `ORDER BY id LIMIT 1`이라 팀이
-여럿이면 두 번째 팀은 로그인 자체가 안 되고, 라우터는 토큰의 팀 정보를 `_team`으로
-받아 버린다. 한 설치 = 한 회사라는 전제가 유지되는 동안은 문제가 없지만, **PIN을
-추가하는 것으로는 멀티테넌트가 되지 않는다.** `app/security/rls.py`가 빈 파일로
-그 자리를 잡고 있다.
+### 프론트에 확인이 필요한 것
+
+`SearchPage.jsx:149`가 아직 `근거문({snippet.clauseNo}): "{snippet.text}"`를
+렌더링하고 있다. 이 브랜치 기준이며, 프론트가 "검색 결과 화면에서 없앴다"고 한
+변경이 아직 안 올라온 것으로 보인다. **그 블록을 지우지 않으면 빈 따옴표가
+표시된다.**
+
+### 검증
+
+- `ruff check app/ tests/` → All checks passed.
+  `pytest`(DB 없는 경로) → 29 passed, 28 skipped.
+- `test_search_pgvector.py`의 snippet 단언을 `text` 미포함 확인으로 바꿨다.
+  이 파일은 `sentence_transformers`를 요구해 CI에서 스킵된다.
 
 ## 2026-08-26 — 검색이 대체된 구세대 조항을 잡던 것 수정 (D-39)
 
