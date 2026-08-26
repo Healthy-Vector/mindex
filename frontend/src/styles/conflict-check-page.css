@@ -167,3 +167,9 @@
 .conflict-save-bar {
   gap: 20px;
 }
+
+.conflict-save-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}

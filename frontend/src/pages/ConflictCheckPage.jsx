@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import ConflictTimeline from "../components/ConflictTimeline.jsx";
 import { EXCLUSIVITY_LABEL } from "../labels.js";
+import { hasActivePinSession, setPinSessionExpiresAt, setPinSessionToken } from "../lib/pinSession.js";
 import { useRefs } from "../lib/useRefs.js";
 import "../styles/conflict-check-page.css";
 
@@ -35,10 +36,69 @@ export default function ConflictCheckPage() {
   const [quoteModal, setQuoteModal] = useState(null); // { label, quotes } | null
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const conflicts = result.conflicts ?? [];
   const hasConflict = result.hasConflict ?? conflicts.length > 0;
   const candidate = result.candidate ?? ip;
+  const [enrichedConflicts, setEnrichedConflicts] = useState(conflicts);
+
+  // "기존 계약" 비교값 보강 — POST /contracts/verify 응답(API 설계서 #5)은
+  // existingGrantId/existingContractId 참조만 주고 그 권리의 실제 지역·법적권리·기간·
+  // 독점여부 값은 안 준다. GET /contracts/{id}(#8)로 따로 조회해서 채운다.
+  // #8은 PIN 세션이 필요한데 업로드→충돌검사 플로우엔 PIN 절차가 없다 — 로컬 테스트
+  // 전용으로 VITE_TEST_PIN이 설정돼 있으면 그 PIN으로 자동 인증한다. 실 배포 환경에는
+  // 이 env가 없으므로 조용히 스킵되고 기존처럼 "—"만 보인다.
+  useEffect(() => {
+    if (!conflicts.length) return undefined;
+    let cancelled = false;
+    (async () => {
+      if (!hasActivePinSession() && import.meta.env.VITE_TEST_PIN) {
+        try {
+          const session = await api.verifyPin(import.meta.env.VITE_TEST_PIN);
+          setPinSessionToken(session?.sessionToken ?? null);
+          setPinSessionExpiresAt(session?.expiresAt ?? Date.now() + (session?.ttlSeconds ?? 900) * 1000);
+        } catch {
+          return;
+        }
+      }
+      if (!hasActivePinSession() || cancelled) return;
+      const contractCache = new Map();
+      const results = await Promise.all(
+        conflicts.map(async (c) => {
+          if (c.existing?.territory || !c.existing?.contractId) return c;
+          try {
+            let contract = contractCache.get(c.existing.contractId);
+            if (!contract) {
+              contract = await api.getContract(c.existing.contractId);
+              contractCache.set(c.existing.contractId, contract);
+            }
+            const match = contract.rightsGrants?.find((r) => r.id === c.existing.rightsGrantId);
+            if (!match) return c;
+            return {
+              ...c,
+              existing: {
+                ...c.existing,
+                title: contract.title ?? c.existing.title,
+                grantee: contract.grantee,
+                territory: match.territory,
+                legalRight: match.legalRight,
+                exploitationMode: match.exploitationMode,
+                period: match.period,
+                exclusivity: match.exclusivity,
+              },
+            };
+          } catch {
+            return c;
+          }
+        }),
+      );
+      if (!cancelled) setEnrichedConflicts(results);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [conflicts]);
 
   if (!payload?.tmpId || !initialResult) {
     return <Navigate to="/upload" replace />;
@@ -55,13 +115,13 @@ export default function ConflictCheckPage() {
     }
     api
       .saveContract(payload)
-      .then((saved) => navigate("/", { state: { toast: saveToast(saved, isFinal) } }))
+      .then((saved) => navigate("/", { replace: true, state: { toast: saveToast(saved, isFinal) } }))
       .catch((err) => {
         // API 명세서 #6 "구현 시 주의" — 같은 tmpid로 두 번째 저장 요청이 오면 409
         // ALREADY_CONFIRMED와 함께 첫 저장 결과를 그대로 돌려준다. 에러로 취급하지 않고
         // "이미 저장됐다"는 걸 그대로 알려준 뒤 목록으로 보낸다.
         if (err.status === 409 && err.body?.code === "ALREADY_CONFIRMED") {
-          navigate("/", { state: { toast: `이미 저장된 계약입니다 — ${saveToast(err.body, isFinal)}` } });
+          navigate("/", { replace: true, state: { toast: `이미 저장된 계약입니다 — ${saveToast(err.body, isFinal)}` } });
           return;
         }
         setSaveError(err.message);
@@ -88,7 +148,7 @@ export default function ConflictCheckPage() {
         <div className="conflict-clean-banner">충돌사항이 없습니다.</div>
       )}
 
-      {conflicts.map((c, i) => {
+      {enrichedConflicts.map((c, i) => {
         const severity = SEVERITY_META[c.severity] ?? SEVERITY_META.CONFLICT;
         const existingTitle = c.existing?.title ?? (c.existingContractId ? `기존 계약 #${c.existingContractId}` : "기존 계약");
         const canShowTimeline = c.existing?.period && c.incoming?.period && c.overlap;
@@ -128,12 +188,34 @@ export default function ConflictCheckPage() {
 
       <div className="mx-card mx-card-pad mx-flex-between conflict-save-bar">
         <div className="mx-text-sm mx-muted">
-          충돌 여부와 무관하게 저장은 항상 진행됩니다. 충돌 리포트는 이력 컬럼에 함께 저장되어 상세페이지·감사에서 조회할 수 있습니다.
+          충돌 여부와 무관하게 저장은 항상 진행됩니다. 충돌 리포트는 이력 컬럼에 함께 저장되어 상세에서 조회할 수 있습니다.
         </div>
-        <button type="button" className="mx-btn mx-btn-primary" disabled={saving} onClick={handleSave}>
-          {saving ? "저장 중…" : isFinal && !hasConflict ? "서명 완료로 저장" : "초안으로 저장"}
-        </button>
+        <div className="conflict-save-actions">
+          <button type="button" className="mx-btn mx-btn-secondary" disabled={saving} onClick={() => setShowCancelConfirm(true)}>
+            취소
+          </button>
+          <button type="button" className="mx-btn mx-btn-primary" disabled={saving} onClick={handleSave}>
+            {saving ? "저장 중…" : isFinal && !hasConflict ? "서명 완료로 저장" : "초안으로 저장"}
+          </button>
+        </div>
       </div>
+
+      {showCancelConfirm && (
+        <div className="detail-pin-wrap detail-extend-overlay">
+          <div className="mx-card mx-card-pad detail-pin-modal">
+            <h4 className="mx-heading-card">저장하지 않고 나가시겠습니까?</h4>
+            <p className="mx-text-sm mx-muted">지금까지 확인한 충돌검사 결과는 저장되지 않고 목록으로 이동합니다.</p>
+            <div className="detail-pin-actions">
+              <button type="button" className="mx-btn mx-btn-secondary" onClick={() => setShowCancelConfirm(false)}>
+                계속 검토
+              </button>
+              <button type="button" className="mx-btn mx-btn-primary" onClick={() => navigate("/", { replace: true })}>
+                나가기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -209,7 +291,7 @@ function CompareTable({ match, onShowQuote }) {
                 title={quotes ? "클릭하면 원문 비교" : undefined}
               >
                 <td>{row.label}</td>
-                <td>{row.existing || "API 미제공"}</td>
+                <td>{row.existing || "—"}</td>
                 <td>{row.incoming || "—"}</td>
                 <td>{quotes && <span className="mx-link-btn mx-text-xs">원문 ›</span>}</td>
               </tr>
