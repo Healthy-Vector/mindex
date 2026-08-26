@@ -1,0 +1,330 @@
+/* mindex-ui-mockup(Claude Design 캔버스 프로토타입)에서 이식한 컴포넌트 유틸리티 클래스.
+   원본: prototype/mindex-ui-mockup/index.html <style>
+   색상은 shared.css의 디자인 토큰(OpenSQL 브랜드 그린 기준)을 참조한다. */
+
+.mx-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.mx-card {
+  background: var(--mx-surface);
+  border: 1px solid var(--mx-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px var(--mx-bg-tint);
+}
+
+.mx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: Manrope, sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  border-radius: 9px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.mx-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mx-btn-primary {
+  background: var(--mx-accent);
+  color: #ffffff;
+}
+.mx-btn-primary:hover:not(:disabled) {
+  background: var(--mx-accent-hover);
+  color: #ffffff;
+}
+.mx-btn-secondary {
+  background: transparent;
+  border-color: var(--mx-border-strong);
+  color: var(--mx-text);
+}
+.mx-btn-secondary:hover:not(:disabled) {
+  background: var(--mx-bg-tint);
+  color: var(--mx-text);
+}
+
+.mx-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 4px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mx-tag-accent {
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent);
+}
+.mx-tag-neutral {
+  background: var(--mx-border-soft);
+  color: var(--mx-text);
+}
+.mx-tag-outline {
+  border: 1px solid var(--mx-accent);
+  color: var(--mx-accent);
+}
+.mx-tag-alert {
+  background: var(--mx-alert-bg);
+  color: var(--mx-alert-text);
+}
+
+.mx-input {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--mx-border-strong);
+  background: var(--mx-surface);
+  color: var(--mx-text);
+  box-sizing: border-box;
+  /* select 팝업(옵션 목록)이 OS 다크모드를 물려받아 밝은 텍스트 색과 충돌해
+     내용이 안 보이는 문제를 막는다 — 이 앱은 라이트 테마만 지원한다. */
+  color-scheme: light;
+}
+.mx-input:focus-visible {
+  outline: 2px solid var(--mx-accent);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.mx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+/* table-layout:fixed + min-width을 쓰는 표(계약 목록, IP 관리 등)가 그 min-width보다
+   좁은 화면에서 페이지 전체를 밀어내지 않고 이 컨테이너 안에서만 가로 스크롤되게 한다. */
+.mx-table-scroll {
+  overflow-x: auto;
+}
+.mx-table th {
+  text-align: left;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mx-muted);
+  font-weight: 600;
+  padding: 11px;
+  border-bottom: 1px solid var(--mx-border);
+}
+.mx-table td {
+  padding: 13px 11px;
+  border-bottom: 1px solid var(--mx-border-soft);
+}
+/* 좁은 칼럼에서 여러 줄로 줄바꿈되면 옆 칼럼과 거의 붙어 보여 겹친 것처럼 읽힌다 —
+   한 줄 + 말줄임으로 대신하고, 전체 텍스트는 title 속성으로 hover 시 보여준다. */
+.mx-cell-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mx-table tbody tr:hover {
+  background: var(--mx-bg-tint);
+}
+
+/* 표 아래 페이지네이션(계약 목록, IP 관리 등 목록형 화면 공용) */
+.mx-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--mx-muted);
+}
+.mx-pagination-btn {
+  padding: 6px 12px;
+}
+
+.mx-seg {
+  display: inline-flex;
+  border: 1px solid var(--mx-border-strong);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.mx-seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mx-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.mx-seg-opt input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.mx-seg-opt:hover:not(.active) {
+  color: var(--mx-text);
+}
+.mx-seg-opt.active {
+  background: var(--mx-accent-bg);
+  color: var(--mx-accent-hover);
+}
+
+/* 패널/보조 정보 접기·펼치기 링크 공용 톤 (파일 정보 접기, PDF 접기, AI 분석 흐름 보기 등) —
+   mx-link-btn 위에 얹어서 쓴다. 색이 없으면 본문 텍스트와 구분이 안 돼서 만들었다. */
+.mx-collapse-toggle {
+  color: var(--mx-accent);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.mx-collapse-toggle:hover {
+  color: var(--mx-accent-hover);
+  text-decoration: underline;
+}
+
+/* 키보드 포커스 링 — mx-input에만 있던 :focus-visible 처리를 나머지 인터랙션
+   요소로 넓힌다(WCAG 2.2 focus-visible). 마우스 클릭 시에는 안 뜨고 Tab
+   이동 때만 보인다. */
+.mx-btn:focus-visible,
+.mx-seg-opt:focus-visible,
+.mx-switch:focus-visible,
+.mx-nav-link:focus-visible,
+.mx-link-btn:focus-visible,
+.mx-chip-btn:focus-visible,
+.upload-territory-chip:focus-visible {
+  outline: 2px solid var(--mx-accent);
+  outline-offset: 2px;
+}
+
+/* 계약 상태값 배지 */
+.mx-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  /* nowrap이라 표 칸이 좁으면 옆 칸으로 텍스트가 흘러넘쳐 겹쳐 보인다 — 잘라내기 안전장치. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mx-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mx-status-muted {
+  color: var(--mx-muted);
+}
+.mx-status-muted .mx-status-dot {
+  background: var(--mx-border-strong);
+}
+.mx-status-good {
+  color: var(--mx-accent);
+}
+.mx-status-good .mx-status-dot {
+  background: var(--mx-accent);
+}
+.mx-status-critical {
+  color: var(--mx-alert-text);
+}
+.mx-status-critical .mx-status-dot {
+  background: var(--mx-alert);
+}
+
+.mx-status-ring {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  background: conic-gradient(var(--mx-ring-color) calc(var(--mx-ring-pct, 0) * 1%), var(--mx-border-soft) 0);
+}
+.mx-status-ring::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--mx-surface);
+}
+.mx-status-warn1 {
+  color: var(--mx-warn1-text);
+  --mx-ring-color: var(--mx-warn1);
+}
+.mx-status-warn2 {
+  color: var(--mx-warn2-text);
+  --mx-ring-color: var(--mx-warn2);
+}
+.mx-status-warn3 {
+  color: var(--mx-warn3-text);
+  --mx-ring-color: var(--mx-warn3);
+}
+
+.mx-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--mx-border-strong);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.mx-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mx-switch[data-on="true"] {
+  background: var(--mx-accent);
+}
+.mx-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mx-surface);
+  box-shadow: 0 1px 2px rgba(27, 33, 29, 0.3);
+  transition: transform 0.15s ease;
+}
+.mx-switch[data-on="true"] .mx-switch-thumb {
+  transform: translateX(14px);
+}
+
+.mx-nav-link {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  padding-bottom: 4px;
+  color: var(--mx-text);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mx-nav-link.active {
+  color: var(--mx-accent);
+  border-bottom-color: var(--mx-accent);
+}

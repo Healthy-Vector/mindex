@@ -96,3 +96,7 @@ embeddings_cache/
 
 # 도커
 docker-compose.override.yml
+
+# app 소스의 models 패키지는 추적한다 (위의 models/ 는 ML 아티팩트용 규칙)
+!app/models/
+!app/models/*.py

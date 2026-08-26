@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mindex-contract-extraction-worker
+  labels:
+    app: mindex-contract-extraction-worker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: mindex-contract-extraction-worker
+  template:
+    metadata:
+      labels:
+        app: mindex-contract-extraction-worker
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: worker
+          image: mindex-contract-extraction-worker:local
+          imagePullPolicy: Never
+          env:
+            - name: MINDEX_JOB_STORE
+              value: pg
+            - name: MINDEX_REPOSITORY
+              value: pg
+            - name: MINDEX_RETRIEVE_FN
+              value: app.pipeline.service:retrieve_contract_chunks
+            - name: OLLAMA_BASE_URL
+              value: http://host.docker.internal:11434
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mindex-worker-secret
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 6Gi
