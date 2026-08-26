@@ -67,6 +67,10 @@ Ollama 서버
 | ① | `pip install -r requirements.txt` | 백엔드 의존성 설치 |
 | ② | `uvicorn app.main:app --host 0.0.0.0 --port 8000` | API 서버 실행 |
 
+> 기본값(`EMBEDDINGS_ENABLED=true`)으로 기동하면 서버가 임베딩 모델을 미리
+> 데웁니다(warm-up). 끄려면 `.env`에 `EMBEDDINGS_ENABLED=false` — 자세한 내용은
+> 아래 [자연어 검색(벡터 랭킹)](#자연어-검색벡터-랭킹--기본-켜짐) 참고.
+
 **5. Frontend** — 사용자 화면 (`:5173`, `/api`는 `:8000`으로 프록시)
 
 | 순서 | 명령어 | 설명 |
