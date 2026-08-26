@@ -167,7 +167,7 @@ save_rights_batch(
 - 이미 `contract.source_tmpid`에 쓰인 값은 `409 ALREADY_CONFIRMED`다. 신규·개정 계약 모두 같은 사전 검사를 거친다.
 - 같은 계약의 동시 버전 등록은 API가 contract 행을 `FOR UPDATE`로 잠가 `MAX(version)+1` 경쟁을 막는다.
 - `chunks[]`의 페이지는 `pageStart`·`pageEnd`로 보내며 둘 다 있으면 `pageEnd >= pageStart`여야 한다.
-- `staging.extract_job.consumed_at` 갱신과 TTL 정리는 P2 D-33의 O-15가 확정되기 전까지 별도 단계다.
+- `POST /contracts`가 `201`로 끝나면 APPLIED·CONFLICTED 모두 같은 트랜잭션에서 `staging.extract_job.consumed_at`을 기록한다. TTL 정리는 별도 단계다.
 
 ## 5. 공통 HTTP 규약
 
@@ -247,7 +247,7 @@ DB 통합 테스트는 P2 init SQL이 적용된 PostgreSQL 17에서 실행한다
 1. 현재 P4 작업을 최신 `origin/main` 위에 통합하고 파일 충돌을 해소한다.
 2. 최신 main init SQL로 새 PG17 볼륨을 만들고 API 통합·동시성 테스트를 실행한다.
 3. `contract_history.file_path`의 실제 object storage 어댑터를 연결한다. 현재 로컬 파일 응답은 개발용이다.
-4. O-15 결정 후 `consumed_at`과 staging TTL 정리 책임을 P1·P2·P4 사이에서 확정한다.
+4. staging PDF·작업·결과 JSONB의 TTL 정리 책임과 주기를 P1·P2·P4 사이에서 확정한다. `consumed_at` 기록은 확정 API가 맡는다.
 5. 검색 응답의 스니펫·교차언어 UI 계약은 임베딩 서비스가 연결될 때 확장하되 SQL 필터 우선 순서는 유지한다.
 6. 운영 배포 전에 단일 `team` 행과 bcrypt `pin_hash`를 provisioning한다.
 7. `extract_result.payload`의 확정 입력 병합 규칙을 P1과 필드 단위로 확정한다. 현재는 DONE·결과 존재 여부를 검증하고 사용자가 검토한 요청 본문을 저장한다.

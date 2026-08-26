@@ -493,6 +493,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 2. 이미 `contract.source_tmpid`에 사용 중인 값인지 검사 — 재사용이면 `409 ALREADY_CONFIRMED`
 3. 같은 계약의 동시 버전 등록은 contract 행을 `FOR UPDATE`로 잠금
 4. 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
+5. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 `staging.extract_job.consumed_at`을 기록
 5. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
 6. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
 
@@ -614,7 +615,7 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 충돌 세대에는 `rights_grant` 행이 없습니다. 7번은 최신 계약 이력 상태로 `hasConflict`를 계산하고, 8번은 충돌 조건을 `histories[].conflictReport`에서 읽습니다.
 
-`staging.extract_job.consumed_at` 갱신과 TTL 정리는 P2 D-33의 O-15가 확정되기 전까지 별도 단계입니다. 현재 계약의 `source_tmpid`는 개정 시 마지막 값으로 덮어쓰므로 과거 tmpid 영구 차단에는 history 단위 UNIQUE나 별도 소비 원장이 필요합니다.
+`POST /contracts`가 `201`로 완료되면 `staging.extract_job.consumed_at`을 같은 트랜잭션에서 기록합니다. PDF·작업·결과 JSONB의 실제 삭제는 TTL 정리 작업의 별도 책임이며, 이번 범위에는 포함하지 않습니다. 현재 계약의 `source_tmpid`는 개정 시 마지막 값으로 덮어쓰므로 과거 tmpid 영구 차단에는 history 단위 UNIQUE나 별도 소비 원장이 필요합니다.
 ---
 
 ## 7. 계약 목록 — `GET /contracts`
@@ -1383,7 +1384,7 @@ GET /api/ips?page=1&size=20
 |1|**재허락(authority) 필드** — 화면에 카드가 있으나 스키마 미확정. 현재 8번 응답은 전 필드 null|P2·P5|
 |2|**`serviceTitle`** — 목록 화면의 서비스 타이틀에 대응하는 컬럼이 없어 현재 null|P2·P5|
 |3|**원본 파일 저장소** — 9번은 개발용 로컬 파일 어댑터. 실제 object storage 연결 필요|P1·P4|
-|4|**staging 소비·TTL** — O-15 확정 후 `consumed_at` 갱신과 임시 데이터 정리 책임 결정|P1·P2·P4|
+|4|**staging TTL 정리** — `consumed_at`은 확정 API가 기록. PDF·작업·결과 JSONB 삭제 책임과 주기는 후속 결정|P1·P2·P4|
 |5|**과거 tmpid 재사용 차단** — 개정 시 `contract.source_tmpid`가 덮어써지므로 history 단위 UNIQUE 또는 별도 소비 원장 필요|P2|
 |6|**처리 목록 filename** — 최소권한 staging 계약에서는 null. 필요하면 `pdf_blob` 직접 권한이 아닌 메타데이터 view 정의|P1·P2·P4|
 |7|**검색 결과 확장** — 스니펫·교차언어 UI 계약은 임베딩 서비스 연결 시 확장하되 SQL 필터 우선 순서 유지|P3·P4·P5|

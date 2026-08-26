@@ -32,6 +32,7 @@ from app.routers import contracts as _contracts  # noqa: E402
 from app.routers import rights as _rights  # noqa: E402
 from app.routers import auth as _auth  # noqa: E402
 from app.routers import search as _search  # noqa: E402
+from app.routers import extraction as _extraction  # noqa: E402
 
 app.include_router(_auth.router, prefix="/api", tags=["auth"])
 app.include_router(_refs.router, prefix="/api", tags=["refs"])
@@ -39,3 +40,4 @@ app.include_router(_ips.router, prefix="/api", tags=["ips"])
 app.include_router(_contracts.router, prefix="/api", tags=["contracts"])
 app.include_router(_rights.router, prefix="/api", tags=["rights"])
 app.include_router(_search.router, prefix="/api", tags=["search"])
+app.include_router(_extraction.router, prefix="/api", tags=["extract"])
