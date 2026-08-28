@@ -23,7 +23,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
-from app.errors import AlreadyConfirmed, ExtractNotReady, NotFound, ValidationFailed
+from app.errors import AlreadyConfirmed, ExtractNotReady, IpInactive, NotFound, ValidationFailed
 from app.schemas.common import camelize_json_keys
 from app.services import staging_edit
 from app.services.storage import sha256_hex, write_contract_pdf
@@ -415,8 +415,19 @@ def _validate_request_refs(
             raise ValidationFailed("ipId가 없으면 contentAssetId를 지정할 수 없습니다")
         return
 
-    if db.execute(text("SELECT id FROM ip WHERE id=:i"), {"i": ctx["ip_id"]}).scalar() is None:
+    ip_row = db.execute(
+        text("SELECT id, activity FROM ip WHERE id=:i"), {"i": ctx["ip_id"]}
+    ).mappings().first()
+    if ip_row is None:
         raise NotFound("IP를 찾을 수 없습니다")
+    # D-41 — 새 계약 행을 만들 때만 activity를 본다(contractId 없음. 연장 포함).
+    # 기존 계약에 버전을 추가하는 것(contractId 있음)은 IP 연결이 이미 유효했던
+    # 것이므로 다시 보지 않는다.
+    if ctx["contract_id"] is None and ip_row["activity"] != "active":
+        raise IpInactive(
+            "비활성화된 IP로는 새 계약을 만들 수 없습니다",
+            details={"ipId": ctx["ip_id"]},
+        )
     if not asset_ids:
         return
     rows = db.execute(

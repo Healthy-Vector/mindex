@@ -375,3 +375,96 @@ def test_patch_asset_scope_merge_violation_is_400(client, clean_db):
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "VALIDATION_FAILED"
+
+
+# ── D-41: 비활성 IP는 새 계약을 만들 수 없다 ──────────────────
+def _deactivate(client, ip_id):
+    r = client.patch(f"/api/ips/{ip_id}", json={"activity": "deactive"})
+    assert r.status_code == 200, r.text
+
+
+@requires_db
+def test_verify_rejects_new_contract_for_inactive_ip(client, clean_db):
+    """contractId 없이(=새 계약) 비활성 IP를 걸면 검증 단계에서부터 막힌다."""
+    _deactivate(client, clean_db["ip_id"])
+
+    response = client.post("/api/contracts/verify", json=body(clean_db))
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "IP_INACTIVE"
+
+
+@requires_db
+def test_confirm_rejects_new_contract_for_inactive_ip(client, clean_db):
+    """확정도 같은 규칙 — 새 계약 행 생성은 활성 IP가 필요하다."""
+    _deactivate(client, clean_db["ip_id"])
+
+    response = client.post("/api/contracts", json=body(clean_db))
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "IP_INACTIVE"
+
+
+@requires_db
+def test_renewal_of_inactive_ip_is_also_rejected(client, clean_db):
+    """연장(mode=new)도 contractId가 없는 신규 계약 행이므로 동일하게 막힌다.
+
+    화면은 연장을 "법적으로 별개인 신규 계약"으로 취급해 contractId를 보내지
+    않는다(ContractDetailContent.jsx) — 서버 쪽에서 보면 이미 서명된 계약이
+    있었다는 사실과 무관하게 그냥 또 하나의 신규 계약 요청이다.
+    """
+    signed = client.post("/api/contracts", json=body(clean_db))
+    assert signed.status_code == 201, signed.text
+
+    _deactivate(client, clean_db["ip_id"])
+
+    renewal = client.post(
+        "/api/contracts/verify",
+        json=body(clean_db, start="2028-01-01", end="2028-12-31"),
+    )
+
+    assert renewal.status_code == 409
+    assert renewal.json()["error"]["code"] == "IP_INACTIVE"
+
+
+@requires_db
+def test_adding_version_to_existing_contract_ignores_ip_activity(client, clean_db):
+    """contractId가 있으면(기존 계약에 버전 추가) activity를 다시 보지 않는다.
+
+    그 IP 연결은 계약이 처음 만들어질 때 이미 유효했다 — 이후 IP가
+    비활성화됐다고 기존 계약의 버전 추가(draft 추가·최종본 등록)까지 막히면
+    안 된다.
+    """
+    draft = client.post(
+        "/api/contracts/verify",
+        json=body(clean_db, exclusivity="non_exclusive"),
+    )
+    assert draft.status_code == 200
+    # verify는 아무것도 남기지 않으므로 실제 계약 행은 confirm으로 만든다.
+    created = client.post(
+        "/api/contracts",
+        json={**body(clean_db, exclusivity="non_exclusive"), "documentKind": "draft"},
+    )
+    assert created.status_code == 201, created.text
+    contract_id = created.json()["contractId"]
+
+    _deactivate(client, clean_db["ip_id"])
+
+    revision = client.post(
+        "/api/contracts",
+        json={
+            **body(clean_db, exclusivity="non_exclusive", start="2029-01-01", end="2029-12-31"),
+            "contractId": contract_id,
+            "documentKind": "final",
+        },
+    )
+
+    assert revision.status_code == 201, revision.text
+    assert revision.json()["batchResult"] in {"APPLIED", "CONFLICTED"}
+
+
+@requires_db
+def test_active_ip_new_contract_still_works(client, clean_db):
+    """활성 IP는 그대로 통과한다 — 회귀 확인용."""
+    response = client.post("/api/contracts/verify", json=body(clean_db))
+    assert response.status_code == 200

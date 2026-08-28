@@ -34,7 +34,7 @@
 |`400`|요청 형식 오류|
 |`401`|PIN 세션 없음 또는 만료|
 |`404`|대상 없음|
-|`409`|중복 확정 (`source_tmpid` 재사용)|
+|`409`|중복 확정 (`source_tmpid` 재사용), 비활성 IP로 새 계약 시도, 사용 중인 권리 대상 수정|
 |`422`|처리 가능하나 업무 규칙 위반|
 
 **충돌은 에러가 아닙니다.** 권리 충돌이 발생해도 `200`/`201`로 응답하고 본문에 충돌 내역을 담습니다. HTTP 오류로 주면 프론트가 "요청이 실패한 건지, 충돌이 난 건지" 구분하지 못합니다.
@@ -405,6 +405,8 @@ GET /api/ips/match?q=겨울왕국%20시즌2&limit=10&includeInactive=false
 
 판정 결과는 롤백되지만 **수정본은 남습니다.** 그래서 확정(6번)에서 같은 값을 다시 보낼 필요가 없습니다.
 
+`contractId`가 없는 요청(신규 계약)은 판정에 앞서 `ipId`가 비활성 IP가 아닌지 검사합니다 — 비활성이면 `409 IP_INACTIVE`입니다. `contractId`가 있는 요청(기존 계약에 버전 추가)은 검사하지 않습니다(D-41, 6번과 동일 규칙).
+
 권리 한 행은 다음 원자 단위로 판정합니다.
 
 ```text
@@ -528,11 +530,12 @@ content_asset_id × territory × legal_right span × exploitation_mode span × p
 
 1. `tmpId`가 있으면 `staging.extract_job.status='DONE'`이고 대응하는 `extract_result`가 있는지 확인
 2. 이미 `contract.source_tmpid`에 사용 중인 값인지 검사 — 재사용이면 `409 ALREADY_CONFIRMED`
-3. 같은 계약의 동시 버전 등록은 contract 행을 `FOR UPDATE`로 잠금
-4. `tmpId` 경로면 워커가 `payload.chunks`에 보존한 문서 청크·임베딩을 읽어 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
-5. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 **원본 PDF를 서버 저장소로 옮기고**(`staging.pdf_blob.data` → `{contract_id}/{history_id}.pdf`) `contract_history.file_path`·`file_hash`를 기록한 뒤 `staging.extract_job.consumed_at`을 기록
-6. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
-7. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
+3. `contractId`가 없으면(신규 계약) `ipId`가 비활성 IP가 아닌지 검사 — 비활성이면 `409 IP_INACTIVE`. `contractId`가 있으면(기존 계약에 버전 추가) 검사하지 않습니다(D-41)
+4. 같은 계약의 동시 버전 등록은 contract 행을 `FOR UPDATE`로 잠금
+5. `tmpId` 경로면 워커가 `payload.chunks`에 보존한 문서 청크·임베딩을 읽어 계약·계약 이력·문서 청크 저장 후 권리 배치 INSERT 시도
+6. `201`로 종료되는 `APPLIED`·`CONFLICTED` 모두 같은 트랜잭션에서 **원본 PDF를 서버 저장소로 옮기고**(`staging.pdf_blob.data` → `{contract_id}/{history_id}.pdf`) `contract_history.file_path`·`file_hash`를 기록한 뒤 `staging.extract_job.consumed_at`을 기록
+7. 적용이면 `contract_history.status='applied'`와 active grant를 함께 커밋
+8. 충돌이면 grant INSERT 전체를 되돌리고 `contract_history.status='conflicted'`와 `conflict_report`만 커밋
 
 **부분 승인은 발생하지 않습니다.** 배치 내부 한 행만 충돌해도 이번 요청의 grant는 0행입니다. 충돌은 트랜잭션 실패가 아니라 판정 결과이므로 APPLIED와 CONFLICTED 모두 `201`입니다.
 
@@ -1253,7 +1256,9 @@ GET /api/ips?page=1&size=20
 }
 ```
 
-`contractCount` 가 0보다 큰 IP를 비활성화해도 기존 계약 조회에는 영향이 없습니다. 새 계약을 만들 때 목록에 안 나올 뿐입니다.
+`contractCount` 가 0보다 큰 IP를 비활성화해도 기존 계약 조회에는 영향이 없고, 그 계약에 draft·최종본 버전을 추가하는 것도 막히지 않습니다.
+
+**비활성 IP로 새 계약(신규 `contractId`)을 만드는 것은 5·6번이 거부합니다(`409 IP_INACTIVE`, D-41).** 목록·매칭(4·12번)에서 안 보이는 것뿐 아니라 서버가 실제로 막습니다 — 검색을 거치지 않고 `ipId`를 직접 보내는 경로(계약 연장 등)까지 포함합니다. `contractId`가 있는 요청(기존 계약에 버전 추가)은 영향을 받지 않습니다.
 
 ---
 

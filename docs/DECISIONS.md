@@ -368,6 +368,33 @@ createdAt}`만 주므로 목록에서 클릭해 들어오면 `tmpid` 하나뿐�
 멀티테넌트가 필요해지면 스키마에 `team_id` 전파와 RLS가 따로 필요하고,
 `app/security/rls.py`가 그 빈자리로 남아 있다.
 
+### D-41 — 비활성 IP는 새 계약을 만들 수 없다
+
+`PATCH /ips/{id}`로 IP를 `deactive`로 바꿔도, 검증·확정(`_validate_request_refs`)이
+`ip.activity`를 전혀 보지 않아 **비활성 IP로도 새 계약이 그대로 만들어지고 있었다.**
+§14 문서는 "새 계약을 만들 때 목록에 안 나올 뿐입니다"로 UI 노출만 막는 것을 의도로
+적어뒀는데, 실사용에서 그 의도가 충분하지 않다는 게 드러났다 — 검색·매칭은 비활성
+IP를 잘 걸러내지만(§4·§12, `search_ip_rows`의 `WHERE (:include_inactive OR
+activity='active')`), **검색을 거치지 않고 `ipId`를 직접 실어 보내는 경로가 있다**:
+
+- **계약 연장** — `ContractDetailContent.jsx`가 서명된 계약의 "최종계약 등록"을
+  `mode=new&ipId=<기존IP>`로 보낸다(연장은 기존 계약의 새 버전이 아니라 법적으로
+  별개인 신규 계약이라는 프론트 판단, contractId는 안 보낸다).
+- **중복 IP 확인** — `DuplicateIpPrompt`의 "기존 IP 사용"이 `GET /ips/{id}`로 IP를
+  가져오는데, 그 엔드포인트는 "기존 계약 확인을 위해" 비활성 IP도 의도적으로 연다.
+
+**판정 기준은 `contractId`의 유무다.**
+
+- `contractId`가 없다(신규 계약 행 생성 — 연장 포함) → IP를 새로 연결하는 행위이므로
+  **활성 IP만 허용.** `409 IP_INACTIVE`.
+- `contractId`가 있다(기존 계약에 draft·final 버전 추가) → 그 IP 연결은 계약이 처음
+  만들어질 때 이미 유효했다. 지금 하는 일은 이력을 늘리는 것뿐이므로 **다시 보지
+  않는다** — IP를 나중에 비활성화해도 기존 계약의 버전 추가(초안 추가·최종본 등록)는
+  막히면 안 된다.
+
+이 경계는 `save_rights_batch()`의 신규/기존 분기(`p_contract_id IS NULL`)와 정확히
+일치한다 — "새 계약이란 무엇인가"를 이미 그 함수가 정의해 둔 것을 그대로 따랐다.
+
 ## 미결
 
 ### O-06 — 요구사항별 평가 건수 불일치
