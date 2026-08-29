@@ -1,9 +1,12 @@
-# Mindex
+## 2026 오픈소스 개발자대회
+
+# Mindex | OpenSQL 기반 저작권 계약 인텔리전스 플랫폼
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![시연 영상](https://img.shields.io/badge/Demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/iI3mAoTk8P4)
 
-**OpenSQL 기반 저작권 계약 인텔리전스 플랫폼**  
-2026 오픈소스 개발자대회 티맥스티베로 지정과제 - 벡터근육키우기 프로젝트
+
+
 
 계약서를 업로드하면 AI가 내용을 구조화하고, OpenSQL의 PostgreSQL 호환 제약조건이 배타 권리의 계약 충돌을 판정합니다.
 
