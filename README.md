@@ -1,184 +1,192 @@
-# mindex
+# Mindex
 
-**OpenSQL 기반 저작권 계약 인텔리전스 플랫폼**
-2026 오픈소스 개발자대회 · 티맥스티베로 지정과제 대응 (K-RIGHTS 프로젝트)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-계약서를 업로드하면 AI가 구조화하고, **OpenSQL(PostgreSQL) 제약조건이 권리 충돌을 원천 차단**하는 무중단 계약 인텔리전스 플랫폼입니다.
+**OpenSQL 기반 저작권 계약 인텔리전스 플랫폼**  
+2026 오픈소스 개발자대회 티맥스티베로 지정과제 - 벡터근육키우기 프로젝트
 
+계약서를 업로드하면 AI가 내용을 구조화하고, OpenSQL의 PostgreSQL 호환 제약조건이 배타 권리의 계약 충돌을 판정합니다.
+
+```text
+계약서 업로드 → OCR·LLM 구조화 → DB 충돌 판정 → 자연어·MCP 검색
 ```
-계약서 업로드 → AI 구조화 추출 → DB 충돌 판정(EXCLUDE) → 자연어/MCP 검색
+
+> AI는 계약 내용을 추출합니다. 최종 권리 충돌 판정은 데이터베이스가 수행합니다.
+
+---
+
+## 핵심 기능
+
+| 기능 | 구현 |
+|---|---|
+| 계약서 자동 구조화 | PDF 업로드 후 OCR·LLM 비동기 추출 |
+| 중복 처리 방지 | `FOR UPDATE SKIP LOCKED` + lease 기반 재수령 |
+| 권리 충돌 판정 | PostgreSQL `EXCLUDE` 제약조건 |
+| 계약 검색 | `pg_trgm` + `multilingual-e5-large` 하이브리드 검색 |
+| 외부 연동 | REST API + MCP |
+
+## 시스템 구성
+
+```mermaid
+flowchart LR
+    U[Frontend] --> API[Backend API]
+    API --> DB[(OpenSQL)]
+    DB --> W[Kubernetes Worker]
+    W --> AI[OCR · Ollama]
+    AI --> DB
 ```
 
-AI는 추출만 합니다. 최종 판정은 데이터베이스가 합니다.
+| 구분 | 기술 |
+|---|---|
+| Backend | Python 3.12, FastAPI |
+| Database | OpenSQL 17.8, PostgreSQL 17, pgvector 0.8.1 |
+| AI | Ollama `qwen3:8b`, `multilingual-e5-large` |
+| Worker | Kubernetes |
+| Frontend | React, Vite |
 
 ---
 
 ## 빠른 시작
 
-```bash
-cp .env.example .env          # 값 채우기
-docker compose up -d          # OpenSQL 대신 pgvector/pgvector:0.8.1-pg17 로 개발 (동일 PostgreSQL 17 기반)
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-### 전체 구동 순서 (PDF 업로드 → 자동 추출까지)
-
-화면·일반 API만 확인한다면 위 빠른 시작(PostgreSQL → Backend → Frontend)으로
-충분합니다. **PDF 업로드부터 자동 추출 결과 확인까지** 하려면 Ollama와 Kubernetes
-추출 워커가 추가로 필요합니다.
-
-```text
-PostgreSQL
-  └─ Backend API
-      └─ Frontend
-
-Ollama 서버
-  └─ Kubernetes의 추출 워커
-      └─ Backend가 만든 staging 작업을 처리
-```
-
-**1. PostgreSQL** — DB 기동. 최초 실행 시 `sql/init/*.sql`이 자동 적재됩니다.
-
-| 순서 | 명령어 | 설명 |
-|---|---|---|
-| ① | `cp .env.example .env` | 환경변수 파일 생성 (DB 접속정보 등 입력) |
-| ② | `docker compose up -d` | DB 컨테이너 실행 + 스키마 자동 생성 |
-
-**2. Ollama** — 워커가 LLM 추출에 사용합니다 (호스트에서 실행).
-
-| 순서 | 명령어 | 설명 |
-|---|---|---|
-| ① | `ollama serve` | Ollama 서버 기동 |
-| ② | `ollama pull qwen3:8b` | 추출용 LLM 모델 내려받기 |
-
-**3. 추출 워커 (Kubernetes)** — staging 큐를 폴링해 OCR·LLM 추출을 수행합니다.
-
-| 순서 | 명령어 | 설명 |
-|---|---|---|
-| ① | `docker build -f Dockerfile.worker -t mindex-contract-extraction-worker:local .` | 워커 이미지 빌드 |
-| ② | `kubectl create secret generic mindex-worker-secret --from-literal=DATABASE_URL=<DB주소>` | 워커용 DB 접속정보 등록 |
-| ③ | `kubectl apply -f k8s/contract-extraction-worker.yaml` | 워커 배포 |
-
-**4. Backend API** — 업로드 접수·검증·확정·검색 (`:8000`)
-
-| 순서 | 명령어 | 설명 |
-|---|---|---|
-| ① | `pip install -r requirements.txt` | 백엔드 의존성 설치 |
-| ② | `uvicorn app.main:app --host 0.0.0.0 --port 8000` | API 서버 실행 |
-
-> 기본값(`EMBEDDINGS_ENABLED=true`)으로 기동하면 서버가 임베딩 모델을 미리
-> 데웁니다(warm-up). 끄려면 `.env`에 `EMBEDDINGS_ENABLED=false` — 자세한 내용은
-> 아래 [자연어 검색(벡터 랭킹)](#자연어-검색벡터-랭킹--기본-켜짐) 참고.
-
-**5. Frontend** — 사용자 화면 (`:5173`, `/api`는 `:8000`으로 프록시)
-
-| 순서 | 명령어 | 설명 |
-|---|---|---|
-| ① | `cd frontend` | 프론트엔드 디렉터리 이동 |
-| ② | `npm install` | 프론트엔드 의존성 설치 |
-| ③ | `npm run dev` | 개발 서버 실행 → http://localhost:5173 |
-
-> Kubernetes/Docker Desktop이 실행 중인 PC에서 Ollama도 함께 켜야 합니다 — 워커
-> 배포 설정이 `host.docker.internal:11434`로 로컬 Ollama를 바라봅니다
-> ([k8s/contract-extraction-worker.yaml](k8s/contract-extraction-worker.yaml)).
-> `kubectl` 명령은 클러스터 종류(kind/minikube/Docker Desktop)에 따라 이미지 로드
-> 단계가 하나 더 필요할 수 있습니다.
-
-### 자연어 검색(벡터 랭킹) — 기본 켜짐
-
-검색 벡터 랭킹은 **기본으로 켜져 있다**(`EMBEDDINGS_ENABLED=true`). 켜져 있으면 ML
-의존성이 설치돼 있어야 하고, 서버가 기동 시 임베딩 모델을 미리 데운다(warm-up).
+### 1. 환경변수와 DB
 
 ```bash
-pip install -r requirements-ml.txt   # torch + sentence-transformers
-uvicorn app.main:app --reload
+cp .env.example .env          # DB 접속정보 입력
+docker compose up -d          # 로컬 PostgreSQL 17 실행
 ```
 
-- 임베딩 모델(`intfloat/multilingual-e5-large`, ~2.2GB)은 첫 로딩 시 HuggingFace에서
-  자동 다운로드된다. warm-up 덕에 첫 검색 사용자가 다운로드·로딩을 기다리지 않는다.
-- **폐쇄망**에서는 자동 다운로드가 실패하므로 모델을 미리 받아 HuggingFace 캐시
-  (`HF_HOME`)에 심어 두어야 한다.
-- GPU가 없으면 임베딩이 크게 느리다(실측 CPU 2.8 chunk/s, CUDA fp16 대비 약 29배).
-  검색 질의는 건당이라 체감이 덜하지만, 색인(워커)은 GPU 환경을 권장한다.
+최초 실행 시 `sql/init/*.sql`이 자동으로 적재됩니다. 로컬에서는 OpenSQL 대신 동일한 PostgreSQL 17 기반의 `pgvector/pgvector:0.8.1-pg17` 이미지를 사용합니다.
 
-**임베딩 없이 돌리려면(opt-out)** `EMBEDDINGS_ENABLED=false`로 끈다. `requirements-ml.txt`
-없이 기본 `requirements.txt`만으로 뜨고, 검색은 **어휘(pg_trgm) 폴백**으로 동작한다
-(벡터 랭킹만 생략, 오류 없음). CI가 검색 테스트를 이 경로로 스킵한다.
+### 2. Backend
 
-> 런타임에 패키지를 설치하지는 않는다 — 설치는 배포 단계, 플래그는 사용 여부만 정한다.
-> 기본이 켜짐이라 `true`인데 패키지가 없으면 기동 시 경고를 남기고 어휘 폴백으로 계속한다.
+```bash
+python -m pip install -r requirements.txt
+python -m pip install -r requirements-ml.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
-`docker compose up` 이 성공하고 `sql/init/01_schema.sql` 이 자동 실행되면, 아래 스모크 테스트로 충돌 판정이 동작하는지 확인합니다.
+- API: <http://localhost:8000>
+- Swagger UI: <http://localhost:8000/docs>
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Frontend: <http://localhost:5173>
+- `/api` 요청은 Backend의 `:8000` 포트로 프록시됩니다.
+
+<details>
+<summary><strong>PDF 자동 추출 워커까지 실행</strong></summary>
+
+### Ollama
+
+```bash
+ollama serve
+ollama pull qwen3:8b
+```
+
+### Kubernetes Worker
+
+```bash
+docker build \
+  -f Dockerfile.worker \
+  -t mindex-contract-extraction-worker:local \
+  .
+
+kubectl create secret generic mindex-worker-secret \
+  --from-literal=DATABASE_URL='postgresql://USER:PASSWORD@HOST:5432/DBNAME' \
+  --dry-run=client \
+  -o yaml | kubectl apply -f -
+
+kubectl apply -f k8s/contract-extraction-worker.yaml
+kubectl get pods
+```
+
+Docker Desktop Kubernetes의 워커는 호스트 Ollama를 `host.docker.internal:11434`로 조회합니다. kind, minikube, Linux 기반 클러스터는 로컬 이미지 로드와 호스트 주소 설정이 추가로 필요합니다.
+
+</details>
+
+---
+
+## 자연어 검색
+
+벡터 검색은 기본으로 켜져 있습니다.
+
+```dotenv
+EMBEDDINGS_ENABLED=true
+```
+
+`intfloat/multilingual-e5-large` 모델은 최초 실행 시 Hugging Face에서 자동으로 내려받습니다. 모델 크기는 약 2.2GB입니다.
+
+임베딩을 사용하지 않으려면 다음과 같이 설정합니다.
+
+```dotenv
+EMBEDDINGS_ENABLED=false
+```
+
+이 경우 `requirements-ml.txt` 설치를 생략할 수 있으며, 검색은 `pg_trgm` 기반 어휘 검색으로 폴백합니다.
+
+<details>
+<summary><strong>임베딩 운영 참고</strong></summary>
+
+- 폐쇄망에서는 모델을 미리 내려받아 `HF_HOME` 캐시에 배치해야 합니다.
+- CPU 색인 실측치는 약 2.8 chunk/s로 CUDA FP16 대비 약 29배 느렸습니다.
+- 대량 색인은 GPU 환경을 권장합니다.
+- ML 패키지가 없으면 경고를 남기고 어휘 검색으로 계속 실행합니다.
+
+</details>
+
+## 충돌 판정 테스트
 
 ```bash
 pytest tests/test_conflict_constraint.py -v
 ```
 
-두 번째 INSERT가 다음 에러로 실패해야 정상입니다.
+충돌하는 두 번째 계약이 아래 오류로 거절되면 정상입니다.
 
-```
+```text
 ERROR: conflicting key value violates exclusion constraint "no_exclusive_overlap"
 ```
-
-### 프론트엔드 (SFR-014, Tier 2)
-
-```bash
-cd frontend
-npm install
-npm run dev              # http://localhost:5173, /api는 백엔드(:8000)로 프록시
-```
-
-투입 시간이 부족해지면 이 화면 전체를 드롭하고 백엔드의 `/docs` (Swagger UI)로 시연을 대체합니다.
 
 ---
 
 ## 디렉터리 구조
 
-```
+```text
 mindex/
-├── app/
-│   ├── main.py            FastAPI 엔트리포인트
-│   ├── core/               설정 · DB 세션
-│   ├── models/              ORM 모델
-│   ├── schemas/             Pydantic 스키마
-│   ├── pipeline/            업로드 · 파싱 · 추출 · 임베딩      (P3)
-│   ├── verification/        Evidence 검증 · 신뢰도 산출        (P4)
-│   ├── search/              하이브리드 검색 · MCP API           (P4)
-│   ├── api/                 REST API                          (P4)
-│   ├── orchestration/       LangGraph 에이전트 오케스트레이션   (P5)
-│   ├── security/            RLS · 시크릿 · 암호화 헬퍼          (P2)
-│   └── workers/             change_log 동기화 워커              (P1)
-├── sql/init/                스키마 (컨테이너 최초 기동 시 자동 실행)
-├── scripts/                 합성 계약서 생성 등 운영 스크립트
-├── tests/
-├── frontend/                웹 대시보드 (React + Vite, Tier 2)      (P5)
-│   └── src/{pages,components,api}
-└── docs/
+├── app/                     Backend API·파이프라인·검색
+├── frontend/                React·Vite 웹 대시보드
+├── k8s/                     추출 워커 배포 설정
+├── sql/init/                DB 초기 스키마
+├── scripts/                 운영·데이터 생성 스크립트
+├── tests/                   테스트
+├── docker-compose.yml
+├── Dockerfile.worker
+├── requirements.txt
+├── requirements-ml.txt
+├── LICENSE
+└── THIRD_PARTY_NOTICES.md
 ```
 
-## 담당 매핑
+## 개발 원칙
 
-| 담당 | 디렉터리 |
-|---|---|
-| P1 인프라/DBA | `app/workers`, `sql/`, `docker-compose.yml` |
-| P2 데이터/보안 | `app/security`, `sql/init/01_schema.sql`, `app/models` |
-| P3 AI 파이프라인 | `app/pipeline`, `scripts/generate_synthetic_contracts.py` |
-| P4 검증/백엔드 | `app/verification`, `app/search`, `app/api`, `tests/` |
-| P5 오케스트레이션/FE | `app/orchestration`, `frontend/` |
-
-## 지켜야 하는 것
-
-- **PostgreSQL 17 고정** — 실물 OpenSQL이 17.8 + pgvector 0.8.1 기반입니다(RFP v3의 "16.8 기반" 기술은 오기였습니다)
-- **PyMuPDF 금지** — AGPL 라이선스라 프로젝트 전체 라이선스가 오염됩니다. `pdfplumber` + `pypdfium2` 사용
-- **`.env`·라이선스 파일 커밋 금지** — `.gitignore` 참조
-- 라이선스: **Apache 2.0**
+- PostgreSQL 17 고정. 실물 OpenSQL은 PostgreSQL 17.8과 pgvector 0.8.1 기반입니다.
+- 프로젝트 정책상 AGPL 계열 라이브러리는 사용하지 않습니다. PDF 처리는 `pdfplumber`, `pypdfium2`를 사용합니다.
+- `.env`, 비밀키, 인증정보는 커밋하지 않습니다.
+- `LICENSE`, `THIRD_PARTY_NOTICES.md`는 저장소와 배포물에 포함합니다.
 
 ## 문서
 
-- 데이터 모델 정본: [`docs/mindex_remastered.dbml`](docs/mindex_remastered.dbml) (운영 `public` 스키마 + 비동기 추출용 `staging` 스키마)
-- DB 구조와 서비스 플로우: [`docs/mindex DB 설명서.md`](docs/mindex%20DB%20설명서.md)
-- staging 스키마(비동기 OCR/LLM 파이프라인): [`docs/mindex_staging DB 설명서.md`](docs/mindex_staging%20DB%20설명서.md)
-- 문서 목록: [`docs/README.md`](docs/README.md)
+- [데이터 모델](docs/mindex_remastered.dbml)
+- [DB 구조와 서비스 플로우](docs/mindex%20DB%20설명서.md)
+- [staging 스키마와 비동기 추출 파이프라인](docs/mindex_staging%20DB%20설명서.md)
+- [전체 문서 목록](docs/README.md)
+- [Apache License 2.0](LICENSE)
+- [외부 오픈소스 고지](THIRD_PARTY_NOTICES.md)
 
-프로젝트 요구사항 명세(RFP), 일정, 공수 산정 등 상세 문서는 별도 팀 공유 폴더에서 관리합니다.
+프로젝트 요구사항 명세, 일정, 공수 산정 등 내부 문서는 별도 팀 공유 폴더에서 관리합니다.
+
